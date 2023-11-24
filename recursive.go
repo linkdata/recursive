@@ -277,7 +277,11 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		return nil, ErrMaxDepth
 	}
 	if qtype == dns.TypeNS && len(authorities) > 0 {
-		return authoritiesMsg, nil
+		resp = authoritiesMsg.Copy()
+		resp.Answer = authorities
+		resp.Ns = nil
+		resp.Extra = nil
+		return resp, nil
 	}
 	return nil, ErrNoResponse
 }
