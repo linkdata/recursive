@@ -413,7 +413,7 @@ func (r *Resolver) CacheClean(now time.Time) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for ck, cv := range r.cache {
-		if now.After(cv.expires) {
+		if now.IsZero() || now.After(cv.expires) {
 			delete(r.cache, ck)
 		}
 	}
