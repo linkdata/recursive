@@ -309,11 +309,11 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, depth int, protocol strin
 
 	var nconn net.Conn
 	if nconn, err = r.dialer.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
-		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
+		dnsconn := &dns.Conn{Conn: nconn}
 		defer dnsconn.Close()
 		m := new(dns.Msg)
 		m.SetQuestion(qname, qtype)
-		var c dns.Client
+		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		if msg, _, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil {
 			if msg.MsgHdr.Truncated && protocol == "udp" {
 				_ = (r.logger != nil) && r.log("%*smessage truncated; retry using TCP", depth*2, "")
