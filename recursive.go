@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net"
 	"net/netip"
+	"strings"
 	"sync"
 	"time"
 
@@ -29,6 +30,8 @@ var (
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// Consider it equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
+	// errTruncated signals a UDP response was truncated and TCP should be tried
+	errTruncated = errors.New("truncated")
 	// UdpQueryTimeout is the timeout set on UDP queries before trying TCP.
 	// If set to zero, UDP will not be used.
 	UdpQueryTimeout = 5 * time.Second
@@ -39,10 +42,10 @@ var defaultNetDialer net.Dialer
 type Resolver struct {
 	dialer      proxy.ContextDialer
 	logger      *log.Logger
+	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
 	rootServers []netip.Addr
-	mu          sync.RWMutex
 	cache       map[cacheKey]cacheValue
 }
 
@@ -91,7 +94,16 @@ func (r *Resolver) log(format string, args ...any) bool {
 // Resolve will perform a recursive DNS resolution for the provided name and record type,
 // starting from a randomly chosen root server.
 func (r *Resolver) Resolve(ctx context.Context, name string, qtype uint16) (*dns.Msg, error) {
-	return r.recurseFromRoot(ctx, rand.Intn(len(r.rootServers)), 0, name, qtype)
+	return r.recurseFromRoot(ctx, rand.Intn(31), 0, name, qtype)
+}
+
+func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
+	r.mu.RLock()
+	if l := len(r.rootServers); l > 0 {
+		addr = r.rootServers[i%l]
+	}
+	r.mu.RUnlock()
+	return
 }
 
 func (r *Resolver) recurseFromRoot(ctx context.Context, rootidx int, depth int, qname string, qtype uint16) (*dns.Msg, error) {
@@ -101,19 +113,39 @@ func (r *Resolver) recurseFromRoot(ctx context.Context, rootidx int, depth int, 
 	_ = (r.logger != nil) && r.log("%*sresolving from root %s %q", depth*2, "", DnsTypeToString(qtype), qname)
 
 	for i := 0; i < maxRootAttempts; i++ {
-		server := r.rootServers[(rootidx+i)%len(r.rootServers)]
-		retv, err := r.recurse(ctx, rootidx, depth, server, qname, qtype)
-		switch err {
-		case nil:
-			return retv, err
-		case ErrMaxDepth:
-			depthError = true
+		if server := r.nextRoot(rootidx + i); server.IsValid() {
+			retv, err := r.recurse(ctx, rootidx, depth, server, qname, qtype)
+			switch err {
+			case nil:
+				return retv, err
+			case ErrMaxDepth:
+				depthError = true
+			}
 		}
 	}
 	if depthError {
 		return nil, ErrMaxDepth
 	}
 	return nil, ErrNoResponse
+}
+
+func (r *Resolver) useable(addr netip.Addr) (ok bool) {
+	r.mu.RLock()
+	ok = (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6())
+	r.mu.RUnlock()
+	return
+}
+
+func (r *Resolver) authQtypes() (qtypes []uint16) {
+	r.mu.RLock()
+	if r.useIPv4 {
+		qtypes = append(qtypes, dns.TypeA)
+	}
+	if r.useIPv6 {
+		qtypes = append(qtypes, dns.TypeAAAA)
+	}
+	r.mu.RUnlock()
+	return
 }
 
 func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr netip.Addr, qname string, qtype uint16) (*dns.Msg, error) {
@@ -180,7 +212,7 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 	gluemap := make(map[string][]netip.Addr)
 	for _, rr := range resp.Extra {
 		if addr := AddrFromRR(rr); addr.IsValid() {
-			if (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6()) {
+			if r.useable(addr) {
 				gluename := dns.CanonicalName(rr.Header().Name)
 				gluemap[gluename] = append(gluemap[gluename], addr)
 			}
@@ -218,20 +250,13 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 
 	_ = (r.logger != nil) && r.log("%*sauthorities without glue records: %v", depth*2, "", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
-		var authQtypes []uint16
-		if r.useIPv4 {
-			authQtypes = append(authQtypes, dns.TypeA)
-		}
-		if r.useIPv6 {
-			authQtypes = append(authQtypes, dns.TypeAAAA)
-		}
-		for _, authQtype := range authQtypes {
+		for _, authQtype := range r.authQtypes() {
 			authAddrs, err := r.recurseFromRoot(ctx, rootidx, depth+1, authority, authQtype)
 			if authAddrs != nil && len(authAddrs.Answer) > 0 {
 				_ = (r.logger != nil) && r.log("%*sresolved authority %s %q to %v", depth*2, "", DnsTypeToString(authQtype), authority, authAddrs.Answer)
 				for _, nsrr := range authAddrs.Answer {
 					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
-						if (r.useIPv4 && authaddr.Is4()) || (r.useIPv6 && authaddr.Is6()) {
+						if r.useable(authaddr) {
 							answer, err := r.recurse(ctx, rootidx, depth+1, authaddr, qname, qtype)
 							switch err {
 							case nil:
@@ -292,10 +317,13 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, depth int, protocol strin
 		if msg, _, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil {
 			if msg.MsgHdr.Truncated && protocol == "udp" {
 				_ = (r.logger != nil) && r.log("%*smessage truncated; retry using TCP", depth*2, "")
-				return r.sendQueryUsing(ctx, depth, "tcp", nsaddr, qname, qtype)
+				return nil, errTruncated
 			}
 			r.CacheSet(nsaddr, qname, qtype, msg)
 		}
+	}
+	if err != nil && nsaddr.Is6() {
+		r.maybeDisableIPv6(err, depth)
 	}
 	return
 }
@@ -309,6 +337,27 @@ func (r *Resolver) sendQuery(ctx context.Context, depth int, qname string, nsadd
 		}
 	}
 	return r.sendQueryUsing(ctx, depth, "tcp", nsaddr, qname, qtype)
+}
+
+func (r *Resolver) maybeDisableIPv6(err error, depth int) {
+	if ne, ok := err.(net.Error); ok {
+		if !ne.Timeout() && strings.Contains(ne.Error(), "network is unreachable") {
+			r.mu.Lock()
+			defer r.mu.Unlock()
+			if r.useIPv6 {
+				_ = (r.logger != nil) && r.log("%*sdisabling IPv6: %v", depth*2, "", err)
+				r.useIPv6 = false
+				var idx int
+				for i := range r.rootServers {
+					if r.rootServers[i].Is4() {
+						r.rootServers[idx] = r.rootServers[i]
+						idx++
+					}
+				}
+				r.rootServers = r.rootServers[:idx]
+			}
+		}
+	}
 }
 
 func (r *Resolver) cacheget(depth int, nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg {
