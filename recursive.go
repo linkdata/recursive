@@ -16,7 +16,7 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-//go:generate go run ./cmd/genhints named.root roothints.gen.go
+//go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
 	maxDepth        = 30  // maximum recursion depth
