@@ -163,8 +163,6 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		qname = qname[idx:]
 	}
 
-	_ = (r.logger != nil) && r.log("%*s*** %s %q => %s %q", depth*2, "", DnsTypeToString(orgqtype), orgqname, DnsTypeToString(qtype), qname)
-
 	resp, err := r.sendQuery(ctx, depth, nsaddr, qname, qtype)
 	if err != nil {
 		return nil, err
