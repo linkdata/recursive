@@ -355,7 +355,7 @@ func (r *Resolver) sendQuery(ctx context.Context, depth int, nsaddr netip.Addr, 
 		defer udpCtxCancel()
 		msg, err = r.sendQueryUsing(udpCtx, depth, "udp", nsaddr, qname, qtype)
 	}
-	if msg == nil || err != nil {
+	if (msg == nil || err != nil) && r.useable(nsaddr) {
 		msg, err = r.sendQueryUsing(ctx, depth, "tcp", nsaddr, qname, qtype)
 	}
 	return
