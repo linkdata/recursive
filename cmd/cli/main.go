@@ -73,6 +73,8 @@ func main() {
 		}
 	}
 
+	fmt.Printf("cache hit ratio: %.2f%%\n", rec.CacheHitRatio())
+
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)
 		if err != nil {

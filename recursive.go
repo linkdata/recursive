@@ -10,6 +10,7 @@ import (
 	"net/netip"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/miekg/dns"
@@ -30,8 +31,6 @@ var (
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// Consider it equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
-	// errTruncated signals a UDP response was truncated and TCP should be tried
-	errTruncated = errors.New("truncated")
 	// UdpQueryTimeout is the timeout set on UDP queries before trying TCP.
 	// If set to zero, UDP will not be used.
 	UdpQueryTimeout = 5 * time.Second
@@ -42,6 +41,8 @@ var defaultNetDialer net.Dialer
 type Resolver struct {
 	dialer      proxy.ContextDialer
 	logger      *log.Logger
+	cacheHit    uint64 // atomic
+	cacheMiss   uint64 // atomic
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
@@ -93,8 +94,8 @@ func (r *Resolver) log(format string, args ...any) bool {
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type,
 // starting from a randomly chosen root server.
-func (r *Resolver) Resolve(ctx context.Context, name string, qtype uint16) (*dns.Msg, error) {
-	return r.recurseFromRoot(ctx, rand.Intn(31), 0, name, qtype)
+func (r *Resolver) Resolve(ctx context.Context, qname string, qtype uint16) (*dns.Msg, error) {
+	return r.recurseFromRoot(ctx, rand.Intn(31), 0, dns.CanonicalName(qname), qtype)
 }
 
 func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
@@ -108,13 +109,12 @@ func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
 
 func (r *Resolver) recurseFromRoot(ctx context.Context, rootidx int, depth int, qname string, qtype uint16) (*dns.Msg, error) {
 	var depthError bool
-	qname = dns.CanonicalName(qname)
 
 	_ = (r.logger != nil) && r.log("%*sresolving from root %s %q", depth*2, "", DnsTypeToString(qtype), qname)
 
 	for i := 0; i < maxRootAttempts; i++ {
 		if server := r.nextRoot(rootidx + i); server.IsValid() {
-			retv, err := r.recurse(ctx, rootidx, depth, server, qname, qtype)
+			retv, err := r.recurse(ctx, rootidx, depth, server, qname, qtype, 1)
 			switch err {
 			case nil:
 				return retv, err
@@ -148,47 +148,55 @@ func (r *Resolver) authQtypes() (qtypes []uint16) {
 	return
 }
 
-func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr netip.Addr, qname string, qtype uint16) (*dns.Msg, error) {
+func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr netip.Addr, orgqname string, orgqtype uint16, qlabel int) (*dns.Msg, error) {
 	if depth >= maxDepth {
 		_ = (r.logger != nil) && r.log("%*smaximum depth reached", depth*2, "")
 		return nil, ErrMaxDepth
 	}
 
-	resp, err := r.sendQuery(ctx, depth, qname, nsaddr, qtype)
+	qname := orgqname
+	qtype := orgqtype
+
+	idx, final := dns.PrevLabel(qname, qlabel)
+	if final = final || idx == 0; !final {
+		qtype = dns.TypeNS
+		qname = qname[idx:]
+	}
+
+	_ = (r.logger != nil) && r.log("%*s*** %s %q => %s %q", depth*2, "", DnsTypeToString(orgqtype), orgqname, DnsTypeToString(qtype), qname)
+
+	resp, err := r.sendQuery(ctx, depth, nsaddr, qname, qtype)
 	if err != nil {
 		return nil, err
 	}
 
-	var answers []dns.RR
 	var cnames []string
-	for _, answer := range resp.Answer {
-		if crec, ok := answer.(*dns.CNAME); ok {
-			cnames = append(cnames, dns.Fqdn(crec.Target))
-			continue
+	var answer []dns.RR
+	for _, rr := range resp.Answer {
+		if crec, ok := rr.(*dns.CNAME); ok {
+			cnames = append(cnames, dns.CanonicalName(crec.Target))
+		} else {
+			answer = append(answer, rr)
 		}
-		answers = append(answers, answer)
+	}
+
+	if final && len(answer) > 0 {
+		_ = (r.logger != nil) && r.log("%*sANSWER for %s %q: %v", depth*2, "", DnsTypeToString(qtype), qname, answer)
+		return resp, nil
 	}
 
 	var cnameError error
-	if len(answers) == 0 {
-		_ = (r.logger != nil) && r.log("%*sno answers for %q", depth*2, "", qname)
-		if len(cnames) > 0 {
-			_ = (r.logger != nil) && r.log("%*sCNAMEs for %q: %v", depth*2, "", qname, cnames)
-			for _, cname := range cnames {
-				cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype)
-				switch err {
-				case nil:
-					return cnamed, nil
-				}
-				_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
-				cnameError = err
+	if len(answer) == 0 && len(cnames) > 0 {
+		_ = (r.logger != nil) && r.log("%*sCNAMEs for %q: %v", depth*2, "", qname, cnames)
+		for _, cname := range cnames {
+			cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype)
+			switch err {
+			case nil:
+				return cnamed, nil
 			}
+			_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
+			cnameError = err
 		}
-	}
-
-	if len(answers) > 0 {
-		_ = (r.logger != nil) && r.log("%*sANSWER for %s %q: %v", depth*2, "", DnsTypeToString(qtype), qname, answers)
-		return resp, nil
 	}
 
 	if resp.MsgHdr.Authoritative {
@@ -199,13 +207,21 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		return resp, nil
 	}
 
-	_ = (r.logger != nil) && r.log("%*s%d NS and %d EXTRA for %s %q", depth*2, "", len(resp.Ns), len(resp.Extra), DnsTypeToString(qtype), qname)
+	_ = (r.logger != nil) && r.log("%*sANSWER+NS+EXTRA for %s %q:  %d+%d+%d", depth*2, "", DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
 
 	var authorities []dns.RR
 	authoritiesMsg := resp
 	for _, rr := range resp.Ns {
 		if ns, ok := rr.(*dns.NS); ok {
 			authorities = append(authorities, ns)
+		}
+	}
+
+	if !final {
+		for _, rr := range resp.Answer {
+			if ns, ok := rr.(*dns.NS); ok {
+				authorities = append(authorities, ns)
+			}
 		}
 	}
 
@@ -227,9 +243,9 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		if nsrr, ok := nsrr.(*dns.NS); ok {
 			gluename := dns.CanonicalName(nsrr.Ns)
 			if len(gluemap[gluename]) > 0 {
-				authWithGlue = append(authWithGlue, nsrr.Ns)
+				authWithGlue = append(authWithGlue, gluename)
 			} else {
-				authWithoutGlue = append(authWithoutGlue, nsrr.Ns)
+				authWithoutGlue = append(authWithoutGlue, gluename)
 			}
 		}
 	}
@@ -238,7 +254,7 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 	_ = (r.logger != nil) && r.log("%*sauthorities with glue records: %v", depth*2, "", authWithGlue)
 	for _, authority := range authWithGlue {
 		for _, authaddr := range gluemap[authority] {
-			answers, err := r.recurse(ctx, rootidx, depth+1, authaddr, qname, qtype)
+			answers, err := r.recurse(ctx, rootidx, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 			switch err {
 			case nil:
 				return answers, nil
@@ -257,7 +273,7 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 				for _, nsrr := range authAddrs.Answer {
 					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
 						if r.useable(authaddr) {
-							answer, err := r.recurse(ctx, rootidx, depth+1, authaddr, qname, qtype)
+							answer, err := r.recurse(ctx, rootidx, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 							switch err {
 							case nil:
 								return answer, nil
@@ -276,7 +292,7 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 	if authDepthError {
 		return nil, ErrMaxDepth
 	}
-	if qtype == dns.TypeNS && len(authorities) > 0 {
+	if final && qtype == dns.TypeNS && len(authorities) > 0 {
 		resp = authoritiesMsg.Copy()
 		resp.Answer = authorities
 		resp.Ns = nil
@@ -317,11 +333,12 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, depth int, protocol strin
 		defer dnsconn.Close()
 		m := new(dns.Msg)
 		m.SetQuestion(qname, qtype)
+		m.RecursionDesired = false
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		if msg, _, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil {
 			if msg.MsgHdr.Truncated && protocol == "udp" {
 				_ = (r.logger != nil) && r.log("%*smessage truncated; retry using TCP", depth*2, "")
-				return nil, errTruncated
+				return nil, nil
 			}
 			r.CacheSet(nsaddr, qname, qtype, msg)
 		}
@@ -332,15 +349,16 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, depth int, protocol strin
 	return
 }
 
-func (r *Resolver) sendQuery(ctx context.Context, depth int, qname string, nsaddr netip.Addr, qtype uint16) (msg *dns.Msg, err error) {
+func (r *Resolver) sendQuery(ctx context.Context, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if UdpQueryTimeout > 0 {
 		udpCtx, udpCtxCancel := context.WithTimeout(ctx, UdpQueryTimeout)
 		defer udpCtxCancel()
-		if msg, err = r.sendQueryUsing(udpCtx, depth, "udp", nsaddr, qname, qtype); err == nil {
-			return
-		}
+		msg, err = r.sendQueryUsing(udpCtx, depth, "udp", nsaddr, qname, qtype)
 	}
-	return r.sendQueryUsing(ctx, depth, "tcp", nsaddr, qname, qtype)
+	if msg == nil || err != nil {
+		msg, err = r.sendQueryUsing(ctx, depth, "tcp", nsaddr, qname, qtype)
+	}
+	return
 }
 
 func (r *Resolver) maybeDisableIPv6(err error, depth int) {
@@ -376,17 +394,29 @@ func (r *Resolver) cacheget(depth int, nsaddr netip.Addr, qname string, qtype ui
 	if ok {
 		if time.Since(cv.expires) < 0 {
 			_ = (r.logger != nil) && r.log("%*scache hit: @%s %s %q", depth*2, "", nsaddr, DnsTypeToString(qtype), qname)
+			atomic.AddUint64(&r.cacheHit, 1)
 			return cv.Msg
 		}
 		r.mu.Lock()
 		delete(r.cache, ck)
 		r.mu.Unlock()
 	}
+	atomic.AddUint64(&r.cacheMiss, 1)
 	return nil
 }
 
+// CacheHitRatio returns the hit ratio as a percentage.
+func (r *Resolver) CacheHitRatio() float64 {
+	misses := atomic.LoadUint64(&r.cacheMiss)
+	hits := atomic.LoadUint64(&r.cacheHit)
+	if total := misses + hits; total > 0 {
+		return float64(hits*100) / float64(total)
+	}
+	return 0
+}
+
 func (r *Resolver) CacheSet(nsaddr netip.Addr, qname string, qtype uint16, msg *dns.Msg) {
-	if msg.Rcode == dns.RcodeSuccess {
+	if msg != nil && msg.Rcode == dns.RcodeSuccess && !msg.MsgHdr.Truncated {
 		ttl := min(MinTTL(msg), maxCacheTTL)
 		if ttl < 0 {
 			// empty response, cache it for a while
