@@ -92,7 +92,7 @@ func (r *Resolver) Resolve(ctx context.Context, dialer proxy.ContextDialer, qnam
 	if dialer == nil {
 		dialer = &defaultNetDialer
 	}
-	return r.recurseFromRoot(ctx, dialer, rand.Intn(31), 0, dns.CanonicalName(qname), qtype)
+	return r.recurseFromRoot(ctx, dialer, rand.Intn(16)*2, 0, dns.CanonicalName(qname), qtype)
 }
 
 func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
