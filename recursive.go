@@ -193,7 +193,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 				}
 			}
 		}
-		if resp.MsgHdr.Authoritative {
+		if final && resp.MsgHdr.Authoritative {
 			if cnameError != nil {
 				return nil, cnameError
 			}
@@ -202,7 +202,8 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 		}
 	}
 
-	_ = (r.logger != nil) && r.log("%*sANSWER+NS+EXTRA for %s %q:  %d+%d+%d", depth*2, "", DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
+	_ = (r.logger != nil) && r.log("%*sANSWER+NS+EXTRA %s for %s %q: %d+%d+%d", depth*2, "",
+		dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
 
 	var authorities []dns.RR
 	authoritiesMsg := resp
@@ -220,6 +221,11 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 		}
 	}
 
+	if len(authorities) == 0 {
+		_ = (r.logger != nil) && r.log("%*sno authoritative NS found for %q, using previous", depth*2, "", qname)
+		return r.recurse(ctx, dialer, rootidx, depth+1, nsaddr, orgqname, orgqtype, qlabel+1)
+	}
+
 	gluemap := make(map[string][]netip.Addr)
 	for _, rr := range resp.Extra {
 		if addr := AddrFromRR(rr); addr.IsValid() {
@@ -232,6 +238,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 		}
 	}
 
+	authDepthError := false
 	var authWithGlue, authWithoutGlue []string
 
 	for _, nsrr := range authorities {
@@ -245,7 +252,6 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 		}
 	}
 
-	authDepthError := false
 	_ = (r.logger != nil) && r.log("%*sauthorities with glue records: %v", depth*2, "", authWithGlue)
 	for _, authority := range authWithGlue {
 		for _, authaddr := range gluemap[authority] {
@@ -283,11 +289,10 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 			}
 		}
 	}
-
 	if authDepthError {
 		return nil, ErrMaxDepth
 	}
-	if final && qtype == dns.TypeNS && len(authorities) > 0 {
+	if final && qtype == dns.TypeNS {
 		resp = authoritiesMsg.Copy()
 		resp.Answer = authorities
 		resp.Ns = nil
