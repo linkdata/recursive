@@ -18,7 +18,6 @@ import (
 var roothintsgotmpl string
 
 type Roots struct {
-	When   string
 	Roots4 []netip.Addr
 	Roots6 []netip.Addr
 }
@@ -65,7 +64,7 @@ func main() {
 				if err == nil {
 					var t *template.Template
 					if t, err = template.New("").Parse(roothintsgotmpl); err == nil {
-						err = t.Execute(of, Roots{When: resp.Header.Get("Last-Modified"), Roots4: root4, Roots6: root6})
+						err = t.Execute(of, Roots{Roots4: root4, Roots6: root6})
 					}
 				}
 			}
