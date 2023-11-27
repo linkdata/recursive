@@ -34,6 +34,9 @@ var (
 	// UdpQueryTimeout is the timeout set on UDP queries before trying TCP.
 	// If set to zero, UDP will not be used.
 	UdpQueryTimeout = 5 * time.Second
+	// TcpQueryTimeout is the timeout set on TCP queries.
+	// If set to zero, no timeout is imposed.
+	TcpQueryTimeout = 10 * time.Second
 )
 
 var defaultNetDialer net.Dialer
@@ -363,7 +366,13 @@ func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, de
 		msg, err = r.sendQueryUsing(udpCtx, dialer, depth, "udp", nsaddr, qname, qtype)
 	}
 	if (msg == nil || err != nil) && r.useable(nsaddr) {
-		msg, err = r.sendQueryUsing(ctx, dialer, depth, "tcp", nsaddr, qname, qtype)
+		tcpCtx := ctx
+		if TcpQueryTimeout > 0 {
+			var tcpCtxCancel context.CancelFunc
+			tcpCtx, tcpCtxCancel = context.WithTimeout(tcpCtx, TcpQueryTimeout)
+			defer tcpCtxCancel()
+		}
+		msg, err = r.sendQueryUsing(tcpCtx, dialer, depth, "tcp", nsaddr, qname, qtype)
 	}
 	return
 }
