@@ -386,23 +386,25 @@ func (r *Resolver) cacheget(depth int, nsaddr netip.Addr, qname string, qtype ui
 }
 
 func (r *Resolver) CacheSet(nsaddr netip.Addr, qname string, qtype uint16, msg *dns.Msg) {
-	ttl := min(MinTTL(msg), maxCacheTTL)
-	if ttl < 0 {
-		// empty response, cache it for a while
-		ttl = maxCacheTTL / 10
+	if msg.Rcode == dns.RcodeSuccess {
+		ttl := min(MinTTL(msg), maxCacheTTL)
+		if ttl < 0 {
+			// empty response, cache it for a while
+			ttl = maxCacheTTL / 10
+		}
+		ck := cacheKey{
+			nsaddr: nsaddr,
+			qname:  qname,
+			qtype:  qtype,
+		}
+		cv := cacheValue{
+			Msg:     msg,
+			expires: time.Now().Add(time.Duration(ttl) * time.Second),
+		}
+		r.mu.Lock()
+		r.cache[ck] = cv
+		r.mu.Unlock()
 	}
-	ck := cacheKey{
-		nsaddr: nsaddr,
-		qname:  qname,
-		qtype:  qtype,
-	}
-	cv := cacheValue{
-		Msg:     msg,
-		expires: time.Now().Add(time.Duration(ttl) * time.Second),
-	}
-	r.mu.Lock()
-	r.cache[ck] = cv
-	r.mu.Unlock()
 }
 
 func (r *Resolver) CacheGet(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg {
