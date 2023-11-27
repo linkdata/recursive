@@ -175,6 +175,9 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 		}
 	}
 
+	_ = (r.logger != nil) && r.log("%*s%s for %s %q: %d ANSWER, %d NS, %d EXTRA", depth*2, "",
+		dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
+
 	if final && len(answer) > 0 {
 		_ = (r.logger != nil) && r.log("%*sANSWER for %s %q: %v", depth*2, "", DnsTypeToString(qtype), qname, answer)
 		return resp, nil
@@ -201,9 +204,6 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 			return resp, nil
 		}
 	}
-
-	_ = (r.logger != nil) && r.log("%*sANSWER+NS+EXTRA %s for %s %q: %d+%d+%d", depth*2, "",
-		dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
 
 	var authorities []dns.RR
 	authoritiesMsg := resp
