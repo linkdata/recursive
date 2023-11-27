@@ -168,11 +168,13 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, root
 	var cnames []string
 	var answer []dns.RR
 	for _, rr := range resp.Answer {
-		if crec, ok := rr.(*dns.CNAME); ok {
-			cnames = append(cnames, dns.CanonicalName(crec.Target))
-		} else {
-			answer = append(answer, rr)
+		if qtype != dns.TypeCNAME {
+			if crec, ok := rr.(*dns.CNAME); ok {
+				cnames = append(cnames, dns.CanonicalName(crec.Target))
+				continue
+			}
 		}
+		answer = append(answer, rr)
 	}
 
 	_ = (r.logger != nil) && r.log("%*s%s for %s %q: %d ANSWER, %d NS, %d EXTRA", depth*2, "",
