@@ -21,7 +21,7 @@ import (
 
 const (
 	maxDepth        = 30  // maximum recursion depth
-	maxRootAttempts = 4   // maximum number of root servers to try
+	maxRootAttempts = 2   // maximum number of root servers to try
 	maxCacheTTL     = 600 // longest allowed TTL for the cache
 )
 
@@ -41,8 +41,8 @@ var defaultNetDialer net.Dialer
 type Resolver struct {
 	dialer      proxy.ContextDialer
 	logger      *log.Logger
-	cacheHit    uint64 // atomic
-	cacheMiss   uint64 // atomic
+	queryCount  uint64 // atomic
+	cacheHits   uint64 // atomic
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
@@ -307,6 +307,8 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, depth int, protocol strin
 		return
 	}
 
+	atomic.AddUint64(&r.queryCount, 1)
+
 	if r.logger != nil {
 		var protostr string
 		var dash6str string
@@ -394,25 +396,32 @@ func (r *Resolver) cacheget(depth int, nsaddr netip.Addr, qname string, qtype ui
 	if ok {
 		if time.Since(cv.expires) < 0 {
 			_ = (r.logger != nil) && r.log("%*scache hit: @%s %s %q", depth*2, "", nsaddr, DnsTypeToString(qtype), qname)
-			atomic.AddUint64(&r.cacheHit, 1)
+			atomic.AddUint64(&r.cacheHits, 1)
 			return cv.Msg
 		}
 		r.mu.Lock()
 		delete(r.cache, ck)
 		r.mu.Unlock()
 	}
-	atomic.AddUint64(&r.cacheMiss, 1)
 	return nil
 }
 
 // CacheHitRatio returns the hit ratio as a percentage.
 func (r *Resolver) CacheHitRatio() float64 {
-	misses := atomic.LoadUint64(&r.cacheMiss)
-	hits := atomic.LoadUint64(&r.cacheHit)
-	if total := misses + hits; total > 0 {
+	qsent := atomic.LoadUint64(&r.queryCount)
+	hits := atomic.LoadUint64(&r.cacheHits)
+	if total := qsent + hits; total > 0 {
 		return float64(hits*100) / float64(total)
 	}
 	return 0
+}
+
+// CacheSize returns the number of entries in the cache.
+func (r *Resolver) CacheSize() (n int) {
+	r.mu.RLock()
+	n = len(r.cache)
+	r.mu.RUnlock()
+	return
 }
 
 func (r *Resolver) CacheSet(nsaddr netip.Addr, qname string, qtype uint16, msg *dns.Msg) {

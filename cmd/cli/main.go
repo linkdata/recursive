@@ -73,7 +73,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("cache hit ratio: %.2f%%\n", rec.CacheHitRatio())
+	fmt.Printf("cache size %d, hit ratio %.2f%%\n", rec.CacheSize(), rec.CacheHitRatio())
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)
