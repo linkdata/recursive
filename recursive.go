@@ -188,13 +188,12 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		if len(cnames) > 0 {
 			_ = (r.logger != nil) && r.log("%*sCNAMEs for %q: %v", depth*2, "", qname, cnames)
 			for _, cname := range cnames {
-				cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype)
-				switch err {
-				case nil:
+				if cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype); err == nil {
 					return cnamed, nil
+				} else {
+					_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
+					cnameError = err
 				}
-				_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
-				cnameError = err
 			}
 		}
 		if resp.MsgHdr.Authoritative {
