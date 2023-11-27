@@ -183,26 +183,27 @@ func (r *Resolver) recurse(ctx context.Context, rootidx int, depth int, nsaddr n
 		return resp, nil
 	}
 
-	var cnameError error
-	if len(answer) == 0 && len(cnames) > 0 {
-		_ = (r.logger != nil) && r.log("%*sCNAMEs for %q: %v", depth*2, "", qname, cnames)
-		for _, cname := range cnames {
-			cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype)
-			switch err {
-			case nil:
-				return cnamed, nil
+	if len(answer) == 0 {
+		var cnameError error
+		if len(cnames) > 0 {
+			_ = (r.logger != nil) && r.log("%*sCNAMEs for %q: %v", depth*2, "", qname, cnames)
+			for _, cname := range cnames {
+				cnamed, err := r.recurseFromRoot(ctx, rootidx, depth+1, cname, qtype)
+				switch err {
+				case nil:
+					return cnamed, nil
+				}
+				_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
+				cnameError = err
 			}
-			_ = (r.logger != nil) && r.log("%*serror resolving CNAME %q: %v", depth*2, "", qname, err)
-			cnameError = err
 		}
-	}
-
-	if resp.MsgHdr.Authoritative {
-		if cnameError != nil {
-			return nil, cnameError
+		if resp.MsgHdr.Authoritative {
+			if cnameError != nil {
+				return nil, cnameError
+			}
+			_ = (r.logger != nil) && r.log("%*sauthoritative response with no ANSWERs", depth*2, "")
+			return resp, nil
 		}
-		_ = (r.logger != nil) && r.log("%*sauthoritative response with no ANSWERs", depth*2, "")
-		return resp, nil
 	}
 
 	_ = (r.logger != nil) && r.log("%*sANSWER+NS+EXTRA for %s %q:  %d+%d+%d", depth*2, "", DnsTypeToString(qtype), qname, len(resp.Answer), len(resp.Ns), len(resp.Extra))
