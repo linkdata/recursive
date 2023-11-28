@@ -99,7 +99,7 @@ func log(logw io.Writer, depth int, format string, args ...any) bool {
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
 // starting from a randomly chosen root server, using the given dialer, and if logw is non-nil,
 // write a log of events.
-func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, qname string, qtype uint16) (*dns.Msg, error) {
+func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	if dialer == nil {
 		dialer = &defaultNetDialer
 	}
@@ -111,12 +111,12 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 	if logw != nil {
 		fmt.Fprintf(logw, "\n%v\n;; Query time: %v\n;; SERVER: %v\n", msg, time.Since(start).Round(time.Millisecond), srv)
 	}
-	return msg, err
+	return msg, srv, err
 }
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type,
 // starting from a randomly chosen root server.
-func (r *Resolver) Resolve(qname string, qtype uint16) (*dns.Msg, error) {
+func (r *Resolver) Resolve(qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	return r.ResolveWithOptions(context.Background(), nil, nil, qname, qtype)
 }
 
@@ -318,6 +318,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 		return nil, nsaddr, ErrMaxDepth
 	}
 	if final && qtype == dns.TypeNS {
+		_ = (logw != nil) && log(logw, depth, "ANSWER with referral NS\n")
 		resp = authoritiesMsg.Copy()
 		resp.Answer = authorities
 		resp.Ns = nil

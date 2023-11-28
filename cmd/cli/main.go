@@ -22,6 +22,7 @@ var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
+var debug = flag.Bool("debug", false, "print debug output")
 
 func main() {
 	flag.Parse()
@@ -60,13 +61,20 @@ func main() {
 
 	rec := recursive.NewWithOptions(roots4, roots6)
 
+	dbgout := os.Stderr
+	if !*debug {
+		dbgout = nil
+	}
+
 	for i := 0; i < *flagCount; i++ {
 		if i > 0 && *flagSleep > 0 {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			if retv, err := rec.ResolveWithOptions(context.Background(), nil, os.Stderr, qname, qtype); err == nil {
-				fmt.Println(retv)
+			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, dbgout, qname, qtype); err == nil {
+				if !*debug {
+					fmt.Println(retv)
+				}
 			} else {
 				fmt.Printf("%s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
 			}
