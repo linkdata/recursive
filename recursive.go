@@ -195,8 +195,14 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 	var cnames []string
 	var answer []dns.RR
 	for _, rr := range resp.Answer {
-		if qtype != dns.TypeCNAME {
-			if crec, ok := rr.(*dns.CNAME); ok {
+		if crec, ok := rr.(*dns.CNAME); ok {
+			switch qtype {
+			case dns.TypeNS, dns.TypeMX:
+				// not allowed
+				continue
+			case dns.TypeCNAME:
+				// goes into answer
+			default:
 				cnames = append(cnames, dns.CanonicalName(crec.Target))
 				continue
 			}
@@ -214,7 +220,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 		if len(cnames) > 0 {
 			_ = (logw != nil) && log(logw, depth, "CNAMEs for %q: %v\n", qname, cnames)
 			for _, cname := range cnames {
-				if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, logw, depth+1, cname, qtype); err == nil {
+				if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, logw, depth+1, cname, orgqtype); err == nil {
 					resp.Answer = append(resp.Answer, cmsg.Answer...)
 					resp.Ns = nil
 					resp.Extra = nil
