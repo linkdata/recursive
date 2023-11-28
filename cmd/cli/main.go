@@ -58,14 +58,14 @@ func main() {
 		roots6 = recursive.Roots6
 	}
 
-	rec := recursive.NewWithOptions(roots4, roots6, log.Default())
+	rec := recursive.NewWithOptions(roots4, roots6)
 
 	for i := 0; i < *flagCount; i++ {
 		if i > 0 && *flagSleep > 0 {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			if retv, err := rec.Resolve(context.Background(), nil, qname, qtype); err == nil {
+			if retv, err := rec.ResolveWithOptions(context.Background(), nil, os.Stderr, qname, qtype); err == nil {
 				fmt.Println(retv)
 			} else {
 				fmt.Printf("%s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
