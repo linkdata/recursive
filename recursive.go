@@ -260,8 +260,6 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 				gluename := dns.CanonicalName(rr.Header().Name)
 				gluemap[gluename] = append(gluemap[gluename], addr)
 			}
-		} else {
-			_ = (logw != nil) && log(logw, depth, "unexpected RR (%T)%v\n", rr, rr)
 		}
 	}
 
@@ -374,6 +372,7 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, di
 		m.SetQuestion(qname, qtype)
 		m.Compress = true
 		m.RecursionDesired = false
+		m.SetEdns0(dns.DefaultMsgSize, false)
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 	}

@@ -39,7 +39,9 @@ func MinTTL(msg *dns.Msg) int {
 		minTTL = min(minTTL, int(rr.Header().Ttl))
 	}
 	for _, rr := range msg.Extra {
-		minTTL = min(minTTL, int(rr.Header().Ttl))
+		if rr.Header().Rrtype != dns.TypeOPT {
+			minTTL = min(minTTL, int(rr.Header().Ttl))
+		}
 	}
 	if minTTL == math.MaxInt {
 		minTTL = -1
