@@ -463,6 +463,11 @@ func (r *Resolver) cacheget(logw io.Writer, depth int, nsaddr netip.Addr, qname 
 	return nil
 }
 
+// QueryCount returns the number of queries sent.
+func (r *Resolver) QueryCount() uint64 {
+	return atomic.LoadUint64(&r.queryCount)
+}
+
 // CacheHitRatio returns the hit ratio as a percentage.
 func (r *Resolver) CacheHitRatio() float64 {
 	qsent := atomic.LoadUint64(&r.queryCount)
