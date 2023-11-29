@@ -37,6 +37,7 @@ var (
 	// DefaultTcpQueryTimeout is the default timeout set on TCP queries.
 	// If set to zero, no timeout is imposed.
 	DefaultTcpQueryTimeout = 10 * time.Second
+	DefaultCache           = NewCache()
 )
 
 var defaultNetDialer net.Dialer
@@ -48,17 +49,16 @@ type Resolver struct {
 	// TcpQueryTimeout is the timeout set on TCP queries.
 	// If set to zero, no timeout is imposed.
 	TcpQueryTimeout time.Duration
+	Cache           *Cache // Cache to use
 	queryCount      uint64 // atomic
-	cacheHits       uint64 // atomic
 	mu              sync.RWMutex
 	useIPv4         bool
 	useIPv6         bool
 	rootServers     []netip.Addr
 	rootIndex       int
-	cache           map[cacheKey]cacheValue
 }
 
-func NewWithOptions(roots4, roots6 []netip.Addr) *Resolver {
+func NewWithOptions(roots4, roots6 []netip.Addr, cache *Cache) *Resolver {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
@@ -83,12 +83,12 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Resolver {
 		useIPv4:         root4 != nil,
 		useIPv6:         root6 != nil,
 		rootServers:     roots,
-		cache:           make(map[cacheKey]cacheValue),
+		Cache:           cache,
 	}
 }
 
 func New() *Resolver {
-	return NewWithOptions(Roots4, Roots6)
+	return NewWithOptions(Roots4, Roots6, DefaultCache)
 }
 
 func log(logw io.Writer, depth int, format string, args ...any) bool {
@@ -425,7 +425,7 @@ func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, lo
 		msg, err = r.sendQueryUsing(ctx, r.TcpQueryTimeout, dialer, logw, depth, "tcp", nsaddr, qname, qtype)
 	}
 	if err == nil {
-		r.CacheSet(nsaddr, qname, qtype, msg)
+		r.Cache.Set(nsaddr, qname, qtype, msg)
 	}
 	return
 }
@@ -452,90 +452,17 @@ func (r *Resolver) maybeDisableIPv6(depth int, err error) (disabled bool) {
 	return
 }
 
-func (r *Resolver) cacheget(logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg {
-	ck := cacheKey{
-		nsaddr: nsaddr,
-		qname:  qname,
-		qtype:  qtype,
+func (r *Resolver) cacheget(logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg) {
+	msg = r.Cache.Get(nsaddr, qname, qtype)
+	if logw != nil && msg != nil {
+		log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
+			nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[msg.Rcode],
+			len(msg.Answer), len(msg.Ns), len(msg.Extra))
 	}
-	r.mu.RLock()
-	cv, ok := r.cache[ck]
-	r.mu.RUnlock()
-	if ok {
-		if time.Since(cv.expires) < 0 {
-			_ = (logw != nil) && log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E] (%v)\n",
-				nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[cv.Rcode],
-				len(cv.Answer), len(cv.Ns), len(cv.Extra),
-				time.Since(cv.expires),
-			)
-			atomic.AddUint64(&r.cacheHits, 1)
-			return cv.Msg
-		}
-		r.mu.Lock()
-		delete(r.cache, ck)
-		r.mu.Unlock()
-	}
-	return nil
+	return
 }
 
 // QueryCount returns the number of queries sent.
 func (r *Resolver) QueryCount() uint64 {
 	return atomic.LoadUint64(&r.queryCount)
-}
-
-// CacheHitRatio returns the hit ratio as a percentage.
-func (r *Resolver) CacheHitRatio() float64 {
-	qsent := atomic.LoadUint64(&r.queryCount)
-	hits := atomic.LoadUint64(&r.cacheHits)
-	if total := qsent + hits; total > 0 {
-		return float64(hits*100) / float64(total)
-	}
-	return 0
-}
-
-// CacheSize returns the number of entries in the cache.
-func (r *Resolver) CacheSize() (n int) {
-	r.mu.RLock()
-	n = len(r.cache)
-	r.mu.RUnlock()
-	return
-}
-
-func (r *Resolver) CacheSet(nsaddr netip.Addr, qname string, qtype uint16, msg *dns.Msg) {
-	if msg != nil && msg.Rcode == dns.RcodeSuccess && !msg.MsgHdr.Truncated {
-		ttl := min(MinTTL(msg), maxCacheTTL)
-		if ttl < 0 {
-			// empty response, cache it for a while
-			ttl = maxCacheTTL / 10
-		}
-		ck := cacheKey{
-			nsaddr: nsaddr,
-			qname:  qname,
-			qtype:  qtype,
-		}
-		cv := cacheValue{
-			Msg:     msg,
-			expires: time.Now().Add(time.Duration(ttl) * time.Second),
-		}
-		r.mu.Lock()
-		r.cache[ck] = cv
-		r.mu.Unlock()
-	}
-}
-
-func (r *Resolver) CacheGet(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg {
-	return r.cacheget(nil, 0, nsaddr, qname, qtype)
-}
-
-func (r *Resolver) CacheClean(now time.Time) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if now.IsZero() {
-		r.rootIndex = rand.Intn(len(r.rootServers))
-	}
-	for ck, cv := range r.cache {
-		if now.IsZero() || now.After(cv.expires) {
-			delete(r.cache, ck)
-		}
-	}
 }

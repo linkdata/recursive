@@ -59,7 +59,7 @@ func main() {
 		roots6 = recursive.Roots6
 	}
 
-	rec := recursive.NewWithOptions(roots4, roots6)
+	rec := recursive.NewWithOptions(roots4, roots6, recursive.DefaultCache)
 
 	dbgout := os.Stderr
 	if !*debug {
@@ -81,7 +81,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("cache size %d, hit ratio %.2f%%\n", rec.CacheSize(), rec.CacheHitRatio())
+	fmt.Printf("cache size %d, hit ratio %.2f%%\n", rec.Cache.Size(), rec.Cache.HitRatio())
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)
