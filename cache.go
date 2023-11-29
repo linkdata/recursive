@@ -25,10 +25,9 @@ func NewCache() *Cache {
 // HitRatio returns the hit ratio as a percentage.
 func (cache *Cache) HitRatio() float64 {
 	if cache != nil {
-		count := atomic.LoadUint64(&cache.count)
-		hits := atomic.LoadUint64(&cache.hits)
-		if total := count + hits; total > 0 {
-			return float64(hits*100) / float64(total)
+		if count := atomic.LoadUint64(&cache.count); count > 0 {
+			hits := atomic.LoadUint64(&cache.hits)
+			return float64(hits*100) / float64(count)
 		}
 	}
 	return 0

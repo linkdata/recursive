@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/netip"
 	"os"
@@ -61,9 +62,9 @@ func main() {
 
 	rec := recursive.NewWithOptions(roots4, roots6, recursive.DefaultCache)
 
-	dbgout := os.Stderr
-	if !*debug {
-		dbgout = nil
+	var dbgout io.Writer
+	if *debug {
+		dbgout = os.Stderr
 	}
 
 	for i := 0; i < *flagCount; i++ {
