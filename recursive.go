@@ -107,7 +107,11 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 	if logw != nil {
 		start = time.Now()
 	}
-	msg, srv, err := r.recurseFromRoot(ctx, dialer, logw, 0, dns.CanonicalName(qname), qtype)
+	qname = dns.CanonicalName(qname)
+	if _, ok := dns.IsDomainName(qname); !ok {
+		return nil, netip.Addr{}, dns.ErrRdata
+	}
+	msg, srv, err := r.recurseFromRoot(ctx, dialer, logw, 0, qname, qtype)
 	if logw != nil {
 		fmt.Fprintf(logw, "\n%v\n;; Query time: %v\n;; SERVER: %v\n", msg, time.Since(start).Round(time.Millisecond), srv)
 	}
@@ -137,7 +141,7 @@ func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDial
 		if server := r.nextRoot(i); server.IsValid() {
 			retv, srv, err := r.recurse(ctx, dialer, logw, depth, server, qname, qtype, 1)
 			switch err {
-			case nil, ErrNoResponse:
+			case nil, ErrNoResponse, dns.ErrRdata:
 				return retv, srv, err
 			case ErrMaxDepth:
 				depthErrorSrv = srv
@@ -290,7 +294,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 		for _, authaddr := range gluemap[authority] {
 			answers, srv, err := r.recurse(ctx, dialer, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 			switch err {
-			case nil, ErrNoResponse:
+			case nil, ErrNoResponse, dns.ErrRdata:
 				return answers, srv, err
 			case ErrMaxDepth:
 				authDepthError = true
@@ -309,7 +313,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 						if r.useable(authaddr) {
 							answers, srv, err := r.recurse(ctx, dialer, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 							switch err {
-							case nil, ErrNoResponse:
+							case nil, ErrNoResponse, dns.ErrRdata:
 								return answers, srv, err
 							case ErrMaxDepth:
 								authDepthError = true
@@ -459,8 +463,11 @@ func (r *Resolver) cacheget(logw io.Writer, depth int, nsaddr netip.Addr, qname 
 	r.mu.RUnlock()
 	if ok {
 		if time.Since(cv.expires) < 0 {
-			_ = (logw != nil) && log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
-				nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[cv.Rcode], len(cv.Answer), len(cv.Ns), len(cv.Extra))
+			_ = (logw != nil) && log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E] (%v)\n",
+				nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[cv.Rcode],
+				len(cv.Answer), len(cv.Ns), len(cv.Extra),
+				time.Since(cv.expires),
+			)
 			atomic.AddUint64(&r.cacheHits, 1)
 			return cv.Msg
 		}
