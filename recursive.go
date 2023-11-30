@@ -20,9 +20,8 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxDepth        = 30  // maximum recursion depth
-	maxRootAttempts = 2   // maximum number of root servers to try
-	maxCacheTTL     = 600 // longest allowed TTL for the cache
+	maxDepth        = 30 // maximum recursion depth
+	maxRootAttempts = 2  // maximum number of root servers to try
 )
 
 var (

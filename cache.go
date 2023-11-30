@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"math"
 	"net/netip"
 	"sync"
 	"sync/atomic"
@@ -9,17 +10,24 @@ import (
 	"github.com/miekg/dns"
 )
 
+const DefaultMinTTL = 10
+const DefaultMaxTTL = 3600
+
 type Cache struct {
-	count uint64 // atomic
-	hits  uint64 // atomic
-	mu    sync.RWMutex
-	wilds int
-	cache map[cacheKey]cacheValue
+	MinTTL int    // always cache items for at least this long
+	MaxTTL int    // never cache items for longer than this
+	count  uint64 // atomic
+	hits   uint64 // atomic
+	mu     sync.RWMutex
+	wilds  int
+	cache  map[cacheKey]cacheValue
 }
 
 func NewCache() *Cache {
 	return &Cache{
-		cache: make(map[cacheKey]cacheValue),
+		MinTTL: DefaultMinTTL,
+		MaxTTL: DefaultMaxTTL,
+		cache:  make(map[cacheKey]cacheValue),
 	}
 }
 
@@ -46,11 +54,7 @@ func (cache *Cache) Size() (n int) {
 
 func (cache *Cache) Set(nsaddr netip.Addr, msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
-		ttl := min(MinTTL(msg), maxCacheTTL)
-		if ttl < 0 {
-			// empty response, cache it for a while
-			ttl = maxCacheTTL / 10
-		}
+		ttl := max(cache.MinTTL, min(cache.MaxTTL, MinTTL(msg)))
 		msg = msg.Copy()
 		msg.Zero = true
 		ck := cacheKey{
@@ -140,4 +144,24 @@ func (cache *Cache) Clean() {
 			}
 		}
 	}
+}
+
+// MinTTL returns the lowest resource record TTL in the message, or -1 if there are no records.
+func MinTTL(msg *dns.Msg) int {
+	minTTL := math.MaxInt
+	for _, rr := range msg.Answer {
+		minTTL = min(minTTL, int(rr.Header().Ttl))
+	}
+	for _, rr := range msg.Ns {
+		minTTL = min(minTTL, int(rr.Header().Ttl))
+	}
+	for _, rr := range msg.Extra {
+		if rr.Header().Rrtype != dns.TypeOPT {
+			minTTL = min(minTTL, int(rr.Header().Ttl))
+		}
+	}
+	if minTTL == math.MaxInt {
+		minTTL = -1
+	}
+	return minTTL
 }
