@@ -138,6 +138,8 @@ func (cache *Cache) Clear() {
 func (cache *Cache) Clean() {
 	if cache != nil {
 		now := time.Now()
+		cache.mu.Lock()
+		defer cache.mu.Unlock()
 		for ck, cv := range cache.cache {
 			if now.After(cv.expires) {
 				cache.deleteLocked(ck)
