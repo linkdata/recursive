@@ -30,31 +30,19 @@ var (
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// Consider it equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
-	// DefaultUdpQueryTimeout is the timeout set on UDP queries before trying TCP.
-	// If set to zero, UDP will not be used.
-	DefaultUdpQueryTimeout = 5 * time.Second
-	// DefaultTcpQueryTimeout is the default timeout set on TCP queries.
-	// If set to zero, no timeout is imposed.
-	DefaultTcpQueryTimeout = 10 * time.Second
-	DefaultCache           = NewCache()
+	DefaultCache  = NewCache()
 )
 
 var defaultNetDialer net.Dialer
 
 type Resolver struct {
-	// UdpQueryTimeout is the timeout set on UDP queries before trying TCP.
-	// If set to zero, UDP will not be used.
-	UdpQueryTimeout time.Duration
-	// TcpQueryTimeout is the timeout set on TCP queries.
-	// If set to zero, no timeout is imposed.
-	TcpQueryTimeout time.Duration
-	Cache           Cacher // Cacher to use by default
-	queryCount      uint64 // atomic
-	mu              sync.RWMutex
-	useIPv4         bool
-	useIPv6         bool
-	rootServers     []netip.Addr
-	rootIndex       int
+	Cache       Cacher // Cacher to use by default
+	queryCount  uint64 // atomic
+	mu          sync.RWMutex
+	useIPv4     bool
+	useIPv6     bool
+	rootServers []netip.Addr
+	rootIndex   int
 }
 
 func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
@@ -77,12 +65,10 @@ func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
 	roots = append(roots, root6[n:]...)
 
 	return &Resolver{
-		UdpQueryTimeout: DefaultUdpQueryTimeout,
-		TcpQueryTimeout: DefaultTcpQueryTimeout,
-		useIPv4:         root4 != nil,
-		useIPv6:         root6 != nil,
-		rootServers:     roots,
-		Cache:           cache,
+		useIPv4:     root4 != nil,
+		useIPv6:     root6 != nil,
+		rootServers: roots,
+		Cache:       cache,
 	}
 }
 
@@ -131,29 +117,22 @@ func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
 	return
 }
 
-func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
-	var depthErrorSrv netip.Addr
-
+func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	_ = (logw != nil) && log(logw, depth, "resolving from root %s %q\n", DnsTypeToString(qtype), qname)
 
 	for i := 0; i < maxRootAttempts; i++ {
 		if server := r.nextRoot(i); server.IsValid() {
-			retv, srv, err := r.recurse(ctx, dialer, cache, logw, depth, server, qname, qtype, 1)
+			msg, srv, err = r.recurse(ctx, dialer, cache, logw, depth, server, qname, qtype, 1)
 			switch err {
 			case nil, ErrNoResponse, dns.ErrRdata:
-				return retv, srv, err
-			case ErrMaxDepth:
-				depthErrorSrv = srv
+				return
 			}
 		}
 	}
 	r.mu.Lock()
 	r.rootIndex++
 	r.mu.Unlock()
-	if depthErrorSrv.IsValid() {
-		return nil, depthErrorSrv, ErrMaxDepth
-	}
-	return nil, netip.Addr{}, ErrNoResponse
+	return
 }
 
 func (r *Resolver) useable(addr netip.Addr) (ok bool) {
@@ -338,7 +317,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 	return nil, nsaddr, ErrNoResponse
 }
 
-func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+func (r *Resolver) sendQueryUsing(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if msg = cache.Get(nsaddr, qname, qtype); msg != nil {
 		if logw != nil {
 			log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
@@ -350,12 +329,6 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, di
 
 	if !r.useable(nsaddr) {
 		return nil, net.ErrClosed
-	}
-
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
 	}
 
 	var network string
@@ -414,15 +387,13 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, di
 }
 
 func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	if r.UdpQueryTimeout > 0 {
-		msg, err = r.sendQueryUsing(ctx, r.UdpQueryTimeout, dialer, cache, logw, depth, "udp", nsaddr, qname, qtype)
-		if msg != nil && msg.MsgHdr.Truncated {
-			_ = (logw != nil) && log(logw, depth, "message truncated; retry using TCP\n")
-			msg = nil
-		}
+	msg, err = r.sendQueryUsing(ctx, dialer, cache, logw, depth, "udp", nsaddr, qname, qtype)
+	if msg != nil && msg.MsgHdr.Truncated {
+		_ = (logw != nil) && log(logw, depth, "message truncated; retry using TCP\n")
+		msg = nil
 	}
 	if (msg == nil || err != nil) && r.useable(nsaddr) {
-		msg, err = r.sendQueryUsing(ctx, r.TcpQueryTimeout, dialer, cache, logw, depth, "tcp", nsaddr, qname, qtype)
+		msg, err = r.sendQueryUsing(ctx, dialer, cache, logw, depth, "tcp", nsaddr, qname, qtype)
 	}
 	if err == nil {
 		cache.Set(nsaddr, msg)
