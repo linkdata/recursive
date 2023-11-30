@@ -274,8 +274,8 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 		}
 	}
 
-	authDepthError := false
 	var authWithGlue, authWithoutGlue []string
+	var authError error
 
 	for _, nsrr := range authorities {
 		if nsrr, ok := nsrr.(*dns.NS); ok {
@@ -295,9 +295,8 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 			switch err {
 			case nil, ErrNoResponse, dns.ErrRdata:
 				return answers, srv, err
-			case ErrMaxDepth:
-				authDepthError = true
 			}
+			authError = err
 		}
 	}
 
@@ -314,19 +313,16 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 							switch err {
 							case nil, ErrNoResponse, dns.ErrRdata:
 								return answers, srv, err
-							case ErrMaxDepth:
-								authDepthError = true
 							}
+							authError = err
 						}
 					}
 				}
 			} else if err != nil {
+				authError = err
 				_ = (logw != nil) && log(logw, depth, "error querying authority %q: %v\n", authority, err)
 			}
 		}
-	}
-	if authDepthError {
-		return nil, nsaddr, ErrMaxDepth
 	}
 	if final && qtype == dns.TypeNS {
 		_ = (logw != nil) && log(logw, depth, "ANSWER with referral NS\n")
@@ -335,6 +331,9 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 		resp.Ns = nil
 		resp.Extra = nil
 		return resp, nsaddr, nil
+	}
+	if authError != nil {
+		return nil, nsaddr, authError
 	}
 	return nil, nsaddr, ErrNoResponse
 }
