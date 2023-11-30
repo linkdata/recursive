@@ -45,12 +45,14 @@ func (cache *Cache) Size() (n int) {
 }
 
 func (cache *Cache) Set(nsaddr netip.Addr, msg *dns.Msg) {
-	if cache != nil && msg != nil && len(msg.Question) == 1 {
+	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		ttl := min(MinTTL(msg), maxCacheTTL)
 		if ttl < 0 {
 			// empty response, cache it for a while
 			ttl = maxCacheTTL / 10
 		}
+		msg = msg.Copy()
+		msg.Zero = true
 		ck := cacheKey{
 			nsaddr: nsaddr,
 			qname:  msg.Question[0].Name,
@@ -103,6 +105,10 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 				return cv.Msg
 			}
 			cache.mu.Lock()
+			clear(cv.Msg.Question)
+			clear(cv.Msg.Answer)
+			clear(cv.Msg.Ns)
+			clear(cv.Msg.Extra)
 			cache.deleteLocked(ck)
 			cache.mu.Unlock()
 		}

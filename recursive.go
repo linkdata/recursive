@@ -387,10 +387,7 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, di
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
 		m := new(dns.Msg)
-		m.SetQuestion(qname, qtype)
-		m.Compress = true
-		m.RecursionDesired = false
-		m.SetEdns0(dns.DefaultMsgSize, false)
+		m.SetQuestion(qname, qtype).SetEdns0(dns.DefaultMsgSize, false).RecursionDesired = false
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 	}
