@@ -49,7 +49,7 @@ type Resolver struct {
 	// TcpQueryTimeout is the timeout set on TCP queries.
 	// If set to zero, no timeout is imposed.
 	TcpQueryTimeout time.Duration
-	Cache           *Cache // Cache to use
+	Cache           Cacher // Cacher to use by default
 	queryCount      uint64 // atomic
 	mu              sync.RWMutex
 	useIPv4         bool
@@ -58,7 +58,7 @@ type Resolver struct {
 	rootIndex       int
 }
 
-func NewWithOptions(roots4, roots6 []netip.Addr, cache *Cache) *Resolver {
+func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
@@ -99,7 +99,7 @@ func log(logw io.Writer, depth int, format string, args ...any) bool {
 
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
 // using the given dialer, and if logw is non-nil, write a log of events.
-func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	if dialer == nil {
 		dialer = &defaultNetDialer
 	}
@@ -111,7 +111,7 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 	if _, ok := dns.IsDomainName(qname); !ok {
 		return nil, netip.Addr{}, dns.ErrRdata
 	}
-	msg, srv, err := r.recurseFromRoot(ctx, dialer, logw, 0, qname, qtype)
+	msg, srv, err := r.recurseFromRoot(ctx, dialer, cache, logw, 0, qname, qtype)
 	if logw != nil {
 		fmt.Fprintf(logw, "\n%v\n;; Query time: %v\n;; SERVER: %v\n", msg, time.Since(start).Round(time.Millisecond), srv)
 	}
@@ -120,7 +120,7 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
 func (r *Resolver) Resolve(qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	return r.ResolveWithOptions(context.Background(), nil, nil, qname, qtype)
+	return r.ResolveWithOptions(context.Background(), nil, r.Cache, nil, qname, qtype)
 }
 
 func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
@@ -132,14 +132,14 @@ func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
 	return
 }
 
-func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, depth int, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	var depthErrorSrv netip.Addr
 
 	_ = (logw != nil) && log(logw, depth, "resolving from root %s %q\n", DnsTypeToString(qtype), qname)
 
 	for i := 0; i < maxRootAttempts; i++ {
 		if server := r.nextRoot(i); server.IsValid() {
-			retv, srv, err := r.recurse(ctx, dialer, logw, depth, server, qname, qtype, 1)
+			retv, srv, err := r.recurse(ctx, dialer, cache, logw, depth, server, qname, qtype, 1)
 			switch err {
 			case nil, ErrNoResponse, dns.ErrRdata:
 				return retv, srv, err
@@ -176,7 +176,7 @@ func (r *Resolver) authQtypes() (qtypes []uint16) {
 	return
 }
 
-func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, depth int, nsaddr netip.Addr, orgqname string, orgqtype uint16, qlabel int) (*dns.Msg, netip.Addr, error) {
+func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, orgqname string, orgqtype uint16, qlabel int) (*dns.Msg, netip.Addr, error) {
 	if depth >= maxDepth {
 		_ = (logw != nil) && log(logw, depth, "maximum depth reached\n")
 		return nil, netip.Addr{}, ErrMaxDepth
@@ -191,7 +191,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 		qname = qname[idx:]
 	}
 
-	resp, err := r.sendQuery(ctx, dialer, logw, depth, nsaddr, qname, qtype)
+	resp, err := r.sendQuery(ctx, dialer, cache, logw, depth, nsaddr, qname, qtype)
 	if err != nil {
 		return nil, nsaddr, err
 	}
@@ -224,7 +224,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 		if len(cnames) > 0 {
 			_ = (logw != nil) && log(logw, depth, "CNAMEs for %q: %v\n", qname, cnames)
 			for _, cname := range cnames {
-				if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, logw, depth+1, cname, orgqtype); err == nil {
+				if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, cname, orgqtype); err == nil {
 					resp.Answer = append(resp.Answer, cmsg.Answer...)
 					resp.Ns = nil
 					resp.Extra = nil
@@ -262,7 +262,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 
 	if len(authorities) == 0 {
 		_ = (logw != nil) && log(logw, depth, "no authoritative NS found for %q, using previous\n", qname)
-		return r.recurse(ctx, dialer, logw, depth+1, nsaddr, orgqname, orgqtype, qlabel+1)
+		return r.recurse(ctx, dialer, cache, logw, depth+1, nsaddr, orgqname, orgqtype, qlabel+1)
 	}
 
 	gluemap := make(map[string][]netip.Addr)
@@ -292,7 +292,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 	_ = (logw != nil) && log(logw, depth, "authorities with glue records: %v\n", authWithGlue)
 	for _, authority := range authWithGlue {
 		for _, authaddr := range gluemap[authority] {
-			answers, srv, err := r.recurse(ctx, dialer, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
+			answers, srv, err := r.recurse(ctx, dialer, cache, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 			switch err {
 			case nil, ErrNoResponse, dns.ErrRdata:
 				return answers, srv, err
@@ -305,13 +305,13 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 	_ = (logw != nil) && log(logw, depth, "authorities without glue records: %v\n", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
 		for _, authQtype := range r.authQtypes() {
-			authAddrs, _, err := r.recurseFromRoot(ctx, dialer, logw, depth+1, authority, authQtype)
+			authAddrs, _, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, authority, authQtype)
 			if authAddrs != nil && len(authAddrs.Answer) > 0 {
 				_ = (logw != nil) && log(logw, depth, "resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
 				for _, nsrr := range authAddrs.Answer {
 					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
 						if r.useable(authaddr) {
-							answers, srv, err := r.recurse(ctx, dialer, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
+							answers, srv, err := r.recurse(ctx, dialer, cache, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 							switch err {
 							case nil, ErrNoResponse, dns.ErrRdata:
 								return answers, srv, err
@@ -340,8 +340,13 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, logw
 	return nil, nsaddr, ErrNoResponse
 }
 
-func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, dialer proxy.ContextDialer, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	if msg = r.cacheget(logw, depth, nsaddr, qname, qtype); msg != nil {
+func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+	if msg = cache.Get(nsaddr, qname, qtype); msg != nil {
+		if logw != nil {
+			log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
+				nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[msg.Rcode],
+				len(msg.Answer), len(msg.Ns), len(msg.Extra))
+		}
 		return
 	}
 
@@ -413,19 +418,19 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, timeout time.Duration, di
 	return
 }
 
-func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if r.UdpQueryTimeout > 0 {
-		msg, err = r.sendQueryUsing(ctx, r.UdpQueryTimeout, dialer, logw, depth, "udp", nsaddr, qname, qtype)
+		msg, err = r.sendQueryUsing(ctx, r.UdpQueryTimeout, dialer, cache, logw, depth, "udp", nsaddr, qname, qtype)
 		if msg != nil && msg.MsgHdr.Truncated {
 			_ = (logw != nil) && log(logw, depth, "message truncated; retry using TCP\n")
 			msg = nil
 		}
 	}
 	if (msg == nil || err != nil) && r.useable(nsaddr) {
-		msg, err = r.sendQueryUsing(ctx, r.TcpQueryTimeout, dialer, logw, depth, "tcp", nsaddr, qname, qtype)
+		msg, err = r.sendQueryUsing(ctx, r.TcpQueryTimeout, dialer, cache, logw, depth, "tcp", nsaddr, qname, qtype)
 	}
 	if err == nil {
-		r.Cache.Set(nsaddr, qname, qtype, msg)
+		cache.Set(nsaddr, msg)
 	}
 	return
 }
@@ -448,16 +453,6 @@ func (r *Resolver) maybeDisableIPv6(depth int, err error) (disabled bool) {
 				r.rootServers = r.rootServers[:idx]
 			}
 		}
-	}
-	return
-}
-
-func (r *Resolver) cacheget(logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg) {
-	msg = r.Cache.Get(nsaddr, qname, qtype)
-	if logw != nil && msg != nil {
-		log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
-			nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[msg.Rcode],
-			len(msg.Answer), len(msg.Ns), len(msg.Extra))
 	}
 	return
 }

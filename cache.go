@@ -13,6 +13,7 @@ type Cache struct {
 	count uint64 // atomic
 	hits  uint64 // atomic
 	mu    sync.RWMutex
+	wilds int
 	cache map[cacheKey]cacheValue
 }
 
@@ -43,23 +44,29 @@ func (cache *Cache) Size() (n int) {
 	return
 }
 
-func (cache *Cache) Set(nsaddr netip.Addr, qname string, qtype uint16, msg *dns.Msg) {
-	if cache != nil && msg != nil {
+func (cache *Cache) Set(nsaddr netip.Addr, msg *dns.Msg) {
+	if cache != nil && msg != nil && len(msg.Question) == 1 {
 		ttl := min(MinTTL(msg), maxCacheTTL)
 		if ttl < 0 {
 			// empty response, cache it for a while
 			ttl = maxCacheTTL / 10
+		}
+		ck := cacheKey{
+			nsaddr: nsaddr,
+			qname:  msg.Question[0].Name,
+			qtype:  msg.Question[0].Qtype,
 		}
 		cv := cacheValue{
 			Msg:     msg,
 			expires: time.Now().Add(time.Duration(ttl) * time.Second),
 		}
 		cache.mu.Lock()
-		cache.cache[cacheKey{
-			nsaddr: nsaddr,
-			qname:  qname,
-			qtype:  qtype,
-		}] = cv
+		if !nsaddr.IsValid() {
+			if _, ok := cache.cache[ck]; !ok {
+				cache.wilds++
+			}
+		}
+		cache.cache[ck] = cv
 		cache.mu.Unlock()
 	}
 }
@@ -73,6 +80,10 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 		}
 		cache.mu.RLock()
 		cv, ok := cache.cache[ck]
+		if !ok && cache.wilds > 0 {
+			ck.nsaddr = netip.Addr{}
+			cv, ok = cache.cache[ck]
+		}
 		cache.mu.RUnlock()
 		atomic.AddUint64(&cache.count, 1)
 		if ok {
@@ -81,24 +92,34 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 				return cv.Msg
 			}
 			cache.mu.Lock()
-			delete(cache.cache, ck)
+			cache.deleteLocked(ck)
 			cache.mu.Unlock()
 		}
 	}
 	return nil
 }
 
-func (cache *Cache) Clean(now time.Time) {
-	if cache != nil {
-		cache.mu.Lock()
-		defer cache.mu.Unlock()
-		if now.IsZero() {
-			clear(cache.cache)
-			return
+func (cache *Cache) deleteLocked(ck cacheKey) {
+	if !ck.nsaddr.IsValid() {
+		if _, ok := cache.cache[ck]; ok {
+			cache.wilds--
 		}
+	}
+	delete(cache.cache, ck)
+}
+
+func (cache *Cache) Clear() {
+	cache.mu.Lock()
+	clear(cache.cache)
+	cache.mu.Unlock()
+}
+
+func (cache *Cache) Clean() {
+	if cache != nil {
+		now := time.Now()
 		for ck, cv := range cache.cache {
 			if now.After(cv.expires) {
-				delete(cache.cache, ck)
+				cache.deleteLocked(ck)
 			}
 		}
 	}

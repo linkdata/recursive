@@ -72,7 +72,7 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, dbgout, qname, qtype); err == nil {
+			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, rec.Cache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}
@@ -82,7 +82,9 @@ func main() {
 		}
 	}
 
-	fmt.Printf("cache size %d, hit ratio %.2f%%\n", rec.Cache.Size(), rec.Cache.HitRatio())
+	if cache, ok := rec.Cache.(*recursive.Cache); ok {
+		fmt.Printf("cache size %d, hit ratio %.2f%%\n", cache.Size(), cache.HitRatio())
+	}
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)
