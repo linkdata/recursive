@@ -80,6 +80,16 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 		}
 		cache.mu.RLock()
 		cv, ok := cache.cache[ck]
+		if !ok && !nsaddr.IsValid() {
+			for k, v := range cache.cache {
+				if k.qtype == qtype && k.qname == qname {
+					if v.expires.After(cv.expires) {
+						cv = v
+					}
+				}
+			}
+			ok = !cv.expires.IsZero()
+		}
 		if !ok && cache.wilds > 0 {
 			ck.nsaddr = netip.Addr{}
 			cv, ok = cache.cache[ck]
