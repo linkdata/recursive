@@ -84,11 +84,12 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 			for k, v := range cache.cache {
 				if k.qtype == qtype && k.qname == qname {
 					if v.expires.After(cv.expires) {
+						ck = k
 						cv = v
+						ok = true
 					}
 				}
 			}
-			ok = !cv.expires.IsZero()
 		}
 		if !ok && cache.wilds > 0 {
 			ck.nsaddr = netip.Addr{}
