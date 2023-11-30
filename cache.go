@@ -84,6 +84,7 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 			qname:  qname,
 			qtype:  qtype,
 		}
+		atomic.AddUint64(&cache.count, 1)
 		cache.mu.RLock()
 		cv, ok := cache.cache[ck]
 		if !ok && !nsaddr.IsValid() {
@@ -102,37 +103,38 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 			cv, ok = cache.cache[ck]
 		}
 		cache.mu.RUnlock()
-		atomic.AddUint64(&cache.count, 1)
 		if ok {
 			if time.Since(cv.expires) < 0 {
 				atomic.AddUint64(&cache.hits, 1)
 				return cv.Msg
 			}
 			cache.mu.Lock()
-			clear(cv.Msg.Question)
-			clear(cv.Msg.Answer)
-			clear(cv.Msg.Ns)
-			clear(cv.Msg.Extra)
-			cache.deleteLocked(ck)
+			if cv, ok := cache.cache[ck]; ok {
+				cache.deleteLocked(ck, cv)
+			}
 			cache.mu.Unlock()
 		}
 	}
 	return nil
 }
 
-func (cache *Cache) deleteLocked(ck cacheKey) {
+func (cache *Cache) deleteLocked(ck cacheKey, cv cacheValue) {
 	if !ck.nsaddr.IsValid() {
-		if _, ok := cache.cache[ck]; ok {
-			cache.wilds--
-		}
+		cache.wilds--
 	}
+	clear(cv.Msg.Question)
+	clear(cv.Msg.Answer)
+	clear(cv.Msg.Ns)
+	clear(cv.Msg.Extra)
 	delete(cache.cache, ck)
 }
 
 func (cache *Cache) Clear() {
 	cache.mu.Lock()
-	clear(cache.cache)
-	cache.mu.Unlock()
+	defer cache.mu.Unlock()
+	for ck, cv := range cache.cache {
+		cache.deleteLocked(ck, cv)
+	}
 }
 
 func (cache *Cache) Clean() {
@@ -142,7 +144,7 @@ func (cache *Cache) Clean() {
 		defer cache.mu.Unlock()
 		for ck, cv := range cache.cache {
 			if now.After(cv.expires) {
-				cache.deleteLocked(ck)
+				cache.deleteLocked(ck, cv)
 			}
 		}
 	}
