@@ -61,6 +61,7 @@ func main() {
 	}
 
 	rec := recursive.NewWithOptions(roots4, roots6)
+	rec.OrderRoots(context.Background(), nil)
 
 	var dbgout io.Writer
 	if *debug {
