@@ -60,7 +60,7 @@ func main() {
 		roots6 = recursive.Roots6
 	}
 
-	rec := recursive.NewWithOptions(roots4, roots6, recursive.DefaultCache)
+	rec := recursive.NewWithOptions(roots4, roots6)
 
 	var dbgout io.Writer
 	if *debug {
@@ -72,7 +72,7 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, rec.Cache, dbgout, qname, qtype); err == nil {
+			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}
@@ -82,9 +82,7 @@ func main() {
 		}
 	}
 
-	if cache, ok := rec.Cache.(*recursive.Cache); ok {
-		fmt.Printf("cache size %d, hit ratio %.2f%%\n", cache.Size(), cache.HitRatio())
-	}
+	fmt.Printf("cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Size(), recursive.DefaultCache.HitRatio())
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)

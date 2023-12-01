@@ -36,7 +36,6 @@ var defaultNetDialer net.Dialer
 var _ Resolver = (*Recursive)(nil)
 
 type Recursive struct {
-	Cache       Cacher // Cacher to use by default
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
@@ -44,7 +43,7 @@ type Recursive struct {
 	rootIndex   int
 }
 
-func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Recursive {
+func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
@@ -67,12 +66,11 @@ func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Recursive {
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
-		Cache:       cache,
 	}
 }
 
 func New() *Recursive {
-	return NewWithOptions(Roots4, Roots6, DefaultCache)
+	return NewWithOptions(Roots4, Roots6)
 }
 
 func log(logw io.Writer, depth int, format string, args ...any) bool {
@@ -104,7 +102,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.Context
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
 func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	return r.ResolveWithOptions(ctx, nil, r.Cache, nil, qname, qtype)
+	return r.ResolveWithOptions(ctx, nil, DefaultCache, nil, qname, qtype)
 }
 
 func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
