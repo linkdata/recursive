@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"context"
 	"math"
 	"net/netip"
 	"sync"
@@ -12,6 +13,9 @@ import (
 
 const DefaultMinTTL = 10
 const DefaultMaxTTL = 3600
+
+var _ Cacher = (*Cache)(nil)
+var _ Resolver = (*Cache)(nil)
 
 type Cache struct {
 	MinTTL int    // always cache items for at least this long
@@ -52,7 +56,7 @@ func (cache *Cache) Size() (n int) {
 	return
 }
 
-func (cache *Cache) Set(nsaddr netip.Addr, msg *dns.Msg) {
+func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		ttl := max(cache.MinTTL, min(cache.MaxTTL, MinTTL(msg)))
 		msg = msg.Copy()
@@ -77,7 +81,7 @@ func (cache *Cache) Set(nsaddr netip.Addr, msg *dns.Msg) {
 	}
 }
 
-func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg {
+func (cache *Cache) DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (netip.Addr, *dns.Msg) {
 	if cache != nil {
 		ck := cacheKey{
 			nsaddr: nsaddr,
@@ -106,7 +110,7 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 		if ok {
 			if time.Since(cv.expires) < 0 {
 				atomic.AddUint64(&cache.hits, 1)
-				return cv.Msg
+				return ck.nsaddr, cv.Msg
 			}
 			cache.mu.Lock()
 			if cv, ok := cache.cache[ck]; ok {
@@ -115,7 +119,12 @@ func (cache *Cache) Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg 
 			cache.mu.Unlock()
 		}
 	}
-	return nil
+	return netip.Addr{}, nil
+}
+
+func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	srv, msg = cache.DnsGet(netip.Addr{}, qname, qtype)
+	return
 }
 
 func (cache *Cache) deleteLocked(ck cacheKey, cv cacheValue) {

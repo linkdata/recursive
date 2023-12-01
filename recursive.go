@@ -105,7 +105,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.Context
 }
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
-func (r *Recursive) Resolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	return r.ResolveWithOptions(ctx, nil, r.Cache, nil, qname, qtype)
 }
 
@@ -319,7 +319,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 }
 
 func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	if msg = cache.Get(nsaddr, qname, qtype); msg != nil {
+	if _, msg = cache.DnsGet(nsaddr, qname, qtype); msg != nil {
 		if logw != nil {
 			log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
 				nsaddr, DnsTypeToString(qtype), qname, dns.RcodeToString[msg.Rcode],
@@ -397,7 +397,7 @@ func (r *Recursive) sendQuery(ctx context.Context, dialer proxy.ContextDialer, c
 		msg, err = r.sendQueryUsing(ctx, dialer, cache, logw, depth, "tcp", nsaddr, qname, qtype)
 	}
 	if err == nil {
-		cache.Set(nsaddr, msg)
+		cache.DnsSet(nsaddr, msg)
 	}
 	return
 }

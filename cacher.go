@@ -7,6 +7,6 @@ import (
 )
 
 type Cacher interface {
-	Get(nsaddr netip.Addr, qname string, qtype uint16) *dns.Msg
-	Set(nsaddr netip.Addr, msg *dns.Msg)
+	DnsSet(nsaddr netip.Addr, msg *dns.Msg)
+	DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (netip.Addr, *dns.Msg)
 }
