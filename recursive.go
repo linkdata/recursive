@@ -104,8 +104,8 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 }
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
-func (r *Resolver) Resolve(qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	return r.ResolveWithOptions(context.Background(), nil, r.Cache, nil, qname, qtype)
+func (r *Resolver) Resolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	return r.ResolveWithOptions(ctx, nil, r.Cache, nil, qname, qtype)
 }
 
 func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
