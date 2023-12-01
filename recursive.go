@@ -10,7 +10,6 @@ import (
 	"net/netip"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/miekg/dns"
@@ -38,7 +37,6 @@ var _ Resolver = (*Recursive)(nil)
 
 type Recursive struct {
 	Cache       Cacher // Cacher to use by default
-	queryCount  uint64 // atomic
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
@@ -351,8 +349,6 @@ func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDial
 		log(logw, depth, "sending %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, DnsTypeToString(qtype), qname)
 	}
 
-	atomic.AddUint64(&r.queryCount, 1)
-
 	var nconn net.Conn
 	var rtt time.Duration
 	if nconn, err = dialer.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
@@ -422,9 +418,4 @@ func (r *Recursive) maybeDisableIPv6(depth int, err error) (disabled bool) {
 		}
 	}
 	return
-}
-
-// QueryCount returns the number of queries sent.
-func (r *Recursive) QueryCount() uint64 {
-	return atomic.LoadUint64(&r.queryCount)
 }
