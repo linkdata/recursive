@@ -41,7 +41,6 @@ type Recursive struct {
 	useIPv4     bool
 	useIPv6     bool
 	rootServers []netip.Addr
-	rootIndex   int
 }
 
 func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
@@ -166,7 +165,7 @@ func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
 	r.mu.RLock()
 	if l := len(r.rootServers); l > 0 {
-		addr = r.rootServers[(r.rootIndex+i)%l]
+		addr = r.rootServers[i%l]
 	}
 	r.mu.RUnlock()
 	return
@@ -184,9 +183,6 @@ func (r *Recursive) recurseFromRoot(ctx context.Context, dialer proxy.ContextDia
 			}
 		}
 	}
-	r.mu.Lock()
-	r.rootIndex++
-	r.mu.Unlock()
 	return
 }
 
