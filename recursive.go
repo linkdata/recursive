@@ -34,8 +34,9 @@ var (
 )
 
 var defaultNetDialer net.Dialer
+var _ Resolver = (*Recursive)(nil)
 
-type Resolver struct {
+type Recursive struct {
 	Cache       Cacher // Cacher to use by default
 	queryCount  uint64 // atomic
 	mu          sync.RWMutex
@@ -45,7 +46,7 @@ type Resolver struct {
 	rootIndex   int
 }
 
-func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
+func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Recursive {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
@@ -64,7 +65,7 @@ func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
 	roots = append(roots, root4[n:]...)
 	roots = append(roots, root6[n:]...)
 
-	return &Resolver{
+	return &Recursive{
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
@@ -72,7 +73,7 @@ func NewWithOptions(roots4, roots6 []netip.Addr, cache Cacher) *Resolver {
 	}
 }
 
-func New() *Resolver {
+func New() *Recursive {
 	return NewWithOptions(Roots4, Roots6, DefaultCache)
 }
 
@@ -84,7 +85,7 @@ func log(logw io.Writer, depth int, format string, args ...any) bool {
 
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
 // using the given dialer, and if logw is non-nil, write a log of events.
-func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	if dialer == nil {
 		dialer = &defaultNetDialer
 	}
@@ -104,11 +105,11 @@ func (r *Resolver) ResolveWithOptions(ctx context.Context, dialer proxy.ContextD
 }
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
-func (r *Resolver) Resolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+func (r *Recursive) Resolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	return r.ResolveWithOptions(ctx, nil, r.Cache, nil, qname, qtype)
 }
 
-func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
+func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
 	r.mu.RLock()
 	if l := len(r.rootServers); l > 0 {
 		addr = r.rootServers[(r.rootIndex+i)%l]
@@ -117,7 +118,7 @@ func (r *Resolver) nextRoot(i int) (addr netip.Addr) {
 	return
 }
 
-func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+func (r *Recursive) recurseFromRoot(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	_ = (logw != nil) && log(logw, depth, "resolving from root %s %q\n", DnsTypeToString(qtype), qname)
 
 	for i := 0; i < maxRootAttempts; i++ {
@@ -135,14 +136,14 @@ func (r *Resolver) recurseFromRoot(ctx context.Context, dialer proxy.ContextDial
 	return
 }
 
-func (r *Resolver) useable(addr netip.Addr) (ok bool) {
+func (r *Recursive) useable(addr netip.Addr) (ok bool) {
 	r.mu.RLock()
 	ok = (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6())
 	r.mu.RUnlock()
 	return
 }
 
-func (r *Resolver) authQtypes() (qtypes []uint16) {
+func (r *Recursive) authQtypes() (qtypes []uint16) {
 	r.mu.RLock()
 	if r.useIPv4 {
 		qtypes = append(qtypes, dns.TypeA)
@@ -154,7 +155,7 @@ func (r *Resolver) authQtypes() (qtypes []uint16) {
 	return
 }
 
-func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, orgqname string, orgqtype uint16, qlabel int) (*dns.Msg, netip.Addr, error) {
+func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, orgqname string, orgqtype uint16, qlabel int) (*dns.Msg, netip.Addr, error) {
 	if depth >= maxDepth {
 		_ = (logw != nil) && log(logw, depth, "maximum depth reached\n")
 		return nil, netip.Addr{}, ErrMaxDepth
@@ -317,7 +318,7 @@ func (r *Resolver) recurse(ctx context.Context, dialer proxy.ContextDialer, cach
 	return nil, nsaddr, ErrNoResponse
 }
 
-func (r *Resolver) sendQueryUsing(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if msg = cache.Get(nsaddr, qname, qtype); msg != nil {
 		if logw != nil {
 			log(logw, depth, "cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
@@ -386,7 +387,7 @@ func (r *Resolver) sendQueryUsing(ctx context.Context, dialer proxy.ContextDiale
 	return
 }
 
-func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+func (r *Recursive) sendQuery(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	msg, err = r.sendQueryUsing(ctx, dialer, cache, logw, depth, "udp", nsaddr, qname, qtype)
 	if msg != nil && msg.MsgHdr.Truncated {
 		_ = (logw != nil) && log(logw, depth, "message truncated; retry using TCP\n")
@@ -401,7 +402,7 @@ func (r *Resolver) sendQuery(ctx context.Context, dialer proxy.ContextDialer, ca
 	return
 }
 
-func (r *Resolver) maybeDisableIPv6(depth int, err error) (disabled bool) {
+func (r *Recursive) maybeDisableIPv6(depth int, err error) (disabled bool) {
 	if ne, ok := err.(net.Error); ok {
 		if !ne.Timeout() && strings.Contains(ne.Error(), "network is unreachable") {
 			r.mu.Lock()
@@ -424,6 +425,6 @@ func (r *Resolver) maybeDisableIPv6(depth int, err error) (disabled bool) {
 }
 
 // QueryCount returns the number of queries sent.
-func (r *Resolver) QueryCount() uint64 {
+func (r *Recursive) QueryCount() uint64 {
 	return atomic.LoadUint64(&r.queryCount)
 }
