@@ -215,7 +215,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	qtype := orgqtype
 
 	idx, final := dns.PrevLabel(qname, qlabel)
-	if final = final || idx == 0; !final {
+	if !final {
 		qtype = dns.TypeNS
 		qname = qname[idx:]
 	}
@@ -290,6 +290,10 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	}
 
 	if len(authorities) == 0 {
+		if final {
+			_ = (logw != nil) && logf(logw, depth, "no more authorities available\n")
+			return resp, nsaddr, nil
+		}
 		_ = (logw != nil) && logf(logw, depth, "no authoritative NS found for %q, using previous\n", qname)
 		return r.recurse(ctx, dialer, cache, logw, depth+1, nsaddr, orgqname, orgqtype, qlabel+1)
 	}
@@ -419,7 +423,10 @@ func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDial
 			fmt.Fprintf(logw, " => %s [%d+%d+%d A/N/E] (%v, %d bytes", dns.RcodeToString[msg.Rcode],
 				len(msg.Answer), len(msg.Ns), len(msg.Extra), rtt.Round(time.Millisecond), msg.Len())
 			if msg.MsgHdr.Truncated {
-				fmt.Fprintf(logw, " truncated")
+				fmt.Fprintf(logw, " TRNC")
+			}
+			if msg.MsgHdr.Authoritative {
+				fmt.Fprintf(logw, " AUTH")
 			}
 			fmt.Fprintf(logw, ")")
 		}
