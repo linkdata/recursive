@@ -83,7 +83,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Size(), recursive.DefaultCache.HitRatio())
+	fmt.Printf("cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)

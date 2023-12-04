@@ -4,7 +4,6 @@ import (
 	"context"
 	"math"
 	"net/netip"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 
 const DefaultMinTTL = 10
 const DefaultMaxTTL = 3600
+const MaxQtype = 260
 
 var _ Cacher = (*Cache)(nil)
 var _ Resolver = (*Cache)(nil)
@@ -22,16 +22,18 @@ type Cache struct {
 	MaxTTL int    // never cache items for longer than this
 	count  uint64 // atomic
 	hits   uint64 // atomic
-	mu     sync.RWMutex
-	wilds  int
-	cache  map[cacheKey]cacheValue
+	cq     []*cacheQtype
 }
 
 func NewCache() *Cache {
+	cq := make([]*cacheQtype, MaxQtype+1)
+	for i := range cq {
+		cq[i] = &cacheQtype{cache: map[cacheKey]cacheValue{}}
+	}
 	return &Cache{
 		MinTTL: DefaultMinTTL,
 		MaxTTL: DefaultMaxTTL,
-		cache:  make(map[cacheKey]cacheValue),
+		cq:     cq,
 	}
 }
 
@@ -46,80 +48,37 @@ func (cache *Cache) HitRatio() float64 {
 	return 0
 }
 
-// Size returns the number of entries in the cache.
-func (cache *Cache) Size() (n int) {
+// Entries returns the number of entries in the cache.
+func (cache *Cache) Entries() (n int) {
 	if cache != nil {
-		cache.mu.RLock()
-		n = len(cache.cache)
-		cache.mu.RUnlock()
+		for _, cq := range cache.cq {
+			n += cq.entries()
+		}
 	}
 	return
 }
 
 func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
-		ttl := max(cache.MinTTL, min(cache.MaxTTL, MinTTL(msg)))
-		msg = msg.Copy()
-		msg.Zero = true
-		ck := cacheKey{
-			nsaddr: nsaddr,
-			qname:  msg.Question[0].Name,
-			qtype:  msg.Question[0].Qtype,
+		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
+			msg = msg.Copy()
+			msg.Zero = true
+			ttl := max(cache.MinTTL, min(cache.MaxTTL, MinTTL(msg)))
+			cache.cq[qtype].set(nsaddr, msg, ttl)
 		}
-		cv := cacheValue{
-			Msg:     msg,
-			expires: time.Now().Add(time.Duration(ttl) * time.Second),
-		}
-		cache.mu.Lock()
-		if !nsaddr.IsValid() {
-			if _, ok := cache.cache[ck]; !ok {
-				cache.wilds++
-			}
-		}
-		cache.cache[ck] = cv
-		cache.mu.Unlock()
 	}
 }
 
-func (cache *Cache) DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (netip.Addr, *dns.Msg) {
+func (cache *Cache) DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (srv netip.Addr, msg *dns.Msg) {
 	if cache != nil {
-		ck := cacheKey{
-			nsaddr: nsaddr,
-			qname:  qname,
-			qtype:  qtype,
-		}
 		atomic.AddUint64(&cache.count, 1)
-		cache.mu.RLock()
-		cv, ok := cache.cache[ck]
-		if !ok && !nsaddr.IsValid() {
-			for k, v := range cache.cache {
-				if k.qtype == qtype && k.qname == qname {
-					if v.expires.After(cv.expires) {
-						ck = k
-						cv = v
-						ok = true
-					}
-				}
-			}
-		}
-		if !ok && cache.wilds > 0 {
-			ck.nsaddr = netip.Addr{}
-			cv, ok = cache.cache[ck]
-		}
-		cache.mu.RUnlock()
-		if ok {
-			if time.Since(cv.expires) < 0 {
+		if qtype <= MaxQtype {
+			if srv, msg = cache.cq[qtype].get(nsaddr, qname); msg != nil {
 				atomic.AddUint64(&cache.hits, 1)
-				return ck.nsaddr, cv.Msg
 			}
-			cache.mu.Lock()
-			if cv, ok := cache.cache[ck]; ok {
-				cache.deleteLocked(ck, cv)
-			}
-			cache.mu.Unlock()
 		}
 	}
-	return netip.Addr{}, nil
+	return
 }
 
 func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
@@ -127,34 +86,19 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 	return
 }
 
-func (cache *Cache) deleteLocked(ck cacheKey, cv cacheValue) {
-	if !ck.nsaddr.IsValid() {
-		cache.wilds--
-	}
-	clear(cv.Msg.Question)
-	clear(cv.Msg.Answer)
-	clear(cv.Msg.Ns)
-	clear(cv.Msg.Extra)
-	delete(cache.cache, ck)
-}
-
 func (cache *Cache) Clear() {
-	cache.mu.Lock()
-	defer cache.mu.Unlock()
-	for ck, cv := range cache.cache {
-		cache.deleteLocked(ck, cv)
+	if cache != nil {
+		for _, cq := range cache.cq {
+			cq.clear()
+		}
 	}
 }
 
 func (cache *Cache) Clean() {
 	if cache != nil {
 		now := time.Now()
-		cache.mu.Lock()
-		defer cache.mu.Unlock()
-		for ck, cv := range cache.cache {
-			if now.After(cv.expires) {
-				cache.deleteLocked(ck, cv)
-			}
+		for _, cq := range cache.cq {
+			cq.clean(now)
 		}
 	}
 }
