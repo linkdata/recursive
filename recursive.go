@@ -323,7 +323,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 		for _, authaddr := range gluemap[authority] {
 			answers, srv, err := r.recurse(ctx, dialer, cache, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 			switch err {
-			case nil, ErrNoResponse, dns.ErrRdata:
+			case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 				return answers, srv, err
 			}
 			authError = err
@@ -341,7 +341,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 						if r.useable(authaddr) {
 							answers, srv, err := r.recurse(ctx, dialer, cache, logw, depth+1, authaddr, orgqname, orgqtype, qlabel+1)
 							switch err {
-							case nil, ErrNoResponse, dns.ErrRdata:
+							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 								return answers, srv, err
 							}
 							authError = err
