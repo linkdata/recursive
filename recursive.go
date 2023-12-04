@@ -178,7 +178,7 @@ func (r *Recursive) recurseFromRoot(ctx context.Context, dialer proxy.ContextDia
 		if server := r.nextRoot(i); server.IsValid() {
 			msg, srv, err = r.recurse(ctx, dialer, cache, logw, depth, server, qname, qtype, 1)
 			switch err {
-			case nil, ErrNoResponse, dns.ErrRdata:
+			case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 				return
 			}
 		}
