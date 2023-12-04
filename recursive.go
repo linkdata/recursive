@@ -225,6 +225,10 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 		return nil, nsaddr, err
 	}
 
+	if resp.Rcode == dns.RcodeNameError {
+		return resp, nsaddr, nil
+	}
+
 	var cnames []string
 	var answer []dns.RR
 	for _, rr := range resp.Answer {
@@ -337,7 +341,11 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	_ = (logw != nil) && logf(logw, depth, "authorities without glue records: %v\n", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
 		for _, authQtype := range r.authQtypes() {
-			authAddrs, _, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, authority, authQtype)
+			authAddrs, srv, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, authority, authQtype)
+			switch err {
+			case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+				return nil, srv, err
+			}
 			if authAddrs != nil && len(authAddrs.Answer) > 0 {
 				_ = (logw != nil) && logf(logw, depth, "resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
 				for _, nsrr := range authAddrs.Answer {
