@@ -73,13 +73,15 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			if retv, _, err := rec.ResolveWithOptions(context.Background(), nil, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+			if retv, _, err := rec.ResolveWithOptions(ctx, nil, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}
 			} else {
 				fmt.Printf("%s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
 			}
+			cancel()
 		}
 	}
 

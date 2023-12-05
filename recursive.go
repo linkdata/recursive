@@ -243,34 +243,36 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 		answer = append(answer, rr)
 	}
 
-	if final && len(answer) > 0 {
-		_ = (logw != nil) && logf(logw, depth, "ANSWER for %s %q: %v\n", DnsTypeToString(qtype), qname, answer)
-		return resp, nsaddr, nil
-	}
-
-	if len(answer) == 0 {
-		var cnameError error
-		if len(cnames) > 0 {
-			_ = (logw != nil) && logf(logw, depth, "CNAMEs for %q: %v\n", qname, cnames)
-			for _, cname := range cnames {
-				if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, cname, orgqtype); err == nil {
-					resp.Answer = append(resp.Answer, cmsg.Answer...)
-					resp.Ns = nil
-					resp.Extra = nil
-					return resp, srv, nil
-				} else {
-					_ = (logw != nil) && logf(logw, depth, "error resolving CNAME %q: %v\n", qname, err)
-					cnameError = err
-				}
-			}
+	if final {
+		if len(answer) > 0 {
+			_ = (logw != nil) && logf(logw, depth, "ANSWER for %s %q: %v\n", DnsTypeToString(qtype), qname, answer)
+			return resp, nsaddr, nil
 		}
-		if final && resp.MsgHdr.Authoritative {
-			if cnameError != nil {
-				return nil, nsaddr, cnameError
-			}
+		if resp.Rcode == dns.RcodeNameError {
+			_ = (logw != nil) && logf(logw, depth, "NXDOMAIN for %s %q\n", DnsTypeToString(qtype), qname)
+			return resp, nsaddr, nil
+		}
+		if len(cnames) == 0 && resp.MsgHdr.Authoritative {
 			_ = (logw != nil) && logf(logw, depth, "authoritative response with no ANSWERs\n")
 			return resp, nsaddr, nil
 		}
+	}
+
+	if len(answer) == 0 && len(cnames) > 0 {
+		var cnameError error
+		_ = (logw != nil) && logf(logw, depth, "CNAMEs for %q: %v\n", qname, cnames)
+		for _, cname := range cnames {
+			if cmsg, srv, err := r.recurseFromRoot(ctx, dialer, cache, logw, depth+1, cname, orgqtype); err == nil {
+				resp.Answer = append(resp.Answer, cmsg.Answer...)
+				resp.Ns = nil
+				resp.Extra = nil
+				return resp, srv, nil
+			} else {
+				_ = (logw != nil) && logf(logw, depth, "error resolving CNAME %q: %v\n", qname, err)
+				cnameError = err
+			}
+		}
+		return nil, nsaddr, cnameError
 	}
 
 	var authorities []dns.RR
@@ -362,7 +364,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 			}
 		}
 	}
-	if final && qtype == dns.TypeNS {
+	if orgqtype == dns.TypeNS && qtype == dns.TypeNS && (final || idx == 0) {
 		_ = (logw != nil) && logf(logw, depth, "ANSWER with referral NS\n")
 		resp = authoritiesMsg.Copy()
 		resp.Answer = authorities
@@ -384,6 +386,10 @@ func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDial
 				len(msg.Answer), len(msg.Ns), len(msg.Extra))
 		}
 		return
+	}
+
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
 	if !r.useable(nsaddr) {
