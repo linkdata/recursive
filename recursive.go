@@ -276,7 +276,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	}
 
 	var authorities []dns.RR
-	authoritiesMsg := resp
+	authoritiesMsgHdr := resp.MsgHdr
 	for _, rr := range resp.Ns {
 		if ns, ok := rr.(*dns.NS); ok {
 			authorities = append(authorities, ns)
@@ -366,10 +366,15 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	}
 	if (final || idx == 0) && orgqtype == dns.TypeNS && qtype == dns.TypeNS {
 		_ = (logw != nil) && logf(logw, depth, "ANSWER with referral NS\n")
-		resp = authoritiesMsg.Copy()
-		resp.Answer = authorities
-		resp.Ns = nil
-		resp.Extra = nil
+		resp = &dns.Msg{
+			MsgHdr: authoritiesMsgHdr,
+			Question: []dns.Question{{
+				Name:   orgqname,
+				Qtype:  orgqtype,
+				Qclass: dns.ClassINET,
+			}},
+			Answer: authorities,
+		}
 		return resp, nsaddr, nil
 	}
 	if authError != nil {
