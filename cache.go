@@ -18,8 +18,8 @@ var _ Cacher = (*Cache)(nil)
 var _ Resolver = (*Cache)(nil)
 
 type Cache struct {
-	MinTTL int    // always cache items for at least this long
-	MaxTTL int    // never cache items for longer than this
+	MinTTL int    // always cache responses for at least this long
+	MaxTTL int    // never cache responses for longer than this (excepting successful NS responses)
 	count  uint64 // atomic
 	hits   uint64 // atomic
 	cq     []*cacheQtype
@@ -63,7 +63,10 @@ func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
 			msg.Zero = true
-			ttl := max(cache.MinTTL, min(cache.MaxTTL, MinTTL(msg)))
+			ttl := min(cache.MinTTL, MinTTL(msg))
+			if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+				ttl = max(cache.MaxTTL, ttl)
+			}
 			cache.cq[qtype].set(nsaddr, msg, ttl)
 		}
 	}
