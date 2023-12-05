@@ -2,10 +2,13 @@ package recursive
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash/maphash"
 	"io"
-	"math/rand"
+	mathrand "math/rand"
 	"net"
 	"net/netip"
 	"sort"
@@ -37,21 +40,23 @@ var defaultNetDialer net.Dialer
 var _ Resolver = (*Recursive)(nil)
 
 type Recursive struct {
+	cookiernd   []byte
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
 	rootServers []netip.Addr
+	srvcookies  map[netip.Addr]string
 }
 
 func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
-		rand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
+		mathrand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
 	}
 	if roots6 != nil {
 		root6 = append(root6, roots6...)
-		rand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
+		mathrand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
 	}
 
 	roots := make([]netip.Addr, 0, len(root4)+len(root6))
@@ -61,11 +66,14 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	}
 	roots = append(roots, root4[n:]...)
 	roots = append(roots, root6[n:]...)
-
+	cookiernd := make([]byte, 8)
+	rand.Read(cookiernd)
 	return &Recursive{
+		cookiernd:   cookiernd,
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
+		srvcookies:  make(map[netip.Addr]string),
 	}
 }
 
@@ -383,6 +391,8 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 	return nil, nsaddr, ErrNoResponse
 }
 
+var ErrInvalidCookie = errors.New("invalid cookie")
+
 func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, depth int, protocol string, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if _, msg = cache.DnsGet(nsaddr, qname, qtype); msg != nil {
 		if logw != nil {
@@ -426,9 +436,49 @@ func (r *Recursive) sendQueryUsing(ctx context.Context, dialer proxy.ContextDial
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
 		m := new(dns.Msg)
-		m.SetQuestion(qname, qtype).SetEdns0(dns.DefaultMsgSize, false).RecursionDesired = false
+		m.SetQuestion(qname, qtype)
+		m.RecursionDesired = false
+		e := new(dns.OPT)
+		e.Hdr.Name = "."
+		e.Hdr.Rrtype = dns.TypeOPT
+		e.SetUDPSize(dns.DefaultMsgSize)
+		var h maphash.Hash
+		h.Write(r.cookiernd)
+		h.Write(nsaddr.AsSlice())
+		if la := nconn.LocalAddr(); la != nil {
+			h.Write([]byte(la.String()))
+		}
+		clicookie := hex.EncodeToString(h.Sum(nil))
+		r.mu.RLock()
+		srvcookie := r.srvcookies[nsaddr]
+		r.mu.RUnlock()
+		e.Option = append(e.Option, &dns.EDNS0_COOKIE{
+			Code:   dns.EDNS0COOKIE,
+			Cookie: clicookie + srvcookie,
+		})
+		m.Extra = append(m.Extra, e)
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
+		if msg != nil {
+			if opt := msg.IsEdns0(); opt != nil {
+				for _, rr := range opt.Option {
+					switch rr := rr.(type) {
+					case *dns.EDNS0_COOKIE:
+						if strings.HasPrefix(rr.Cookie, clicookie) {
+							newsrvcookie := strings.TrimPrefix(rr.Cookie, clicookie)
+							if srvcookie != newsrvcookie {
+								r.mu.Lock()
+								r.srvcookies[nsaddr] = newsrvcookie
+								r.mu.Unlock()
+							}
+						} else {
+							msg = nil
+							err = ErrInvalidCookie
+						}
+					}
+				}
+			}
+		}
 	}
 
 	ipv6disabled := (err != nil && nsaddr.Is6() && r.maybeDisableIPv6(depth, err))
