@@ -225,10 +225,6 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 		return nil, nsaddr, err
 	}
 
-	if resp.Rcode == dns.RcodeNameError {
-		return resp, nsaddr, nil
-	}
-
 	var cnames []string
 	var answer []dns.RR
 	for _, rr := range resp.Answer {
