@@ -364,7 +364,7 @@ func (r *Recursive) recurse(ctx context.Context, dialer proxy.ContextDialer, cac
 			}
 		}
 	}
-	if orgqtype == dns.TypeNS && qtype == dns.TypeNS && (final || idx == 0) {
+	if (final || idx == 0) && orgqtype == dns.TypeNS && qtype == dns.TypeNS {
 		_ = (logw != nil) && logf(logw, depth, "ANSWER with referral NS\n")
 		resp = authoritiesMsg.Copy()
 		resp.Answer = authorities
