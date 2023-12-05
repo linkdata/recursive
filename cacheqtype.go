@@ -9,83 +9,120 @@ import (
 )
 
 type cacheQtype struct {
-	mu       sync.RWMutex
-	havewild bool // true if netip.Addr{} exists in keys
-	cache    map[cacheKey]cacheValue
+	mu    sync.RWMutex
+	cache map[string][]cacheValue
+}
+
+func newCacheQtype() *cacheQtype {
+	return &cacheQtype{cache: make(map[string][]cacheValue)}
 }
 
 func (cq *cacheQtype) entries() (n int) {
 	cq.mu.RLock()
-	n = len(cq.cache)
+	for _, cv := range cq.cache {
+		n += len(cv)
+	}
 	cq.mu.RUnlock()
 	return
 }
 
 func (cq *cacheQtype) set(nsaddr netip.Addr, msg *dns.Msg, ttl int) {
-	ck := cacheKey{
-		nsaddr: nsaddr,
-		qname:  msg.Question[0].Name,
-	}
-	cv := cacheValue{
-		Msg:     msg,
-		expires: time.Now().Add(time.Duration(ttl) * time.Second),
-	}
+	qname := msg.Question[0].Name
+	expires := time.Now().Add(time.Duration(ttl) * time.Second)
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
-	cq.havewild = cq.havewild || !ck.nsaddr.IsValid()
-	cq.cache[ck] = cv
+	cvl := cq.cache[qname]
+	for i := range cvl {
+		if cvl[i].nsaddr == nsaddr {
+			cvl[i].Msg = msg
+			cvl[i].expires = expires
+			return
+		}
+	}
+	cq.cache[qname] = append(cvl, cacheValue{
+		Msg:     msg,
+		nsaddr:  nsaddr,
+		expires: expires,
+	})
 }
 
-func (cq *cacheQtype) get(nsaddr netip.Addr, qname string) (netip.Addr, *dns.Msg) {
-	ck := cacheKey{
-		nsaddr: nsaddr,
-		qname:  qname,
+func find(cvl []cacheValue, addr netip.Addr, qname string) (idx int) {
+	wild := !addr.IsValid()
+	idx = -1
+	for i := range cvl {
+		if cvl[i].nsaddr == addr {
+			idx = i
+			break
+		}
+		if wild {
+			wild = false
+			idx = i
+		}
 	}
+	return
+}
+
+func (cq *cacheQtype) getExisting(addr netip.Addr, qname string) (cv cacheValue) {
 	cq.mu.RLock()
-	cv, ok := cq.cache[ck]
-	if !ok && cq.havewild {
-		ck.nsaddr = netip.Addr{}
-		cv, ok = cq.cache[ck]
+	defer cq.mu.RUnlock()
+	cvl := cq.cache[qname]
+	if idx := find(cvl, addr, qname); idx >= 0 {
+		cv = cvl[idx]
 	}
-	cq.mu.RUnlock()
-	if ok {
+	return
+}
+
+func (cq *cacheQtype) get(addr netip.Addr, qname string) (netip.Addr, *dns.Msg) {
+	if cv := cq.getExisting(addr, qname); cv.Msg != nil {
 		if time.Since(cv.expires) < 0 {
-			return ck.nsaddr, cv.Msg
+			return cv.nsaddr, cv.Msg
 		}
 		cq.mu.Lock()
-		if cv, ok := cq.cache[ck]; ok {
-			cq.deleteLocked(ck, cv)
+		defer cq.mu.Unlock()
+		cvl := cq.cache[qname]
+		if idx := find(cvl, addr, qname); idx >= 0 {
+			if cvl = cq.deleteLocked(cvl, idx); len(cvl) > 0 {
+				cq.cache[qname] = cvl
+			} else {
+				delete(cq.cache, qname)
+			}
 		}
-		cq.mu.Unlock()
 	}
 	return netip.Addr{}, nil
 }
 
 func (cq *cacheQtype) clear() {
-	cq.mu.Lock()
-	cq.havewild = false
-	clear(cq.cache)
-	cq.mu.Unlock()
+	cq.clean(time.Time{})
 }
 
 func (cq *cacheQtype) clean(now time.Time) {
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
-	havewild := false
-	for ck, cv := range cq.cache {
-		if now.After(cv.expires) {
-			cq.deleteLocked(ck, cv)
+	for qname, cvl := range cq.cache {
+		for i := len(cvl); i > 0; i-- {
+			if idx := len(cvl) - 1; idx >= 0 {
+				if now.IsZero() || now.After(cvl[idx].expires) {
+					cvl = cq.deleteLocked(cvl, idx)
+				}
+			}
+		}
+		if len(cvl) > 0 {
+			cq.cache[qname] = cvl
 		} else {
-			havewild = havewild || !ck.nsaddr.IsValid()
+			delete(cq.cache, qname)
 		}
 	}
-	cq.havewild = havewild
 }
 
-func (cq *cacheQtype) deleteLocked(ck cacheKey, cv cacheValue) {
-	clear(cv.Msg.Question)
-	clear(cv.Msg.Answer)
-	clear(cv.Msg.Ns)
-	clear(cv.Msg.Extra)
-	delete(cq.cache, ck)
+func (cq *cacheQtype) deleteLocked(cvl []cacheValue, idx int) []cacheValue {
+	l := len(cvl) - 1
+	if idx < l {
+		cvl[idx], cvl[l] = cvl[l], cvl[idx]
+	}
+	clear(cvl[l].Msg.Question)
+	clear(cvl[l].Msg.Answer)
+	clear(cvl[l].Msg.Ns)
+	clear(cvl[l].Msg.Extra)
+	cvl[l] = cacheValue{}
+	return cvl[:l]
 }

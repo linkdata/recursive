@@ -28,7 +28,7 @@ type Cache struct {
 func NewCache() *Cache {
 	cq := make([]*cacheQtype, MaxQtype+1)
 	for i := range cq {
-		cq[i] = &cacheQtype{cache: map[cacheKey]cacheValue{}}
+		cq[i] = newCacheQtype()
 	}
 	return &Cache{
 		MinTTL: DefaultMinTTL,
