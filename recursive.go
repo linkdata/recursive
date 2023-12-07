@@ -194,6 +194,7 @@ type state struct {
 	qname  string
 	qtype  uint16
 	qlabel int
+	noglue map[string]struct{}
 }
 
 func (s *state) dbg() bool {
@@ -387,37 +388,43 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 
 	_ = s.dbg() && s.log("authorities without glue records: %v\n", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
-		for _, authQtype := range r.authQtypes() {
-			s2 := s
-			s2.depth++
-			s2.qname = authority
-			s2.qtype = authQtype
-			authAddrs, srv, err := r.recurseFromRoot(s2)
-			switch err {
-			case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-				return nil, srv, err
-			}
-			if authAddrs != nil && len(authAddrs.Answer) > 0 {
-				_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
-				for _, nsrr := range authAddrs.Answer {
-					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
-						if r.useable(authaddr) {
-							s2 := s
-							s2.nsaddr = authaddr
-							s2.depth++
-							s2.qlabel++
-							answers, srv, err := r.recurse(s2)
-							switch err {
-							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-								return answers, srv, err
+		if _, ok := s.noglue[authority]; !ok {
+			for _, authQtype := range r.authQtypes() {
+				s2 := s
+				s2.depth++
+				s2.qname = authority
+				s2.qtype = authQtype
+				authAddrs, srv, err := r.recurseFromRoot(s2)
+				switch err {
+				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+					return nil, srv, err
+				}
+				if authAddrs != nil && len(authAddrs.Answer) > 0 {
+					_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
+					for _, nsrr := range authAddrs.Answer {
+						if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
+							if r.useable(authaddr) {
+								s2 := s
+								s2.nsaddr = authaddr
+								s2.depth++
+								s2.qlabel++
+								answers, srv, err := r.recurse(s2)
+								switch err {
+								case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+									return answers, srv, err
+								}
+								authError = err
 							}
-							authError = err
 						}
 					}
+				} else if err != nil {
+					if s.noglue == nil {
+						s.noglue = make(map[string]struct{})
+					}
+					s.noglue[authority] = struct{}{}
+					authError = err
+					_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
 				}
-			} else if err != nil {
-				authError = err
-				_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
 			}
 		}
 	}
