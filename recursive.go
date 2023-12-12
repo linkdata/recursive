@@ -39,6 +39,11 @@ var (
 var defaultNetDialer net.Dialer
 var _ Resolver = (*Recursive)(nil)
 
+type netError struct {
+	Err  error
+	When time.Time
+}
+
 type Recursive struct {
 	mu          sync.RWMutex
 	useIPv4     bool
@@ -46,6 +51,8 @@ type Recursive struct {
 	rootServers []netip.Addr
 	cookiernd   uint64
 	srvcookies  map[netip.Addr]string
+	udperrs     map[netip.Addr]netError
+	tcperrs     map[netip.Addr]netError
 }
 
 func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
@@ -73,6 +80,8 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 		rootServers: roots,
 		cookiernd:   rand.Uint64(),
 		srvcookies:  make(map[netip.Addr]string),
+		udperrs:     make(map[netip.Addr]netError),
+		tcperrs:     make(map[netip.Addr]netError),
 	}
 }
 
@@ -145,22 +154,33 @@ func (r *Recursive) OrderRoots(ctx context.Context, dialer proxy.ContextDialer) 
 	}
 }
 
+type state struct {
+	ctx    context.Context
+	start  time.Time
+	dialer proxy.ContextDialer
+	cache  Cacher
+	logw   io.Writer
+	depth  int
+	nsaddr netip.Addr
+	qname  string
+	qtype  uint16
+	qlabel int
+}
+
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
 // using the given dialer, and if logw is non-nil, write a log of events.
 func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	if dialer == nil {
 		dialer = &defaultNetDialer
 	}
-	var start time.Time
-	if logw != nil {
-		start = time.Now()
-	}
+	start := time.Now()
 	qname = dns.CanonicalName(qname)
 	if _, ok := dns.IsDomainName(qname); !ok {
 		return nil, netip.Addr{}, dns.ErrRdata
 	}
 	s := state{
 		ctx:    ctx,
+		start:  start,
 		dialer: dialer,
 		cache:  cache,
 		logw:   logw,
@@ -191,25 +211,12 @@ func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
 	return
 }
 
-type state struct {
-	ctx    context.Context
-	dialer proxy.ContextDialer
-	cache  Cacher
-	logw   io.Writer
-	depth  int
-	nsaddr netip.Addr
-	qname  string
-	qtype  uint16
-	qlabel int
-	noglue map[string]struct{}
-}
-
 func (s *state) dbg() bool {
 	return s.logw != nil
 }
 
 func (s *state) log(format string, args ...any) bool {
-	fmt.Fprintf(s.logw, "[%2d] %*s", s.depth, s.depth, "")
+	fmt.Fprintf(s.logw, "[%-5d %2d] %*s", time.Since(s.start).Milliseconds(), s.depth, s.depth, "")
 	fmt.Fprintf(s.logw, format, args...)
 	return false
 }
@@ -443,10 +450,6 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					}
 				}
 			} else if err != nil {
-				if s.noglue == nil {
-					s.noglue = make(map[string]struct{})
-				}
-				s.noglue[authority] = struct{}{}
 				authError = err
 				_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
 			}
@@ -473,11 +476,53 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 
 var ErrInvalidCookie = errors.New("invalid cookie")
 
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) {
+	if err != nil && nsaddr.IsValid() {
+		var m map[netip.Addr]netError
+		switch protocol {
+		case "udp":
+			m = r.udperrs
+		case "tcp":
+			m = r.tcperrs
+		}
+		if m != nil {
+			r.mu.Lock()
+			m[nsaddr] = netError{Err: err, When: time.Now()}
+			r.mu.Unlock()
+		}
+	}
+}
+
+func (r *Recursive) getNetError(protocol string, nsaddr netip.Addr) error {
+	var m map[netip.Addr]netError
+	switch protocol {
+	case "udp":
+		m = r.udperrs
+	case "tcp":
+		m = r.tcperrs
+	}
+	if m != nil {
+		r.mu.RLock()
+		ne, ok := m[nsaddr]
+		r.mu.RUnlock()
+		if ok {
+			if time.Since(ne.When) < time.Minute {
+				return ne.Err
+			}
+			r.mu.Lock()
+			delete(m, nsaddr)
+			r.mu.Unlock()
+		}
+	}
+	return nil
+}
+
 func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err error) {
 	if _, msg = s.cache.DnsGet(s.nsaddr, s.qname, s.qtype); msg != nil {
 		if s.dbg() {
-			s.log("cache hit: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
-				s.nsaddr, DnsTypeToString(s.qtype), s.qname, dns.RcodeToString[msg.Rcode],
+			s.log("cached answer: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
+				s.nsaddr, DnsTypeToString(s.qtype), s.qname,
+				dns.RcodeToString[msg.Rcode],
 				len(msg.Answer), len(msg.Ns), len(msg.Extra))
 		}
 		return
@@ -489,6 +534,11 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 
 	if !r.useable(s.nsaddr) {
 		return nil, net.ErrClosed
+	}
+
+	if err = r.getNetError(protocol, s.nsaddr); err != nil {
+		_ = s.dbg() && s.log("cached error: @%s %s %q => %v\n", s.nsaddr, DnsTypeToString(s.qtype), s.qname, err)
+		return
 	}
 
 	var network string
@@ -507,7 +557,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		if s.nsaddr.Is6() {
 			dash6str = " -6"
 		}
-		s.log("sending %s: @%s%s%s %s %q", network, s.nsaddr, protostr, dash6str, DnsTypeToString(s.qtype), s.qname)
+		s.log("SENDING %s: @%s%s%s %s %q", network, s.nsaddr, protostr, dash6str, DnsTypeToString(s.qtype), s.qname)
 	}
 
 	var nconn net.Conn
@@ -565,6 +615,10 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 				}
 			}
 		}
+	}
+
+	if ne, ok := err.(net.Error); ok {
+		r.setNetError(protocol, s.nsaddr, ne)
 	}
 
 	ipv6disabled := (err != nil && s.nsaddr.Is6() && r.maybeDisableIPv6(s.depth, err))
