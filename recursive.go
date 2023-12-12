@@ -413,10 +413,8 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				s2.qname = authority
 				s2.qtype = authQtype
 				s2.qlabel = 64
-				authAddrs, srv, err = r.recurse(s2)
-				switch err {
-				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-					return nil, srv, err
+				if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
+					authAddrs = m
 				}
 			}
 			if authAddrs == nil {
