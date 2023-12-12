@@ -526,7 +526,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		h.Write(cookiernd)
 		h.Write(s.nsaddr.AsSlice())
 		if la := nconn.LocalAddr(); la != nil {
-			h.Write([]byte(la.String()))
+			h.WriteString(la.String())
 		}
 		clicookie := hex.EncodeToString(h.Sum(nil))
 
