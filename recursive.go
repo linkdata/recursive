@@ -518,7 +518,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 
 		cookiernd := make([]byte, 8)
 		r.mu.RLock()
-		binary.LittleEndian.PutUint64(cookiernd, r.cookiernd)
+		binary.NativeEndian.PutUint64(cookiernd, r.cookiernd)
 		srvcookie := r.srvcookies[s.nsaddr]
 		r.mu.RUnlock()
 
