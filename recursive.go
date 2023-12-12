@@ -393,8 +393,12 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			s2.qlabel++
 			answers, srv, err := r.recurse(s2)
 			switch err {
-			case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+			case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 				return answers, srv, err
+			case nil:
+				if len(answers.Answer) > 0 || answers.Authoritative {
+					return answers, srv, err
+				}
 			}
 			authError = err
 		}
@@ -424,7 +428,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				s2.qtype = authQtype
 				authAddrs, srv, err = r.recurseFromRoot(s2)
 				switch err {
-				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+				case dns.ErrRdata, ErrMaxDepth:
 					return nil, srv, err
 				}
 			}
@@ -440,8 +444,12 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 							s2.qlabel++
 							answers, srv, err := r.recurse(s2)
 							switch err {
-							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+							case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 								return answers, srv, err
+							case nil:
+								if len(answers.Answer) > 0 || answers.Authoritative {
+									return answers, srv, err
+								}
 							}
 							authError = err
 						}
@@ -453,6 +461,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			}
 		}
 	}
+
 	if (final || idx == 0) && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
 		_ = s.dbg() && s.log("ANSWER with referral NS\n")
 		resp = &dns.Msg{
