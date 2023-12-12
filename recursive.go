@@ -2,13 +2,13 @@ package recursive
 
 import (
 	"context"
-	"crypto/rand"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"hash/maphash"
 	"io"
-	mathrand "math/rand"
+	"math/rand"
 	"net"
 	"net/netip"
 	"sort"
@@ -40,11 +40,11 @@ var defaultNetDialer net.Dialer
 var _ Resolver = (*Recursive)(nil)
 
 type Recursive struct {
-	cookiernd   []byte
 	mu          sync.RWMutex
 	useIPv4     bool
 	useIPv6     bool
 	rootServers []netip.Addr
+	cookiernd   uint64
 	srvcookies  map[netip.Addr]string
 }
 
@@ -52,11 +52,11 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
-		mathrand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
+		rand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
 	}
 	if roots6 != nil {
 		root6 = append(root6, roots6...)
-		mathrand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
+		rand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
 	}
 
 	roots := make([]netip.Addr, 0, len(root4)+len(root6))
@@ -66,13 +66,12 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	}
 	roots = append(roots, root4[n:]...)
 	roots = append(roots, root6[n:]...)
-	cookiernd := make([]byte, 8)
-	rand.Read(cookiernd)
+
 	return &Recursive{
-		cookiernd:   cookiernd,
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
+		cookiernd:   rand.Uint64(),
 		srvcookies:  make(map[netip.Addr]string),
 	}
 }
@@ -105,6 +104,14 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
 		conn.Close()
 	}
 	rt.rtt = rtt / numProbes
+}
+
+// ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
+func (r *Recursive) ResetCookies() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cookiernd = rand.Uint64()
+	clear(r.srvcookies)
 }
 
 // OrderRoots sorts the root server list by their current latency and removes those that don't respond.
@@ -508,28 +515,34 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 	if nconn, err = s.dialer.DialContext(s.ctx, network, netip.AddrPortFrom(s.nsaddr, 53).String()); err == nil {
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
-		m := new(dns.Msg)
-		m.SetQuestion(s.qname, s.qtype)
-		m.RecursionDesired = false
-		e := new(dns.OPT)
-		e.Hdr.Name = "."
-		e.Hdr.Rrtype = dns.TypeOPT
-		e.SetUDPSize(dns.DefaultMsgSize)
+
+		cookiernd := make([]byte, 8)
+		r.mu.RLock()
+		binary.LittleEndian.PutUint64(cookiernd, r.cookiernd)
+		srvcookie := r.srvcookies[s.nsaddr]
+		r.mu.RUnlock()
+
 		var h maphash.Hash
-		h.Write(r.cookiernd)
+		h.Write(cookiernd)
 		h.Write(s.nsaddr.AsSlice())
 		if la := nconn.LocalAddr(); la != nil {
 			h.Write([]byte(la.String()))
 		}
 		clicookie := hex.EncodeToString(h.Sum(nil))
-		r.mu.RLock()
-		srvcookie := r.srvcookies[s.nsaddr]
-		r.mu.RUnlock()
-		e.Option = append(e.Option, &dns.EDNS0_COOKIE{
+
+		opt := new(dns.OPT)
+		opt.Hdr.Name = "."
+		opt.Hdr.Rrtype = dns.TypeOPT
+		opt.SetUDPSize(dns.DefaultMsgSize)
+		opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
 			Code:   dns.EDNS0COOKIE,
 			Cookie: clicookie + srvcookie,
 		})
-		m.Extra = append(m.Extra, e)
+
+		m := new(dns.Msg)
+		m.SetQuestion(s.qname, s.qtype)
+		m.Extra = append(m.Extra, opt)
+
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		msg, rtt, err = c.ExchangeWithConnContext(s.ctx, m, dnsconn)
 		if msg != nil {
