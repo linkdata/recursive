@@ -474,21 +474,27 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 
 var ErrInvalidCookie = errors.New("invalid cookie")
 
-func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) {
-	if err != nil && nsaddr.IsValid() {
-		var m map[netip.Addr]netError
-		switch protocol {
-		case "udp":
-			m = r.udperrs
-		case "tcp":
-			m = r.tcperrs
-		}
-		if m != nil {
-			r.mu.Lock()
-			m[nsaddr] = netError{Err: err, When: time.Now()}
-			r.mu.Unlock()
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err bool) {
+	if err != nil {
+		isIpv6err = nsaddr.Is6()
+		_, ok := err.(net.Error)
+		ok = ok || errors.Is(err, io.EOF)
+		if ok {
+			var m map[netip.Addr]netError
+			switch protocol {
+			case "udp":
+				m = r.udperrs
+			case "tcp":
+				m = r.tcperrs
+			}
+			if m != nil {
+				r.mu.Lock()
+				m[nsaddr] = netError{Err: err, When: time.Now()}
+				r.mu.Unlock()
+			}
 		}
 	}
+	return
 }
 
 func (r *Recursive) getNetError(protocol string, nsaddr netip.Addr) error {
@@ -615,11 +621,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		}
 	}
 
-	if ne, ok := err.(net.Error); ok {
-		r.setNetError(protocol, s.nsaddr, ne)
-	}
-
-	ipv6disabled := (err != nil && s.nsaddr.Is6() && r.maybeDisableIPv6(s.depth, err))
+	ipv6disabled := r.setNetError(protocol, s.nsaddr, err) && r.maybeDisableIPv6(s.depth, err)
 
 	if s.logw != nil {
 		if msg != nil {
@@ -633,6 +635,11 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 			if msg.MsgHdr.Authoritative {
 				fmt.Fprintf(s.logw, " AUTH")
 			}
+			if opt := msg.IsEdns0(); opt != nil {
+				if er := opt.ExtendedRcode(); er != 0 {
+					fmt.Fprintf(s.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[uint16(er)])
+				}
+			}
 			fmt.Fprintf(s.logw, ")")
 		}
 		if err != nil {
@@ -640,12 +647,6 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		}
 		if ipv6disabled {
 			fmt.Fprintf(s.logw, " (IPv6 disabled)")
-		}
-		if opt := msg.IsEdns0(); opt != nil {
-			if er := opt.ExtendedRcode(); er != 0 {
-				fmt.Fprintf(s.logw, " (EDNS error %s)", dns.ExtendedErrorCodeToString[uint16(er)])
-			}
-
 		}
 		fmt.Fprintln(s.logw)
 	}
