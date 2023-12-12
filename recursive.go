@@ -625,8 +625,10 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 
 	if s.logw != nil {
 		if msg != nil {
-			fmt.Fprintf(s.logw, " => %s [%d+%d+%d A/N/E] (%v, %d bytes", dns.RcodeToString[msg.Rcode],
-				len(msg.Answer), len(msg.Ns), len(msg.Extra), rtt.Round(time.Millisecond), msg.Len())
+			fmt.Fprintf(s.logw, " => %s [%d+%d+%d A/N/E] (%v, %d bytes",
+				dns.RcodeToString[msg.Rcode],
+				len(msg.Answer), len(msg.Ns), len(msg.Extra),
+				rtt.Round(time.Millisecond), msg.Len())
 			if msg.MsgHdr.Truncated {
 				fmt.Fprintf(s.logw, " TRNC")
 			}
@@ -640,6 +642,12 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		}
 		if ipv6disabled {
 			fmt.Fprintf(s.logw, " (IPv6 disabled)")
+		}
+		if opt := msg.IsEdns0(); opt != nil {
+			if er := opt.ExtendedRcode(); er != 0 {
+				fmt.Fprintf(s.logw, " (EDNS error %s)", dns.ExtendedErrorCodeToString[uint16(er)])
+			}
+
 		}
 		fmt.Fprintln(s.logw)
 	}

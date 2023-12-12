@@ -63,9 +63,9 @@ func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
 			msg.Zero = true
-			ttl := min(cache.MinTTL, MinTTL(msg))
+			ttl := max(cache.MinTTL, MinTTL(msg))
 			if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
-				ttl = max(cache.MaxTTL, ttl)
+				ttl = min(cache.MaxTTL, ttl)
 			}
 			cache.cq[qtype].set(nsaddr, msg, ttl)
 		}
