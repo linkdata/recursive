@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/netip"
 	"os"
 	"runtime"
@@ -19,6 +20,7 @@ import (
 
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
+var flagTimeout = flag.Int("timeout", 10, "individual query timeout in seconds")
 var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flag4 = flag.Bool("4", true, "use IPv4")
@@ -63,6 +65,10 @@ func main() {
 	rec := recursive.NewWithOptions(roots4, roots6)
 	rec.OrderRoots(context.Background(), nil)
 
+	dialer := &net.Dialer{
+		Timeout: time.Second * time.Duration(*flagTimeout),
+	}
+
 	var dbgout io.Writer
 	if *debug {
 		dbgout = os.Stderr
@@ -73,8 +79,8 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-			if retv, _, err := rec.ResolveWithOptions(ctx, nil, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			if retv, _, err := rec.ResolveWithOptions(ctx, dialer, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}
