@@ -303,8 +303,9 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			_ = s.dbg() && s.log("ANSWER for %s %q: %v\n", DnsTypeToString(qtype), qname, answer)
 			return resp, s.nsaddr, nil
 		}
-		if resp.Rcode == dns.RcodeNameError {
-			_ = s.dbg() && s.log("NXDOMAIN for %s %q\n", DnsTypeToString(qtype), qname)
+		switch resp.Rcode {
+		case dns.RcodeNameError, dns.RcodeRefused:
+			_ = s.dbg() && s.log("%s for %s %q\n", dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname)
 			return resp, s.nsaddr, nil
 		}
 		if len(cnames) == 0 && resp.MsgHdr.Authoritative {
@@ -393,12 +394,8 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			s2.qlabel++
 			answers, srv, err := r.recurse(s2)
 			switch err {
-			case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+			case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 				return answers, srv, err
-			case nil:
-				if len(answers.Answer) > 0 || answers.Authoritative {
-					return answers, srv, err
-				}
 			}
 			authError = err
 		}
@@ -444,12 +441,8 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 							s2.qlabel++
 							answers, srv, err := r.recurse(s2)
 							switch err {
-							case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 								return answers, srv, err
-							case nil:
-								if len(answers.Answer) > 0 || answers.Authoritative {
-									return answers, srv, err
-								}
 							}
 							authError = err
 						}
@@ -462,18 +455,20 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		}
 	}
 
-	if (final || idx == 0) && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
-		_ = s.dbg() && s.log("ANSWER with referral NS\n")
-		resp = &dns.Msg{
-			MsgHdr: authoritiesMsgHdr,
-			Question: []dns.Question{{
-				Name:   s.qname,
-				Qtype:  s.qtype,
-				Qclass: dns.ClassINET,
-			}},
-			Answer: authorities,
+	if final || idx == 0 {
+		if s.qtype == dns.TypeNS && qtype == dns.TypeNS {
+			_ = s.dbg() && s.log("ANSWER with referral NS\n")
+			resp = &dns.Msg{
+				MsgHdr: authoritiesMsgHdr,
+				Question: []dns.Question{{
+					Name:   s.qname,
+					Qtype:  s.qtype,
+					Qclass: dns.ClassINET,
+				}},
+				Answer: authorities,
+			}
+			return resp, s.nsaddr, nil
 		}
-		return resp, s.nsaddr, nil
 	}
 	if authError != nil {
 		return nil, s.nsaddr, authError
