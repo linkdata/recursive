@@ -404,7 +404,6 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 	_ = s.dbg() && s.log("authorities without glue records: %v\n", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
 		if authority != s.qname {
-
 			for _, authQtype := range r.authQtypes() {
 				var authAddrs *dns.Msg
 				var srv netip.Addr
