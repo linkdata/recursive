@@ -403,54 +403,56 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 
 	_ = s.dbg() && s.log("authorities without glue records: %v\n", authWithoutGlue)
 	for _, authority := range authWithoutGlue {
-		for _, authQtype := range r.authQtypes() {
-			var authAddrs *dns.Msg
-			var srv netip.Addr
-			var err error
-			if resp.MsgHdr.Authoritative {
-				// try asking it directly for the IP
-				s2 := s
-				s2.depth++
-				s2.qname = authority
-				s2.qtype = authQtype
-				s2.qlabel = 64
-				if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
-					authAddrs = m
-				}
-			}
-			if authAddrs == nil {
-				s2 := s
-				s2.depth++
-				s2.qname = authority
-				s2.qtype = authQtype
-				authAddrs, srv, err = r.recurseFromRoot(s2)
-				switch err {
-				case dns.ErrRdata, ErrMaxDepth:
-					return nil, srv, err
-				}
-			}
+		if authority != s.qname {
 
-			if authAddrs != nil && len(authAddrs.Answer) > 0 {
-				_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
-				for _, nsrr := range authAddrs.Answer {
-					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
-						if r.useable(authaddr) {
-							s2 := s
-							s2.nsaddr = authaddr
-							s2.depth++
-							s2.qlabel++
-							answers, srv, err := r.recurse(s2)
-							switch err {
-							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-								return answers, srv, err
-							}
-							authError = err
-						}
+			for _, authQtype := range r.authQtypes() {
+				var authAddrs *dns.Msg
+				var srv netip.Addr
+				var err error
+				if resp.MsgHdr.Authoritative {
+					// try asking it directly for the IP
+					s2 := s
+					s2.depth++
+					s2.qname = authority
+					s2.qtype = authQtype
+					s2.qlabel = 64
+					if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
+						authAddrs = m
 					}
 				}
-			} else if err != nil {
-				authError = err
-				_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
+				if authAddrs == nil {
+					s2 := s
+					s2.depth++
+					s2.qname = authority
+					s2.qtype = authQtype
+					authAddrs, srv, err = r.recurseFromRoot(s2)
+					switch err {
+					case dns.ErrRdata, ErrMaxDepth:
+						return nil, srv, err
+					}
+				}
+				if authAddrs != nil && len(authAddrs.Answer) > 0 {
+					_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
+					for _, nsrr := range authAddrs.Answer {
+						if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
+							if r.useable(authaddr) {
+								s2 := s
+								s2.nsaddr = authaddr
+								s2.depth++
+								s2.qlabel++
+								answers, srv, err := r.recurse(s2)
+								switch err {
+								case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+									return answers, srv, err
+								}
+								authError = err
+							}
+						}
+					}
+				} else if err != nil {
+					authError = err
+					_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
+				}
 			}
 		}
 	}
