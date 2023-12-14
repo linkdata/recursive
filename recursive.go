@@ -318,7 +318,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		}
 		if len(cnames) == 0 {
 			var err error
-			if !resp.MsgHdr.Authoritative && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
+			if resp.Rcode == dns.RcodeSuccess && !resp.MsgHdr.Authoritative && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
 				// use the previous NS response, if any (test with NS google.tw.cn)
 				err = errEmptyNS
 			}
