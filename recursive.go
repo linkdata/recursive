@@ -242,11 +242,11 @@ func (s *state) log(format string, args ...any) bool {
 }
 
 func (r *Recursive) recurseFromRoot(s state) (msg *dns.Msg, srv netip.Addr, err error) {
-	_ = s.dbg() && s.log("resolving from root %s %q\n", DnsTypeToString(s.qtype), s.qname)
 	for i := 0; i < maxRootAttempts; i++ {
 		if server := r.nextRoot(i); server.IsValid() {
 			rq := rootQuery{server, s.qname, s.qtype}
 			if _, ok := s.stack[rq]; !ok {
+				_ = s.dbg() && s.log("resolving from root @%v %s %q\n", server.String(), DnsTypeToString(s.qtype), s.qname)
 				s.stack[rq] = struct{}{}
 				s.nsaddr = server
 				s.qlabel = 1
@@ -453,6 +453,8 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					}
 				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 					return answers, srv, err
+				default:
+					_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
 				}
 				authError = err
 			}
@@ -486,27 +488,31 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 						return nil, srv, err
 					}
 				}
-				if authAddrs != nil && len(authAddrs.Answer) > 0 {
-					_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
-					for _, nsrr := range authAddrs.Answer {
-						if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
-							if r.useable(authaddr) {
-								s2 := s
-								s2.nsaddr = authaddr
-								s2.depth++
-								s2.qlabel++
-								answers, srv, err := r.recurse(s2)
-								switch err {
-								case nil:
-									if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
+				if authAddrs != nil {
+					if len(authAddrs.Answer) > 0 {
+						_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
+						for _, nsrr := range authAddrs.Answer {
+							if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
+								if r.useable(authaddr) {
+									s2 := s
+									s2.nsaddr = authaddr
+									s2.depth++
+									s2.qlabel++
+									answers, srv, err := r.recurse(s2)
+									switch err {
+									case nil:
+										if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
+											return answers, srv, err
+										}
+									case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 										return answers, srv, err
 									}
-								case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-									return answers, srv, err
+									authError = err
 								}
-								authError = err
 							}
 						}
+					} else if authAddrs.Authoritative {
+						_ = s.dbg() && s.log("EMPTY authority %s %q\n", DnsTypeToString(authQtype), authority)
 					}
 				} else if err != nil {
 					authError = err
@@ -631,6 +637,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 
 	var nconn net.Conn
 	var rtt time.Duration
+
 	if nconn, err = s.dialer.DialContext(s.ctx, network, netip.AddrPortFrom(s.nsaddr, 53).String()); err == nil {
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
