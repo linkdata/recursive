@@ -33,7 +33,7 @@ var (
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// Consider it equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
-	ErrCyclic     = errors.New("cyclic search")
+	errEmptyNS    = errors.New("ignoring non-auth empty NS")
 	DefaultCache  = NewCache()
 )
 
@@ -316,14 +316,23 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			_ = s.dbg() && s.log("ANSWER for %s %q: %v\n", DnsTypeToString(qtype), qname, answer)
 			return resp, s.nsaddr, nil
 		}
-		switch resp.Rcode {
-		case dns.RcodeNameError, dns.RcodeRefused:
-			_ = s.dbg() && s.log("%s for %s %q\n", dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname)
-			return resp, s.nsaddr, nil
-		}
-		if len(cnames) == 0 && resp.MsgHdr.Authoritative {
-			_ = s.dbg() && s.log("authoritative response with no ANSWERs\n")
-			return resp, s.nsaddr, nil
+		if len(cnames) == 0 {
+			var err error
+			if !resp.MsgHdr.Authoritative && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
+				// use the previous NS response, if any (test with NS google.tw.cn)
+				err = errEmptyNS
+			}
+			if s.dbg() {
+				suffix := ""
+				if resp.MsgHdr.Authoritative {
+					suffix = " AUTH"
+				}
+				if err != nil {
+					suffix += " " + err.Error()
+				}
+				s.log("EMPTY %s for %s %q%s\n", dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname, suffix)
+			}
+			return resp, s.nsaddr, err
 		}
 	}
 
@@ -347,8 +356,10 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		return nil, s.nsaddr, cnameError
 	}
 
+	var authError error
 	var authorities []dns.RR
 	authoritiesMsgHdr := resp.MsgHdr
+
 	for _, rr := range resp.Ns {
 		if ns, ok := rr.(*dns.NS); ok {
 			authorities = append(authorities, ns)
@@ -361,108 +372,107 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				authorities = append(authorities, ns)
 			}
 		}
-	}
 
-	if len(authorities) == 0 {
-		if final {
-			_ = s.dbg() && s.log("no more authorities available\n")
-			return resp, s.nsaddr, nil
-		}
-		_ = s.dbg() && s.log("no authoritative NS found for %q, using previous\n", qname)
-		s.depth++
-		s.qlabel++
-		return r.recurse(s)
-	}
-
-	gluemap := make(map[string][]netip.Addr)
-	for _, rr := range resp.Extra {
-		if addr := AddrFromRR(rr); addr.IsValid() {
-			if r.useable(addr) {
-				gluename := dns.CanonicalName(rr.Header().Name)
-				gluemap[gluename] = append(gluemap[gluename], addr)
+		if len(authorities) == 0 {
+			if final {
+				_ = s.dbg() && s.log("no more authorities available\n")
+				return resp, s.nsaddr, nil
 			}
+			_ = s.dbg() && s.log("no authoritative NS found for %q, using previous\n", qname)
+			s.depth++
+			s.qlabel++
+			return r.recurse(s)
 		}
-	}
 
-	var authWithGlue, authWithoutGlue []string
-	var authError error
-
-	for _, nsrr := range authorities {
-		if nsrr, ok := nsrr.(*dns.NS); ok {
-			gluename := dns.CanonicalName(nsrr.Ns)
-			if len(gluemap[gluename]) > 0 {
-				authWithGlue = append(authWithGlue, gluename)
-			} else {
-				authWithoutGlue = append(authWithoutGlue, gluename)
-			}
-		}
-	}
-
-	_ = s.dbg() && s.log("authorities with glue records: %v\n", authWithGlue)
-	for _, authority := range authWithGlue {
-		for _, authaddr := range gluemap[authority] {
-			s2 := s
-			s2.nsaddr = authaddr
-			s2.depth++
-			s2.qlabel++
-			answers, srv, err := r.recurse(s2)
-			switch err {
-			case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-				return answers, srv, err
-			}
-			authError = err
-		}
-	}
-
-	_ = s.dbg() && s.log("authorities without glue records: %v\n", authWithoutGlue)
-	for _, authority := range authWithoutGlue {
-		for _, authQtype := range r.authQtypes() {
-			var authAddrs *dns.Msg
-			var srv netip.Addr
-			var err error
-			if resp.MsgHdr.Authoritative {
-				// try asking it directly for the IP
-				s2 := s
-				s2.depth++
-				s2.qname = authority
-				s2.qtype = authQtype
-				s2.qlabel = 64
-				if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
-					authAddrs = m
+		gluemap := make(map[string][]netip.Addr)
+		for _, rr := range resp.Extra {
+			if addr := AddrFromRR(rr); addr.IsValid() {
+				if r.useable(addr) {
+					gluename := dns.CanonicalName(rr.Header().Name)
+					gluemap[gluename] = append(gluemap[gluename], addr)
 				}
 			}
-			if authAddrs == nil {
+		}
+
+		var authWithGlue, authWithoutGlue []string
+
+		for _, nsrr := range authorities {
+			if nsrr, ok := nsrr.(*dns.NS); ok {
+				gluename := dns.CanonicalName(nsrr.Ns)
+				if len(gluemap[gluename]) > 0 {
+					authWithGlue = append(authWithGlue, gluename)
+				} else {
+					authWithoutGlue = append(authWithoutGlue, gluename)
+				}
+			}
+		}
+
+		_ = s.dbg() && s.log("authorities with glue records: %v\n", authWithGlue)
+		for _, authority := range authWithGlue {
+			for _, authaddr := range gluemap[authority] {
 				s2 := s
+				s2.nsaddr = authaddr
 				s2.depth++
-				s2.qname = authority
-				s2.qtype = authQtype
-				authAddrs, srv, err = r.recurseFromRoot(s2)
+				s2.qlabel++
+				answers, srv, err := r.recurse(s2)
 				switch err {
-				case dns.ErrRdata, ErrMaxDepth:
-					return nil, srv, err
+				case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+					return answers, srv, err
 				}
+				authError = err
 			}
-			if authAddrs != nil && len(authAddrs.Answer) > 0 {
-				_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
-				for _, nsrr := range authAddrs.Answer {
-					if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
-						if r.useable(authaddr) {
-							s2 := s
-							s2.nsaddr = authaddr
-							s2.depth++
-							s2.qlabel++
-							answers, srv, err := r.recurse(s2)
-							switch err {
-							case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-								return answers, srv, err
-							}
-							authError = err
-						}
+		}
+
+		_ = s.dbg() && s.log("authorities without glue records: %v\n", authWithoutGlue)
+		for _, authority := range authWithoutGlue {
+			for _, authQtype := range r.authQtypes() {
+				var authAddrs *dns.Msg
+				var srv netip.Addr
+				var err error
+				if resp.MsgHdr.Authoritative {
+					// try asking it directly for the IP
+					s2 := s
+					s2.depth++
+					s2.qname = authority
+					s2.qtype = authQtype
+					s2.qlabel = 64
+					if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
+						authAddrs = m
 					}
 				}
-			} else if err != nil {
-				authError = err
-				_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
+				if authAddrs == nil {
+					s2 := s
+					s2.depth++
+					s2.qname = authority
+					s2.qtype = authQtype
+					authAddrs, srv, err = r.recurseFromRoot(s2)
+					switch err {
+					case dns.ErrRdata, ErrMaxDepth:
+						return nil, srv, err
+					}
+				}
+				if authAddrs != nil && len(authAddrs.Answer) > 0 {
+					_ = s.dbg() && s.log("resolved authority %s %q to %v\n", DnsTypeToString(authQtype), authority, authAddrs.Answer)
+					for _, nsrr := range authAddrs.Answer {
+						if authaddr := AddrFromRR(nsrr); authaddr.IsValid() {
+							if r.useable(authaddr) {
+								s2 := s
+								s2.nsaddr = authaddr
+								s2.depth++
+								s2.qlabel++
+								answers, srv, err := r.recurse(s2)
+								switch err {
+								case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+									return answers, srv, err
+								}
+								authError = err
+							}
+						}
+					}
+				} else if err != nil {
+					authError = err
+					_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
+				}
 			}
 		}
 	}
