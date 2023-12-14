@@ -20,6 +20,16 @@ import (
 	"golang.org/x/net/proxy"
 )
 
+/*
+	Good tests:
+	NS	google.tw.cn.
+	NS	m.hkirc.net.hk.
+	NS	bankgirot.nu.
+	A	www.microsoft.com.
+	A   console.aws.amazon.com.
+	A   *.en.se.
+*/
+
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
@@ -385,13 +395,33 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		}
 
 		gluemap := make(map[string][]netip.Addr)
+		var extraans []dns.RR
 		for _, rr := range resp.Extra {
 			if addr := AddrFromRR(rr); addr.IsValid() {
+				gluename := dns.CanonicalName(rr.Header().Name)
+				if gluename == s.qname {
+					if (s.qtype == dns.TypeA && addr.Is4()) || (s.qtype == dns.TypeAAAA && addr.Is6()) {
+						extraans = append(extraans, rr)
+					}
+				}
 				if r.useable(addr) {
-					gluename := dns.CanonicalName(rr.Header().Name)
 					gluemap[gluename] = append(gluemap[gluename], addr)
 				}
 			}
+		}
+
+		if len(extraans) > 0 {
+			_ = s.dbg() && s.log("EXTRA ANSWER for %s %q: %v\n", DnsTypeToString(s.qtype), s.qname, extraans)
+			resp = &dns.Msg{
+				MsgHdr: resp.MsgHdr,
+				Question: []dns.Question{{
+					Name:   s.qname,
+					Qtype:  s.qtype,
+					Qclass: dns.ClassINET,
+				}},
+				Answer: extraans,
+			}
+			return resp, s.nsaddr, nil
 		}
 
 		var authWithGlue, authWithoutGlue []string
@@ -410,6 +440,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		_ = s.dbg() && s.log("authorities with glue records: %v\n", authWithGlue)
 		for _, authority := range authWithGlue {
 			for _, authaddr := range gluemap[authority] {
+
 				s2 := s
 				s2.nsaddr = authaddr
 				s2.depth++
@@ -429,7 +460,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				var authAddrs *dns.Msg
 				var srv netip.Addr
 				var err error
-				if resp.MsgHdr.Authoritative {
+				/*if resp.MsgHdr.Authoritative {
 					// try asking it directly for the IP
 					s2 := s
 					s2.depth++
@@ -439,7 +470,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
 						authAddrs = m
 					}
-				}
+				}*/
 				if authAddrs == nil {
 					s2 := s
 					s2.depth++
