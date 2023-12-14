@@ -464,6 +464,17 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				var authAddrs *dns.Msg
 				var srv netip.Addr
 				var err error
+				if resp.MsgHdr.Authoritative {
+					_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(authQtype), authority)
+					s2 := s
+					s2.depth++
+					s2.qname = authority
+					s2.qtype = authQtype
+					s2.qlabel = 64
+					if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
+						authAddrs = m
+					}
+				}
 				if authAddrs == nil {
 					s2 := s
 					s2.depth++
