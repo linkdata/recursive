@@ -23,8 +23,9 @@ import (
 /*
 	Good tests:
 	NS	google.tw.cn.
-	NS	m.hkirc.net.hk.
 	NS	bankgirot.nu.
+	NS	skandia.com.ci.
+	A	m.hkirc.net.hk.
 	A	www.microsoft.com.
 	A   console.aws.amazon.com.
 	A   *.en.se.
@@ -440,14 +441,17 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		_ = s.dbg() && s.log("authorities with glue records: %v\n", authWithGlue)
 		for _, authority := range authWithGlue {
 			for _, authaddr := range gluemap[authority] {
-
 				s2 := s
 				s2.nsaddr = authaddr
 				s2.depth++
 				s2.qlabel++
 				answers, srv, err := r.recurse(s2)
 				switch err {
-				case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+				case nil:
+					if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
+						return answers, srv, err
+					}
+				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 					return answers, srv, err
 				}
 				authError = err
@@ -460,17 +464,6 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				var authAddrs *dns.Msg
 				var srv netip.Addr
 				var err error
-				/*if resp.MsgHdr.Authoritative {
-					// try asking it directly for the IP
-					s2 := s
-					s2.depth++
-					s2.qname = authority
-					s2.qtype = authQtype
-					s2.qlabel = 64
-					if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
-						authAddrs = m
-					}
-				}*/
 				if authAddrs == nil {
 					s2 := s
 					s2.depth++
@@ -493,7 +486,11 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 								s2.qlabel++
 								answers, srv, err := r.recurse(s2)
 								switch err {
-								case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+								case nil:
+									if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
+										return answers, srv, err
+									}
+								case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
 									return answers, srv, err
 								}
 								authError = err
