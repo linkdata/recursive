@@ -252,8 +252,7 @@ func (r *Recursive) recurseFromRoot(s state) (msg *dns.Msg, srv netip.Addr, err 
 				s.qlabel = 1
 				msg, srv, err = r.recurse(s)
 				delete(s.stack, rq)
-				switch err {
-				case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+				if s.errorTerminates(err) {
 					return
 				}
 			}
@@ -279,6 +278,14 @@ func (r *Recursive) authQtypes() (qtypes []uint16) {
 	}
 	r.mu.RUnlock()
 	return
+}
+
+func (s *state) errorTerminates(err error) bool {
+	switch err {
+	case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+		return true
+	}
+	return s.ctx.Err() != nil
 }
 
 func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
@@ -446,16 +453,14 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				s2.depth++
 				s2.qlabel++
 				answers, srv, err := r.recurse(s2)
-				switch err {
-				case nil:
+				if err == nil {
 					if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
 						return answers, srv, err
 					}
-				case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+				} else if s.errorTerminates(err) {
 					return answers, srv, err
-				default:
-					_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
 				}
+				_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
 				authError = err
 			}
 		}
@@ -464,7 +469,6 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		for _, authority := range authWithoutGlue {
 			for _, authQtype := range r.authQtypes() {
 				var authAddrs *dns.Msg
-				var srv netip.Addr
 				var err error
 				if resp.MsgHdr.Authoritative {
 					_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(authQtype), authority)
@@ -482,11 +486,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					s2.depth++
 					s2.qname = authority
 					s2.qtype = authQtype
-					authAddrs, srv, err = r.recurseFromRoot(s2)
-					switch err {
-					case dns.ErrRdata, ErrMaxDepth:
-						return nil, srv, err
-					}
+					authAddrs, _, err = r.recurseFromRoot(s2)
 				}
 				if authAddrs != nil {
 					if len(authAddrs.Answer) > 0 {
@@ -499,12 +499,11 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 									s2.depth++
 									s2.qlabel++
 									answers, srv, err := r.recurse(s2)
-									switch err {
-									case nil:
+									if err == nil {
 										if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
 											return answers, srv, err
 										}
-									case ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
+									} else if s.errorTerminates(err) {
 										return answers, srv, err
 									}
 									authError = err

@@ -21,6 +21,7 @@ import (
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
 var flagTimeout = flag.Int("timeout", 10, "individual query timeout in seconds")
+var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in milliseconds")
 var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flag4 = flag.Bool("4", true, "use IPv4")
@@ -79,7 +80,7 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(*flagMaxwait))
 			if retv, _, err := rec.ResolveWithOptions(ctx, dialer, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
