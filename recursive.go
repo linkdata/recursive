@@ -29,6 +29,9 @@ import (
 	A	www.microsoft.com.
 	A   console.aws.amazon.com.
 	A   *.en.se.
+	A	teli.se.
+	A	telia.biz.mv.
+	A	telia.per.la.
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go
@@ -42,19 +45,25 @@ var (
 	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
 	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
-	// Consider it equivalent to SERVFAIL.
-	ErrNoResponse = errors.New("no authoritative response")
-	errEmptyNS    = errors.New("ignoring non-auth empty NS")
-	DefaultCache  = NewCache()
+	// It is equivalent to SERVFAIL.
+	ErrNoResponse    = errors.New("no authoritative response")
+	errEmptyNS       = errors.New("ignoring non-auth empty NS")
+	DefaultCache     = NewCache()
+	defaultNetDialer net.Dialer
 )
 
-var defaultNetDialer net.Dialer
-var _ Resolver = (*Recursive)(nil)
+var _ Resolver = (*Recursive)(nil) // ensure we implement interface
 
 type netError struct {
 	Err  error
 	When time.Time
 }
+
+type failError struct{ e error }
+
+func (fe failError) Unwrap() error        { return fe.e }
+func (fe failError) Is(target error) bool { return target == ErrNoResponse }
+func (fe failError) Error() (s string)    { return fe.e.Error() }
 
 type Recursive struct {
 	mu          sync.RWMutex
@@ -212,7 +221,13 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.Context
 	}
 	msg, srv, err := r.recurseFromRoot(s)
 	if logw != nil {
-		fmt.Fprintf(logw, "\n%v\n;; Query time: %v\n;; SERVER: %v\n", msg, time.Since(start).Round(time.Millisecond), srv)
+		if msg != nil {
+			fmt.Fprintf(logw, "\n%v", msg)
+		}
+		fmt.Fprintf(logw, "\n;; Query time: %v\n;; SERVER: %v\n", time.Since(start).Round(time.Millisecond), srv)
+		if err != nil {
+			fmt.Fprintf(logw, ";; ERROR: %v\n", err)
+		}
 	}
 	return msg, srv, err
 }
@@ -242,19 +257,27 @@ func (s *state) log(format string, args ...any) bool {
 }
 
 func (r *Recursive) recurseFromRoot(s state) (msg *dns.Msg, srv netip.Addr, err error) {
+	s.qlabel = 1
 	for i := 0; i < maxRootAttempts; i++ {
 		if server := r.nextRoot(i); server.IsValid() {
-			rq := rootQuery{server, s.qname, s.qtype}
+			s.nsaddr = server
+			rq := rootQuery{
+				nsaddr: s.nsaddr,
+				qname:  s.qname,
+				qtype:  s.qtype,
+			}
 			if _, ok := s.stack[rq]; !ok {
-				_ = s.dbg() && s.log("resolving from root @%v %s %q\n", server.String(), DnsTypeToString(s.qtype), s.qname)
+				_ = s.dbg() && s.log("resolving from root @%v %s %q\n", s.nsaddr.String(), DnsTypeToString(s.qtype), s.qname)
 				s.stack[rq] = struct{}{}
-				s.nsaddr = server
-				s.qlabel = 1
 				msg, srv, err = r.recurse(s)
 				delete(s.stack, rq)
 				if s.errorTerminates(err) {
 					return
 				}
+			} else {
+				_ = s.dbg() && s.log("LOOP detected @%v %s %q\n", s.nsaddr.String(), DnsTypeToString(s.qtype), s.qname)
+				err = ErrMaxDepth
+				return
 			}
 		}
 	}
@@ -281,11 +304,16 @@ func (r *Recursive) authQtypes() (qtypes []uint16) {
 }
 
 func (s *state) errorTerminates(err error) bool {
-	switch err {
-	case nil, ErrNoResponse, dns.ErrRdata, ErrMaxDepth:
-		return true
+	switch {
+	case err == nil:
+	case err == dns.ErrRdata:
+	case errors.Is(err, ErrNoResponse):
+	case errors.Is(err, ErrMaxDepth):
+	case s.ctx.Err() != nil:
+	default:
+		return false
 	}
-	return s.ctx.Err() != nil
+	return true
 }
 
 func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
@@ -337,7 +365,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		if len(cnames) == 0 {
 			var err error
 			if resp.Rcode == dns.RcodeSuccess && !resp.MsgHdr.Authoritative && s.qtype == dns.TypeNS && qtype == dns.TypeNS {
-				// use the previous NS response, if any (test with NS google.tw.cn)
+				// use the previous NS response, if any
 				err = errEmptyNS
 			}
 			if s.dbg() {
@@ -361,6 +389,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			s2 := s
 			s2.depth++
 			s2.qname = cname
+			s2.qlabel = 0
 			if cmsg, srv, err := r.recurseFromRoot(s2); err == nil {
 				resp.Answer = append(resp.Answer, cmsg.Answer...)
 				resp.Ns = nil
@@ -457,11 +486,13 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
 						return answers, srv, err
 					}
-				} else if s.errorTerminates(err) {
-					return answers, srv, err
+				} else {
+					if s.errorTerminates(err) {
+						return answers, srv, err
+					}
+					_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
+					authError = err
 				}
-				_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
-				authError = err
 			}
 		}
 
@@ -469,8 +500,17 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 		for _, authority := range authWithoutGlue {
 			for _, authQtype := range r.authQtypes() {
 				var authAddrs *dns.Msg
-				var err error
 				if resp.MsgHdr.Authoritative {
+					if (final || idx == 0) && authQtype == s.qtype {
+						_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(s.qtype), s.qname)
+						s2 := s
+						s2.depth++
+						s2.qlabel = 64
+						if m, _, e := r.recurse(s2); e == nil && m != nil && m.Rcode == dns.RcodeSuccess && len(m.Answer) > 0 {
+							return m, s2.nsaddr, e
+						}
+					}
+
 					_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(authQtype), authority)
 					s2 := s
 					s2.depth++
@@ -486,7 +526,8 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					s2.depth++
 					s2.qname = authority
 					s2.qtype = authQtype
-					authAddrs, _, err = r.recurseFromRoot(s2)
+					s2.qlabel = 0
+					authAddrs, _, _ = r.recurseFromRoot(s2)
 				}
 				if authAddrs != nil {
 					if len(authAddrs.Answer) > 0 {
@@ -503,26 +544,26 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 										if answers.Authoritative || answers.Rcode != dns.RcodeServerFailure {
 											return answers, srv, err
 										}
-									} else if s.errorTerminates(err) {
-										return answers, srv, err
+									} else {
+										if s.errorTerminates(err) {
+											return answers, srv, err
+										}
+										_ = s.dbg() && s.log("authority error: %s: %v\n", authority, err)
+										authError = err
 									}
-									authError = err
 								}
 							}
 						}
 					} else if authAddrs.Authoritative {
 						_ = s.dbg() && s.log("EMPTY authority %s %q\n", DnsTypeToString(authQtype), authority)
 					}
-				} else if err != nil {
-					authError = err
-					_ = s.dbg() && s.log("error querying authority %q: %v\n", authority, err)
 				}
 			}
 		}
 	}
 
 	if final || idx == 0 {
-		if s.qtype == dns.TypeNS && qtype == dns.TypeNS {
+		if qtype == dns.TypeNS && s.qtype == dns.TypeNS {
 			_ = s.dbg() && s.log("ANSWER with referral NS\n")
 			resp = &dns.Msg{
 				MsgHdr: authoritiesMsgHdr,
@@ -536,10 +577,11 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			return resp, s.nsaddr, nil
 		}
 	}
+	err = ErrNoResponse
 	if authError != nil {
-		return nil, s.nsaddr, authError
+		err = failError{authError}
 	}
-	return nil, s.nsaddr, ErrNoResponse
+	return nil, s.nsaddr, err
 }
 
 var ErrInvalidCookie = errors.New("invalid cookie")
