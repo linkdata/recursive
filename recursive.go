@@ -32,6 +32,7 @@ import (
 	A	teli.se.
 	A	telia.biz.mv.
 	A	telia.per.la.
+	NS	seb.inf.ua
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go
@@ -683,53 +684,61 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
 
-		cookiernd := make([]byte, 8)
-		r.mu.RLock()
-		binary.NativeEndian.PutUint64(cookiernd, r.cookiernd)
-		srvcookie := r.srvcookies[s.nsaddr]
-		r.mu.RUnlock()
-
-		var h maphash.Hash
-		h.Write(cookiernd)
-		h.Write(s.nsaddr.AsSlice())
-		if la := nconn.LocalAddr(); la != nil {
-			h.WriteString(la.String())
-		}
-		clicookie := hex.EncodeToString(h.Sum(nil))
-
-		opt := new(dns.OPT)
-		opt.Hdr.Name = "."
-		opt.Hdr.Rrtype = dns.TypeOPT
-		opt.SetUDPSize(dns.DefaultMsgSize)
-		opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
-			Code:   dns.EDNS0COOKIE,
-			Cookie: clicookie + srvcookie,
-		})
-
 		m := new(dns.Msg)
 		m.SetQuestion(s.qname, s.qtype)
-		m.Extra = append(m.Extra, opt)
+
+		var clicookie string
+
+		r.mu.RLock()
+		cookiernd := r.cookiernd
+		srvcookie, hasSrvCookie := r.srvcookies[s.nsaddr]
+		r.mu.RUnlock()
+
+		useCookies := !hasSrvCookie || srvcookie != ""
+
+		if useCookies {
+			var h maphash.Hash
+			cookiebuf := make([]byte, 8)
+			binary.NativeEndian.PutUint64(cookiebuf, cookiernd)
+			h.Write(cookiebuf)
+			h.Write(s.nsaddr.AsSlice())
+			if la := nconn.LocalAddr(); la != nil {
+				h.WriteString(la.String())
+			}
+			clicookie = hex.EncodeToString(h.Sum(nil))
+
+			opt := new(dns.OPT)
+			opt.Hdr.Name = "."
+			opt.Hdr.Rrtype = dns.TypeOPT
+			opt.SetUDPSize(dns.DefaultMsgSize)
+			opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
+				Code:   dns.EDNS0COOKIE,
+				Cookie: clicookie + srvcookie,
+			})
+			m.Extra = append(m.Extra, opt)
+		}
 
 		c := dns.Client{UDPSize: dns.DefaultMsgSize}
 		msg, rtt, err = c.ExchangeWithConnContext(s.ctx, m, dnsconn)
-		if msg != nil {
+		if msg != nil && useCookies {
+			newsrvcookie := srvcookie
 			if opt := msg.IsEdns0(); opt != nil {
 				for _, rr := range opt.Option {
 					switch rr := rr.(type) {
 					case *dns.EDNS0_COOKIE:
 						if strings.HasPrefix(rr.Cookie, clicookie) {
-							newsrvcookie := strings.TrimPrefix(rr.Cookie, clicookie)
-							if srvcookie != newsrvcookie {
-								r.mu.Lock()
-								r.srvcookies[s.nsaddr] = newsrvcookie
-								r.mu.Unlock()
-							}
+							newsrvcookie = strings.TrimPrefix(rr.Cookie, clicookie)
 						} else {
 							msg = nil
 							err = ErrInvalidCookie
 						}
 					}
 				}
+			}
+			if !hasSrvCookie || srvcookie != newsrvcookie {
+				r.mu.Lock()
+				r.srvcookies[s.nsaddr] = newsrvcookie
+				r.mu.Unlock()
 			}
 		}
 	}
@@ -769,9 +778,14 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 
 func (r *Recursive) sendQuery(s state) (msg *dns.Msg, err error) {
 	msg, err = r.sendQueryUsing(s, "udp")
-	if msg != nil && msg.MsgHdr.Truncated {
-		_ = s.dbg() && s.log("message truncated; retry using TCP\n")
-		msg = nil
+	if msg != nil {
+		if msg.MsgHdr.Truncated {
+			msg = nil
+			_ = s.dbg() && s.log("message truncated; retry using TCP\n")
+		} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
+			msg = nil
+			_ = s.dbg() && s.log("got FORMERR, retry using TCP without cookies\n")
+		}
 	}
 	if (msg == nil || err != nil) && r.useable(s.nsaddr) {
 		msg, err = r.sendQueryUsing(s, "tcp")
