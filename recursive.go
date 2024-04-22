@@ -743,7 +743,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		}
 	}
 
-	ipv6disabled := r.setNetError(protocol, s.nsaddr, err) && r.maybeDisableIPv6(s.depth, err)
+	ipv6disabled := r.setNetError(protocol, s.nsaddr, err) && r.maybeDisableIPv6(err)
 
 	if s.logw != nil {
 		if msg != nil {
@@ -796,7 +796,7 @@ func (r *Recursive) sendQuery(s state) (msg *dns.Msg, err error) {
 	return
 }
 
-func (r *Recursive) maybeDisableIPv6(depth int, err error) (disabled bool) {
+func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 	if ne, ok := err.(net.Error); ok {
 		if !ne.Timeout() && strings.Contains(ne.Error(), "network is unreachable") {
 			r.mu.Lock()
