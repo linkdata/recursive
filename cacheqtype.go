@@ -46,7 +46,7 @@ func (cq *cacheQtype) set(nsaddr netip.Addr, msg *dns.Msg, ttl int) {
 	})
 }
 
-func find(cvl []cacheValue, addr netip.Addr, qname string) (idx int) {
+func find(cvl []cacheValue, addr netip.Addr) (idx int) {
 	wild := !addr.IsValid()
 	idx = -1
 	for i := range cvl {
@@ -66,7 +66,7 @@ func (cq *cacheQtype) getExisting(addr netip.Addr, qname string) (cv cacheValue)
 	cq.mu.RLock()
 	defer cq.mu.RUnlock()
 	cvl := cq.cache[qname]
-	if idx := find(cvl, addr, qname); idx >= 0 {
+	if idx := find(cvl, addr); idx >= 0 {
 		cv = cvl[idx]
 	}
 	return
@@ -80,7 +80,7 @@ func (cq *cacheQtype) get(addr netip.Addr, qname string) (netip.Addr, *dns.Msg) 
 		cq.mu.Lock()
 		defer cq.mu.Unlock()
 		cvl := cq.cache[qname]
-		if idx := find(cvl, addr, qname); idx >= 0 {
+		if idx := find(cvl, addr); idx >= 0 {
 			if cvl = cq.deleteLocked(cvl, idx); len(cvl) > 0 {
 				cq.cache[qname] = cvl
 			} else {
