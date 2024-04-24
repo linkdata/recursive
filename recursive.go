@@ -84,13 +84,19 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 	if dialer == nil {
 		dialer = &DefaultDialer
 	}
+	if roots4 == nil {
+		roots4 = Roots4
+	}
+	if roots6 == nil {
+		roots6 = Roots6
+	}
 
 	var root4, root6 []netip.Addr
-	if roots4 != nil {
+	if len(roots4) > 0 {
 		root4 = append(root4, roots4...)
 		rand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
 	}
-	if roots6 != nil {
+	if len(roots6) > 0 {
 		root6 = append(root6, roots6...)
 		rand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
 	}
@@ -121,7 +127,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 }
 
 func New() *Recursive {
-	return NewWithOptions(nil, DefaultCache, Roots4, Roots6)
+	return NewWithOptions(nil, DefaultCache, nil, nil)
 }
 
 // ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
