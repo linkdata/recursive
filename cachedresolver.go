@@ -18,7 +18,7 @@ type CachedResolver struct {
 
 var DefaultCachedResolver = NewCachedResolver(nil, nil, nil)
 
-func NewCachedResolver(rec *Recursive, cd proxy.ContextDialer, cacher Cacher) CachingResolver {
+func NewCachedResolver(rec *Recursive, cd proxy.ContextDialer, cacher Cacher) *CachedResolver {
 	if rec == nil {
 		rec = New()
 	}
