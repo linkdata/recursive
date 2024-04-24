@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net"
 	"net/netip"
 	"os"
 	"runtime"
@@ -63,12 +62,12 @@ func main() {
 		roots6 = recursive.Roots6
 	}
 
-	rec := recursive.NewWithOptions(roots4, roots6)
-	rec.OrderRoots(context.Background(), nil)
+	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6)
 
-	dialer := &net.Dialer{
-		Timeout: time.Second * time.Duration(*flagTimeout),
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
+	defer cancel()
+
+	rec.OrderRoots(ctx)
 
 	var dbgout io.Writer
 	if *debug {
@@ -80,8 +79,9 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(*flagMaxwait))
-			if retv, _, err := rec.ResolveWithOptions(ctx, dialer, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
+
+			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
+			if retv, _, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}

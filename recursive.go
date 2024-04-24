@@ -47,10 +47,10 @@ var (
 	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// It is equivalent to SERVFAIL.
-	ErrNoResponse    = errors.New("no authoritative response")
-	errEmptyNS       = errors.New("ignoring non-auth empty NS")
-	DefaultCache     = NewCache()
-	defaultNetDialer net.Dialer
+	ErrNoResponse = errors.New("no authoritative response")
+	errEmptyNS    = errors.New("ignoring non-auth empty NS")
+	DefaultCache  = NewCache()
+	DefaultDialer net.Dialer
 )
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
@@ -67,17 +67,24 @@ func (fe failError) Is(target error) bool { return target == ErrNoResponse }
 func (fe failError) Error() (s string)    { return fe.e.Error() }
 
 type Recursive struct {
-	mu          sync.RWMutex
-	useIPv4     bool
-	useIPv6     bool
-	rootServers []netip.Addr
-	cookiernd   uint64
-	srvcookies  map[netip.Addr]string
-	udperrs     map[netip.Addr]netError
-	tcperrs     map[netip.Addr]netError
+	proxy.ContextDialer              // (read-only) ContextDialer passed to NewWithOptions
+	Cacher                           // (read-only) Cacher passed to NewWithOptions
+	*net.Resolver                    // (read-only) net.Resolver using our ContextDialer
+	mu                  sync.RWMutex // protects following
+	useIPv4             bool
+	useIPv6             bool
+	rootServers         []netip.Addr
+	cookiernd           uint64
+	srvcookies          map[netip.Addr]string
+	udperrs             map[netip.Addr]netError
+	tcperrs             map[netip.Addr]netError
 }
 
-func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
+func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr) *Recursive {
+	if dialer == nil {
+		dialer = &DefaultDialer
+	}
+
 	var root4, root6 []netip.Addr
 	if roots4 != nil {
 		root4 = append(root4, roots4...)
@@ -97,6 +104,12 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 	roots = append(roots, root6[n:]...)
 
 	return &Recursive{
+		ContextDialer: dialer,
+		Cacher:        cache,
+		Resolver: &net.Resolver{
+			PreferGo: true,
+			Dial:     dialer.DialContext,
+		},
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
@@ -108,33 +121,7 @@ func NewWithOptions(roots4, roots6 []netip.Addr) *Recursive {
 }
 
 func New() *Recursive {
-	return NewWithOptions(Roots4, Roots6)
-}
-
-type rootRtt struct {
-	addr netip.Addr
-	rtt  time.Duration
-}
-
-func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGroup, rt *rootRtt) {
-	defer wg.Done()
-	const numProbes = 3
-	network := "tcp4"
-	if rt.addr.Is6() {
-		network = "tcp6"
-	}
-	rt.rtt = time.Hour
-	var rtt time.Duration
-	for i := 0; i < numProbes; i++ {
-		now := time.Now()
-		conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
-		if err != nil {
-			return
-		}
-		rtt += time.Since(now)
-		conn.Close()
-	}
-	rt.rtt = rtt / numProbes
+	return NewWithOptions(nil, DefaultCache, Roots4, Roots6)
 }
 
 // ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
@@ -146,10 +133,7 @@ func (r *Recursive) ResetCookies() {
 }
 
 // OrderRoots sorts the root server list by their current latency and removes those that don't respond.
-func (r *Recursive) OrderRoots(ctx context.Context, dialer proxy.ContextDialer) {
-	if dialer == nil {
-		dialer = &defaultNetDialer
-	}
+func (r *Recursive) OrderRoots(ctx context.Context) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
@@ -160,7 +144,7 @@ func (r *Recursive) OrderRoots(ctx context.Context, dialer proxy.ContextDialer) 
 		rt := &rootRtt{addr: addr}
 		l = append(l, rt)
 		wg.Add(1)
-		go timeRoot(ctx, dialer, &wg, rt)
+		go timeRoot(ctx, r, &wg, rt)
 	}
 	wg.Wait()
 	sort.Slice(l, func(i, j int) bool { return l[i].rtt < l[j].rtt })
@@ -185,7 +169,6 @@ type rootQuery struct {
 type state struct {
 	ctx    context.Context
 	start  time.Time
-	dialer proxy.ContextDialer
 	cache  Cacher
 	logw   io.Writer
 	depth  int
@@ -197,11 +180,8 @@ type state struct {
 }
 
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
-// using the given dialer, and if logw is non-nil, write a log of events.
-func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.ContextDialer, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
-	if dialer == nil {
-		dialer = &defaultNetDialer
-	}
+// and if logw is non-nil, write a log of events.
+func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
 	start := time.Now()
 	qname = dns.CanonicalName(qname)
 	if _, ok := dns.IsDomainName(qname); !ok {
@@ -210,7 +190,6 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.Context
 	s := state{
 		ctx:    ctx,
 		start:  start,
-		dialer: dialer,
 		cache:  cache,
 		logw:   logw,
 		depth:  0,
@@ -235,7 +214,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, dialer proxy.Context
 
 // Resolve will perform a recursive DNS resolution for the provided name and record type.
 func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	return r.ResolveWithOptions(ctx, nil, DefaultCache, nil, qname, qtype)
+	return r.ResolveWithOptions(ctx, r, nil, qname, qtype)
 }
 
 func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
@@ -635,14 +614,16 @@ func (r *Recursive) getNetError(protocol string, nsaddr netip.Addr) error {
 }
 
 func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err error) {
-	if _, msg = s.cache.DnsGet(s.nsaddr, s.qname, s.qtype); msg != nil {
-		if s.dbg() {
-			s.log("cached answer: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
-				s.nsaddr, DnsTypeToString(s.qtype), s.qname,
-				dns.RcodeToString[msg.Rcode],
-				len(msg.Answer), len(msg.Ns), len(msg.Extra))
+	if s.cache != nil {
+		if _, msg = s.cache.DnsGet(s.nsaddr, s.qname, s.qtype); msg != nil {
+			if s.dbg() {
+				s.log("cached answer: @%s %s %q => %s [%d+%d+%d A/N/E]\n",
+					s.nsaddr, DnsTypeToString(s.qtype), s.qname,
+					dns.RcodeToString[msg.Rcode],
+					len(msg.Answer), len(msg.Ns), len(msg.Extra))
+			}
+			return
 		}
-		return
 	}
 
 	if s.ctx.Err() != nil {
@@ -680,7 +661,7 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 	var nconn net.Conn
 	var rtt time.Duration
 
-	if nconn, err = s.dialer.DialContext(s.ctx, network, netip.AddrPortFrom(s.nsaddr, 53).String()); err == nil {
+	if nconn, err = r.DialContext(s.ctx, network, netip.AddrPortFrom(s.nsaddr, 53).String()); err == nil {
 		dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 		defer dnsconn.Close()
 
@@ -790,7 +771,7 @@ func (r *Recursive) sendQuery(s state) (msg *dns.Msg, err error) {
 	if (msg == nil || err != nil) && r.useable(s.nsaddr) {
 		msg, err = r.sendQueryUsing(s, "tcp")
 	}
-	if err == nil {
+	if err == nil && s.cache != nil {
 		s.cache.DnsSet(s.nsaddr, msg)
 	}
 	return
