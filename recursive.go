@@ -239,6 +239,21 @@ func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 	return r.ResolveWithOptions(ctx, r, nil, qname, qtype)
 }
 
+// Roots returns the current set of root servers in use.
+func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, addr := range r.rootServers {
+		if addr.Is4() {
+			root4 = append(root4, addr)
+		}
+		if addr.Is6() {
+			root6 = append(root6, addr)
+		}
+	}
+	return
+}
+
 func (r *Recursive) nextRoot(i int) (addr netip.Addr) {
 	r.mu.RLock()
 	if l := len(r.rootServers); l > 0 {
