@@ -62,11 +62,10 @@ func main() {
 		roots6 = recursive.Roots6
 	}
 
-	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6)
-
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
 	defer cancel()
 
+	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6)
 	rec.OrderRoots(ctx)
 
 	var dbgout io.Writer

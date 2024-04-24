@@ -50,7 +50,6 @@ var (
 	ErrNoResponse = errors.New("no authoritative response")
 	errEmptyNS    = errors.New("ignoring non-auth empty NS")
 	DefaultCache  = NewCache()
-	DefaultDialer net.Dialer
 )
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
@@ -80,9 +79,15 @@ type Recursive struct {
 	tcperrs             map[netip.Addr]netError
 }
 
+// NewWithOptions returns a new Recursive resolver using the given ContextDialer and
+// using the given Cacher as it's default cache. It does not call OrderRoots.
+//
+// Passing nil for dialer will use a net.Dialer.
+// Passing nil for cache means it won't use any cache by default.
+// Passing nil for the roots will use the default set of roots.
 func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr) *Recursive {
 	if dialer == nil {
-		dialer = &DefaultDialer
+		dialer = &net.Dialer{}
 	}
 	if roots4 == nil {
 		roots4 = Roots4
@@ -126,8 +131,16 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 	}
 }
 
-func New() *Recursive {
-	return NewWithOptions(nil, DefaultCache, nil, nil)
+// New returns a new Recursive resolver using the given ContextDialer and
+// has DefaultCache as it's cache.
+//
+// It calls OrderRoots with a five second timeout before returning.
+func New(dialer proxy.ContextDialer) *Recursive {
+	r := NewWithOptions(dialer, DefaultCache, nil, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	r.OrderRoots(ctx)
+	return r
 }
 
 // ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
@@ -142,8 +155,6 @@ func (r *Recursive) ResetCookies() {
 func (r *Recursive) OrderRoots(ctx context.Context) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
 	var l []*rootRtt
 	var wg sync.WaitGroup
 	for _, addr := range r.rootServers {
