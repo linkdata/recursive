@@ -165,15 +165,20 @@ func (r *Recursive) OrderRoots(ctx context.Context) {
 	}
 	wg.Wait()
 	sort.Slice(l, func(i, j int) bool { return l[i].rtt < l[j].rtt })
-	r.rootServers = r.rootServers[:0]
-	r.useIPv4 = false
-	r.useIPv6 = false
+	var newRootServers []netip.Addr
+	useIPv4 := false
+	useIPv6 := false
 	for _, rt := range l {
 		if rt.rtt < time.Minute {
-			r.useIPv4 = r.useIPv4 || rt.addr.Is4()
-			r.useIPv6 = r.useIPv6 || rt.addr.Is6()
-			r.rootServers = append(r.rootServers, rt.addr)
+			useIPv4 = useIPv4 || rt.addr.Is4()
+			useIPv6 = useIPv6 || rt.addr.Is6()
+			newRootServers = append(newRootServers, rt.addr)
 		}
+	}
+	if len(newRootServers) > 0 {
+		r.rootServers = newRootServers
+		r.useIPv4 = useIPv4
+		r.useIPv6 = useIPv6
 	}
 }
 
