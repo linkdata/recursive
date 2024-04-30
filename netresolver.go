@@ -12,13 +12,14 @@ import (
 
 func (std *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) {
 	msg, _, err := std.DnsResolve(ctx, host, qtype)
-	if err == nil {
+	if msg != nil {
 		for _, rr := range msg.Answer {
 			switch rr := rr.(type) {
 			case *dns.A:
 				ips = append(ips, rr.A)
 			case *dns.AAAA:
 				ips = append(ips, rr.AAAA)
+
 			}
 		}
 	}
