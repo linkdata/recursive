@@ -408,6 +408,10 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			s2.qname = cname
 			s2.qlabel = 0
 			if cmsg, srv, err := r.recurseFromRoot(s2); err == nil {
+				if resp.Zero { // don't modify cached responses
+					resp = resp.Copy()
+					resp.Zero = false
+				}
 				resp.Answer = append(resp.Answer, cmsg.Answer...)
 				resp.Ns = nil
 				resp.Extra = nil
