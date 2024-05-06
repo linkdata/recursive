@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/miekg/dns v1.1.57
 	golang.org/x/net v0.18.0
+	github.com/linkdata/rate v1.3.0
 )
 
 require (

@@ -1,3 +1,5 @@
+github.com/linkdata/rate v1.3.0 h1:IvnnlOCQdIBRUUNQVAR21hU90mZtO6jmQLQ3C8t2jgU=
+github.com/linkdata/rate v1.3.0/go.mod h1:GcdHS1A2j7CF1fhRQTAWo0jri8rZzImGyzl4i1pUZm4=
 github.com/miekg/dns v1.1.57 h1:Jzi7ApEIzwEPLHWRcafCN9LZSBbqQpxjt/wpgvg7wcM=
 github.com/miekg/dns v1.1.57/go.mod h1:uqRjCRUuEAA6qsOiJvDd+CFo/vW+y5WR6SNmHE55hZk=
 golang.org/x/mod v0.12.0 h1:rmsUpXtvNzj340zd98LZ4KntptpfRHwpFOHG188oHXc=

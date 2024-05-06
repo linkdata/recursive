@@ -66,10 +66,11 @@ func (fe failError) Is(target error) bool { return target == ErrNoResponse }
 func (fe failError) Error() (s string)    { return fe.e.Error() }
 
 type Recursive struct {
-	proxy.ContextDialer              // (read-only) ContextDialer passed to NewWithOptions
-	Cacher                           // (read-only) Cacher passed to NewWithOptions
-	*net.Resolver                    // (read-only) net.Resolver using our ContextDialer
-	mu                  sync.RWMutex // protects following
+	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
+	Cacher                              // (read-only) Cacher passed to NewWithOptions
+	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
+	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
+	mu                  sync.RWMutex    // protects following
 	useIPv4             bool
 	useIPv6             bool
 	rootServers         []netip.Addr
@@ -85,7 +86,8 @@ type Recursive struct {
 // Passing nil for dialer will use a net.Dialer.
 // Passing nil for cache means it won't use any cache by default.
 // Passing nil for the roots will use the default set of roots.
-func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr) *Recursive {
+// Passing nil for the rateLimiter means no rate limiting
+func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr, rateLimiter <-chan struct{}) *Recursive {
 	if dialer == nil {
 		dialer = &net.Dialer{}
 	}
@@ -121,6 +123,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 			PreferGo: true,
 			Dial:     dialer.DialContext,
 		},
+		rateLimiter: rateLimiter,
 		useIPv4:     root4 != nil,
 		useIPv6:     root6 != nil,
 		rootServers: roots,
@@ -136,7 +139,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 //
 // It calls OrderRoots with a five second timeout before returning.
 func New(dialer proxy.ContextDialer) *Recursive {
-	r := NewWithOptions(dialer, DefaultCache, nil, nil)
+	r := NewWithOptions(dialer, DefaultCache, nil, nil, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	r.OrderRoots(ctx)
@@ -685,6 +688,10 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		network = protocol + "4"
 	} else {
 		network = protocol + "6"
+	}
+
+	if r.rateLimiter != nil {
+		<-r.rateLimiter
 	}
 
 	if s.dbg() {

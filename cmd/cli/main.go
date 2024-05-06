@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/linkdata/rate"
 	"github.com/linkdata/recursive"
 	"github.com/miekg/dns"
 )
@@ -21,6 +22,7 @@ var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
 var flagTimeout = flag.Int("timeout", 10, "individual query timeout in seconds")
 var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in milliseconds")
+var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
 var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flag4 = flag.Bool("4", true, "use IPv4")
@@ -65,7 +67,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
 	defer cancel()
 
-	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6)
+	maxrate := int32(*flagRatelimit)
+	var rateLimiter <-chan struct{}
+	if maxrate > 0 {
+		rateLimiter = rate.NewTicker(&maxrate, nil).C
+	}
+
+	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	rec.OrderRoots(ctx)
 
 	var dbgout io.Writer
