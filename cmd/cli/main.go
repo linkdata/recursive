@@ -70,7 +70,7 @@ func main() {
 	maxrate := int32(*flagRatelimit)
 	var rateLimiter <-chan struct{}
 	if maxrate > 0 {
-		rateLimiter = rate.NewTicker(&maxrate, nil).C
+		rateLimiter = rate.NewTicker(nil, &maxrate).C
 	}
 
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
