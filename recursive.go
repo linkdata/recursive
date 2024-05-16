@@ -72,6 +72,7 @@ type Recursive struct {
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
 	mu                  sync.RWMutex    // protects following
+	useUDP              bool
 	useIPv4             bool
 	useIPv6             bool
 	rootServers         []netip.Addr
@@ -125,6 +126,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 			Dial:     dialer.DialContext,
 		},
 		rateLimiter: rateLimiter,
+		useUDP:      true,
 		useIPv4:     len(root4) > 0,
 		useIPv6:     len(root6) > 0,
 		rootServers: roots,
@@ -138,12 +140,10 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 // New returns a new Recursive resolver using the given ContextDialer and
 // has DefaultCache as it's cache.
 //
-// It calls OrderRoots with a five second timeout before returning.
+// It calls OrderRoots before returning.
 func New(dialer proxy.ContextDialer) *Recursive {
 	r := NewWithOptions(dialer, DefaultCache, nil, nil, nil)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-	r.OrderRoots(ctx)
+	r.OrderRoots(context.Background())
 	return r
 }
 
@@ -318,6 +318,13 @@ func (r *Recursive) recurseFromRoot(s state) (msg *dns.Msg, srv netip.Addr, err 
 			}
 		}
 	}
+	return
+}
+
+func (r *Recursive) usingUDP() (yes bool) {
+	r.mu.RLock()
+	yes = r.useUDP
+	r.mu.RUnlock()
 	return
 }
 
@@ -623,7 +630,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 
 var ErrInvalidCookie = errors.New("invalid cookie")
 
-func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err bool) {
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) {
 	if err != nil {
 		isIpv6err = nsaddr.Is6()
 		_, ok := err.(net.Error)
@@ -632,6 +639,7 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 			var m map[netip.Addr]netError
 			switch protocol {
 			case "udp":
+				isUdpErr = true
 				m = r.udperrs
 			case "tcp":
 				m = r.tcperrs
@@ -785,7 +793,9 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		}
 	}
 
-	ipv6disabled := r.setNetError(protocol, s.nsaddr, err) && r.maybeDisableIPv6(err)
+	isIpv6Err, isUdpErr := r.setNetError(protocol, s.nsaddr, err)
+	ipv6disabled := isIpv6Err && r.maybeDisableIPv6(err)
+	udpDisabled := isUdpErr && r.maybeDisableUdp(err)
 
 	if s.logw != nil {
 		if msg != nil {
@@ -812,6 +822,9 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 		if ipv6disabled {
 			fmt.Fprintf(s.logw, " (IPv6 disabled)")
 		}
+		if udpDisabled {
+			fmt.Fprintf(s.logw, " (UDP disabled)")
+		}
 		fmt.Fprintln(s.logw)
 	}
 
@@ -819,14 +832,16 @@ func (r *Recursive) sendQueryUsing(s state, protocol string) (msg *dns.Msg, err 
 }
 
 func (r *Recursive) sendQuery(s state) (msg *dns.Msg, err error) {
-	msg, err = r.sendQueryUsing(s, "udp")
-	if msg != nil {
-		if msg.MsgHdr.Truncated {
-			msg = nil
-			_ = s.dbg() && s.log("message truncated; retry using TCP\n")
-		} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
-			msg = nil
-			_ = s.dbg() && s.log("got FORMERR, retry using TCP without cookies\n")
+	if r.usingUDP() {
+		msg, err = r.sendQueryUsing(s, "udp")
+		if msg != nil {
+			if msg.MsgHdr.Truncated {
+				msg = nil
+				_ = s.dbg() && s.log("message truncated; retry using TCP\n")
+			} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
+				msg = nil
+				_ = s.dbg() && s.log("got FORMERR, retry using TCP without cookies\n")
+			}
 		}
 	}
 	if (msg == nil || err != nil) && r.useable(s.nsaddr) {
@@ -855,6 +870,18 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 				}
 				r.rootServers = r.rootServers[:idx]
 			}
+		}
+	}
+	return
+}
+
+func (r *Recursive) maybeDisableUdp(err error) (disabled bool) {
+	if ne, ok := err.(net.Error); ok {
+		if !ne.Timeout() && strings.Contains(ne.Error(), "network not implemented") {
+			r.mu.Lock()
+			defer r.mu.Unlock()
+			disabled = r.useUDP
+			r.useUDP = false
 		}
 	}
 	return
