@@ -448,8 +448,15 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 			s2.qlabel = 0
 			if cmsg, srv, err := r.recurseFromRoot(s2); err == nil {
 				if resp.Zero { // don't modify cached responses
-					resp = resp.Copy()
-					resp.Zero = false
+					resp = &dns.Msg{
+						MsgHdr: resp.MsgHdr,
+						Question: []dns.Question{{
+							Name:   s.qname,
+							Qtype:  s.qtype,
+							Qclass: dns.ClassINET,
+						}},
+						Answer: append([]dns.RR{}, resp.Answer...),
+					}
 				}
 				resp.Answer = append(resp.Answer, cmsg.Answer...)
 				resp.Ns = nil
