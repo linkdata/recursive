@@ -33,6 +33,7 @@ import (
 	A	telia.biz.mv.
 	A	telia.per.la.
 	NS	seb.inf.ua
+	A	seb.org.tw
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go
@@ -71,6 +72,7 @@ type Recursive struct {
 	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
+	NoMini              bool            // don't use QNAME minimization
 	mu                  sync.RWMutex    // protects following
 	useUDP              bool
 	useIPv4             bool
@@ -235,6 +237,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 		qname:  qname,
 		qtype:  qtype,
 		qlabel: 0,
+		nomini: r.NoMini,
 		stack:  make(map[rootQuery]struct{}),
 	}
 	msg, srv, err := r.recurseFromRoot(s)
@@ -434,7 +437,6 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 				}
 				s.log("EMPTY %s for %s %q%s\n", dns.RcodeToString[resp.Rcode], DnsTypeToString(qtype), qname, suffix)
 			}
-			return resp, s.nsaddr, err
 		}
 	}
 
@@ -552,7 +554,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 					var authAddrsResp *dns.Msg
 					if resp.MsgHdr.Authoritative {
 						if (final || idx == 0) && authQtype == s.qtype {
-							_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(s.qtype), s.qname)
+							_ = s.dbg() && s.log("asking directly for final %s %q\n", DnsTypeToString(s.qtype), s.qname)
 							s2 := s
 							s2.depth++
 							s2.qlabel = 64
@@ -560,6 +562,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 								return m, s2.nsaddr, e
 							}
 						}
+
 						_ = s.dbg() && s.log("asking directly for %s %q\n", DnsTypeToString(authQtype), authority)
 						s2 := s
 						s2.depth++
