@@ -587,6 +587,7 @@ func (r *Recursive) recurse(s state) (*dns.Msg, netip.Addr, error) {
 							for _, r := range authAddrsResp.Answer {
 								authAddrs = append(authAddrs, AddrFromRR(r))
 							}
+							break
 						} else if authAddrsResp.Authoritative {
 							_ = s.dbg() && s.log("EMPTY authority %s %q\n", DnsTypeToString(authQtype), authority)
 						}
