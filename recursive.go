@@ -60,12 +60,6 @@ type netError struct {
 	When time.Time
 }
 
-type failError struct{ e error }
-
-func (fe failError) Unwrap() error        { return fe.e }
-func (fe failError) Is(target error) bool { return target == ErrNoResponse }
-func (fe failError) Error() (s string)    { return fe.e.Error() }
-
 type Recursive struct {
 	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
 	Cacher                              // (read-only) Cacher passed to NewWithOptions
@@ -195,7 +189,7 @@ func (r *Recursive) OrderRoots(ctx context.Context) {
 	}
 }
 
-type rootQuery struct {
+type initialQuery struct {
 	nsaddr netip.Addr
 	qname  string
 	qtype  uint16
@@ -213,7 +207,7 @@ type state struct {
 	qtype  uint16
 	qlabel int
 	nomini bool
-	stack  map[rootQuery]struct{}
+	stack  map[initialQuery]struct{}
 }
 
 // ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
@@ -238,7 +232,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 		qtype:  qtype,
 		qlabel: 0,
 		nomini: r.NoMini,
-		stack:  make(map[rootQuery]struct{}),
+		stack:  make(map[initialQuery]struct{}),
 	}
 	msg, srv, err := r.recurseFromRoot(s)
 	if logw != nil {
@@ -300,7 +294,7 @@ func (r *Recursive) recurseFromRoot(s state) (msg *dns.Msg, srv netip.Addr, err 
 		}
 		if server := r.nextRoot(i); server.IsValid() {
 			s.nsaddr = server
-			rq := rootQuery{
+			rq := initialQuery{
 				nsaddr: s.nsaddr,
 				qname:  s.qname,
 				qtype:  s.qtype,
