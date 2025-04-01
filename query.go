@@ -67,3 +67,35 @@ func extractGlue(msg *dns.Msg) []string {
 	}
 	return servers
 }
+
+func updateCookies(msg *dns.Msg) {
+	for _, extra := range msg.Extra {
+		if opt, ok := extra.(*dns.OPT); ok {
+			for _, option := range opt.Option {
+				if cookie, ok := option.(*dns.EDNS0_COOKIE); ok && len(cookie.Cookie) >= 16 {
+					serverCookie := cookie.Cookie[16:]
+					_ = serverCookie
+				}
+			}
+		}
+	}
+}
+
+func (r *Recursive) resolveNSWithDNS(ctx context.Context, msg *dns.Msg) ([]string, error) {
+	var servers []string
+	for _, rr := range msg.Ns {
+		if ns, ok := rr.(*dns.NS); ok {
+			nsResponse, err := r.LookupHost(ctx, ns.Ns)
+			if err != nil || len(nsResponse) == 0 {
+				continue
+			}
+			for _, ans := range nsResponse {
+				servers = append(servers, ans+":53")
+			}
+		}
+	}
+	if len(servers) == 0 {
+		return nil, errors.New("no NS servers resolved")
+	}
+	return servers, nil
+}
