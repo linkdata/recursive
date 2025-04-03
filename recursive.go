@@ -68,10 +68,13 @@ func (ne netError) Unwrap() error {
 	return ne.Err
 }
 
+var DefaultTimeout = time.Second * 5
+
 type Recursive struct {
 	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
 	Cacher                              // (read-only) Cacher passed to NewWithOptions
 	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
+	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
 	NoMini              bool            // don't use QNAME minimization
@@ -129,6 +132,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 			PreferGo: true,
 			Dial:     dialer.DialContext,
 		},
+		Timeout:     DefaultTimeout,
 		rateLimiter: rateLimiter,
 		useUDP:      true,
 		useIPv4:     len(root4) > 0,

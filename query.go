@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"hash/maphash"
 	"io"
-	"maps"
 	"net"
 	"net/netip"
-	"slices"
 	"strings"
 	"time"
 
@@ -59,54 +57,47 @@ func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, 
 	return
 }
 
-func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	q.depth++
-	defer func() { q.depth-- }()
-
-	qname = dns.CanonicalName(qname)
-	labels := dns.CountLabel(qname)
-	servers := map[netip.Addr]struct{}{}
-	servers[q.rootServers[0]] = struct{}{}
-	if msg, servers, err = q.queryNS(ctx, servers, qname, labels, 1); err == nil {
-		if len(servers) == 0 {
+func serversOrTypeNS(servers []netip.Addr, qtype uint16) (err error) {
+	if len(servers) == 0 {
+		if qtype != dns.TypeNS {
 			err = ErrNoNameservers
-			if qtype == dns.TypeNS {
-				err = nil
-				_ = q.dbg() && q.log("ANSWER with referral NS\n")
-			}
-		} else {
+		}
+	}
+	return
+}
+
+func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	qname = dns.CanonicalName(qname)
+	servers := []netip.Addr{q.rootServers[0]}
+	if msg, servers, err = q.queryNS(ctx, servers, qname, 1); err == nil {
+		if err = serversOrTypeNS(servers, qtype); err == nil {
 			q.depth++
-			for server := range servers {
+			for _, server := range servers {
 				if msg, err = q.exchange(ctx, server, qname, qtype); err == nil {
 					srv = server
-					return
+					break
 				}
 			}
 		}
 	}
-
 	return
 }
 
-func (q *query) queryNS(ctx context.Context, servers map[netip.Addr]struct{}, qname string, labels, qlabel int) (msg *dns.Msg, next map[netip.Addr]struct{}, err error) {
+func (q *query) queryNS(ctx context.Context, servers []netip.Addr, qname string, qlabel int) (msg *dns.Msg, next []netip.Addr, err error) {
+	if q.depth > 30 {
+		err = ErrMaxDepth
+		return
+	}
 	q.depth++
 	defer func() { q.depth-- }()
 
 	idx, _ := dns.PrevLabel(qname, qlabel)
-	_ = q.dbg() && q.log("query NS for %q\n", qname[idx:])
 
-	for server := range servers {
-		delete(servers, server)
-		if msg, err = q.exchange(ctx, server, qname[idx:], dns.TypeNS); err == nil && msg != nil && len(msg.Ns) > 0 {
-			next = map[netip.Addr]struct{}{}
-			extractGlue(msg, next)
+	for _, server := range servers {
+		if msg, err = q.exchange(ctx, server, qname[idx:], dns.TypeNS); err == nil && msg != nil {
+			next = extractGlue(msg)
 			if len(next) == 0 {
-				var noglue []string
-				for _, rr := range msg.Ns {
-					if ns, ok := rr.(*dns.NS); ok {
-						noglue = append(noglue, ns.Ns)
-					}
-				}
+				noglue := extractNoGlue(msg, qname[idx:])
 				if len(noglue) > 0 {
 					_ = q.dbg() && q.log("NS without glue: %v\n", noglue)
 					for _, ns := range noglue {
@@ -121,7 +112,7 @@ func (q *query) queryNS(ctx context.Context, servers map[netip.Addr]struct{}, qn
 								}
 								if ip != nil {
 									if addr, ok := netip.AddrFromSlice(ip); ok {
-										next[addr] = struct{}{}
+										next = append(next, addr)
 									}
 								}
 							}
@@ -131,12 +122,11 @@ func (q *query) queryNS(ctx context.Context, servers map[netip.Addr]struct{}, qn
 				}
 			}
 			if len(next) > 0 {
-				_ = q.dbg() && q.log("NS for %q: %v\n", qname[idx:], slices.Collect(maps.Keys(next)))
-				if qlabel < labels {
+				_ = q.dbg() && q.log("%v NS for %q: %v\n", len(next), qname[idx:], next[:min(4, len(next))])
+				if idx > 0 {
 					oldNext := next
 					oldMsg := msg
-					if msg, next, err = q.queryNS(ctx, next, qname, labels, qlabel+1); len(next) == 0 {
-						_ = q.dbg() && q.log("using previous NS\n")
+					if msg, next, err = q.queryNS(ctx, next, qname, qlabel+1); len(next) == 0 {
 						next = oldNext
 						msg = oldMsg
 					}
@@ -163,14 +153,28 @@ func (r *Recursive) addEDNS(msg *dns.Msg) {
 	msg.Extra = append(msg.Extra, opt)
 }
 
-func extractGlue(msg *dns.Msg, servers map[netip.Addr]struct{}) {
+func extractGlue(msg *dns.Msg) (servers []netip.Addr) {
 	for _, rr := range msg.Extra {
 		if a, ok := rr.(*dns.A); ok {
 			if addr, ok := netip.AddrFromSlice(a.A); ok {
-				servers[addr] = struct{}{}
+				servers = append(servers, addr)
 			}
 		}
 	}
+	return
+}
+
+func extractNoGlue(msg *dns.Msg, filtersuffix string) (servers []string) {
+	for _, rrs := range [][]dns.RR{msg.Ns, msg.Answer} {
+		for _, rr := range rrs {
+			if ns, ok := rr.(*dns.NS); ok {
+				if !strings.HasSuffix(ns.Ns, filtersuffix) {
+					servers = append(servers, ns.Ns)
+				}
+			}
+		}
+	}
+	return
 }
 
 func updateCookies(msg *dns.Msg) {
@@ -245,6 +249,12 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 		var nconn net.Conn
 		var rtt time.Duration
 
+		if q.Timeout > 0 {
+			ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
+			defer cancel()
+			ctx = ctx2
+		}
+
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
 			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 			defer dnsconn.Close()
@@ -288,7 +298,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 
 			c := dns.Client{UDPSize: dns.DefaultMsgSize}
 			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
-			if msg != nil && useCookies {
+			if useCookies && msg != nil {
 				newsrvcookie := srvcookie
 				if opt := msg.IsEdns0(); opt != nil {
 					for _, rr := range opt.Option {
@@ -366,7 +376,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 		}
 	}
 	if (msg == nil || err != nil) && q.useable(nsaddr) {
-		// msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
+		msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
 	}
 	if err == nil && q.cache != nil {
 		q.cache.DnsSet(nsaddr, msg)
