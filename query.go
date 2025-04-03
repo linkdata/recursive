@@ -21,10 +21,12 @@ var ErrNoNameservers = errors.New("no nameservers")
 
 type query struct {
 	*Recursive
-	start time.Time
-	cache Cacher
-	logw  io.Writer
-	depth int
+	start  time.Time
+	cache  Cacher
+	logw   io.Writer
+	depth  int
+	nomini bool
+	cnames map[string]struct{}
 }
 
 func (q *query) dbg() bool {
@@ -75,6 +77,29 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			for _, server := range servers {
 				if msg, err = q.exchange(ctx, server, qname, qtype); err == nil {
 					srv = server
+					switch msg.Rcode {
+					case dns.RcodeRefused:
+						if !q.nomini {
+							_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
+							q.nomini = true
+							msg, srv, err = q.run(ctx, qname, qtype)
+						}
+					case dns.RcodeSuccess:
+						if qtype != dns.TypeCNAME {
+							for _, rr := range msg.Answer {
+								if cn, ok := rr.(*dns.CNAME); ok {
+									if q.cnames == nil {
+										q.cnames = make(map[string]struct{})
+									}
+									if _, seen := q.cnames[cn.Target]; !seen {
+										if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
+											msg.Answer = append(msg.Answer, cnmsg.Answer...)
+										}
+									}
+								}
+							}
+						}
+					}
 					break
 				}
 			}
@@ -91,7 +116,11 @@ func (q *query) queryNS(ctx context.Context, servers []netip.Addr, qname string,
 	q.depth++
 	defer func() { q.depth-- }()
 
-	idx, _ := dns.PrevLabel(qname, qlabel)
+	idx, final := dns.PrevLabel(qname, qlabel)
+	final = final || idx == 0
+	if q.nomini {
+		idx = 0
+	}
 
 	for _, server := range servers {
 		if msg, err = q.exchange(ctx, server, qname[idx:], dns.TypeNS); err == nil && msg != nil {
@@ -123,7 +152,7 @@ func (q *query) queryNS(ctx context.Context, servers []netip.Addr, qname string,
 			}
 			if len(next) > 0 {
 				_ = q.dbg() && q.log("%v NS for %q: %v\n", len(next), qname[idx:], next[:min(4, len(next))])
-				if idx > 0 {
+				if !final {
 					oldNext := next
 					oldMsg := msg
 					if msg, next, err = q.queryNS(ctx, next, qname, qlabel+1); len(next) == 0 {
@@ -165,11 +194,14 @@ func extractGlue(msg *dns.Msg) (servers []netip.Addr) {
 }
 
 func extractNoGlue(msg *dns.Msg, filtersuffix string) (servers []string) {
-	for _, rrs := range [][]dns.RR{msg.Ns, msg.Answer} {
+	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns} {
 		for _, rr := range rrs {
-			if ns, ok := rr.(*dns.NS); ok {
-				if !strings.HasSuffix(ns.Ns, filtersuffix) {
-					servers = append(servers, ns.Ns)
+			switch rr := rr.(type) {
+			case *dns.CNAME:
+				servers = append(servers, rr.Target)
+			case *dns.NS:
+				if !strings.HasSuffix(rr.Ns, filtersuffix) {
+					servers = append(servers, rr.Ns)
 				}
 			}
 		}
@@ -366,11 +398,11 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 		msg, err = q.exchangeUsing(ctx, "udp", useCookies, nsaddr, qname, qtype)
 		if msg != nil {
 			if msg.MsgHdr.Truncated {
-				msg = nil
 				_ = q.dbg() && q.log("message truncated; retry using TCP\n")
-			} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
 				msg = nil
+			} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
 				_ = q.dbg() && q.log("got FORMERR, retry using TCP without cookies\n")
+				msg = nil
 				useCookies = false
 			}
 		}

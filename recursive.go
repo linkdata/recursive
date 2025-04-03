@@ -228,7 +228,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 	if logw == nil {
 		logw = r.DefaultLogWriter
 	}
-	if true {
+	if false {
 		msg, srv, err = r.runQuery(ctx, cache, logw, qname, qtype)
 	} else {
 		start := time.Now()
