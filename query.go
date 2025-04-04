@@ -198,7 +198,6 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q\n",
 					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name)
 			}
-
 		}
 	}
 	return
@@ -286,19 +285,6 @@ func (q *query) followCNAME(cn string) bool {
 		q.cnames[cn] = struct{}{}
 	}
 	return !ok
-}
-
-func updateCookies(msg *dns.Msg) {
-	for _, extra := range msg.Extra {
-		if opt, ok := extra.(*dns.OPT); ok {
-			for _, option := range opt.Option {
-				if cookie, ok := option.(*dns.EDNS0_COOKIE); ok && len(cookie.Cookie) >= 16 {
-					serverCookie := cookie.Cookie[16:]
-					_ = serverCookie
-				}
-			}
-		}
-	}
 }
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
