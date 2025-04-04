@@ -100,9 +100,11 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			idx, final = dns.PrevLabel(qname, qlabel)
 			cqname := qname[idx:] // current name to ask for
 			cqtype := dns.TypeNS  // current type to ask for
-			if final || q.nomini {
-				cqname = qname
+			if final {
 				cqtype = qtype
+			}
+			if q.nomini {
+				cqname = qname
 			}
 
 			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
