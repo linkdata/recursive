@@ -27,19 +27,15 @@ func (cq *cacheQtype) set(msg *dns.Msg, ttl int) {
 	qname := msg.Question[0].Name
 	expires := time.Now().Add(time.Duration(ttl) * time.Second)
 	cq.mu.Lock()
-	defer cq.mu.Unlock()
 	cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
-}
-
-func (cq *cacheQtype) getExisting(qname string) (cv cacheValue) {
-	cq.mu.RLock()
-	cv = cq.cache[qname]
-	cq.mu.RUnlock()
-	return
+	cq.mu.Unlock()
 }
 
 func (cq *cacheQtype) get(qname string) *dns.Msg {
-	if cv := cq.getExisting(qname); cv.Msg != nil {
+	cq.mu.RLock()
+	cv := cq.cache[qname]
+	cq.mu.RUnlock()
+	if cv.Msg != nil {
 		if time.Since(cv.expires) < 0 {
 			return cv.Msg
 		}

@@ -44,22 +44,47 @@ func (q *query) log(format string, args ...any) bool {
 }
 
 func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	q := &query{
-		Recursive: r,
-		cache:     cache,
-		start:     time.Now(),
-		logw:      logw,
-		glue:      make(map[string][]netip.Addr),
+	var q *query
+	qname = dns.CanonicalName(qname)
+	if cache != nil {
+		msg = cache.DnsGet(qname, qtype)
 	}
-	msg, srv, err = q.run(ctx, qname, qtype)
+	if msg == nil {
+		q = &query{
+			Recursive: r,
+			cache:     cache,
+			start:     time.Now(),
+			logw:      logw,
+			glue:      make(map[string][]netip.Addr),
+		}
+		msg, srv, err = q.run(ctx, qname, qtype)
+	}
+	if msg != nil {
+		if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+			err = ErrQuestionMismatch
+			_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
+				DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
+				DnsTypeToString(qtype), qname,
+			)
+		}
+		if err == nil {
+			cache.DnsSet(msg)
+		}
+	}
 	if logw != nil {
 		if msg != nil {
 			fmt.Fprintf(logw, "\n%v", msg)
 		}
-		fmt.Fprintf(logw, "\n;; Sent %v queries in %v\n;; SERVER: %v\n", q.count, time.Since(q.start).Round(time.Millisecond), srv)
-		if err != nil {
-			fmt.Fprintf(logw, ";; ERROR: %v\n", err)
+		if q != nil {
+			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.count, time.Since(q.start).Round(time.Millisecond))
 		}
+		if srv.IsValid() {
+			fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
+		}
+		if err != nil {
+			fmt.Fprintf(logw, "\n;; ERROR: %v", err)
+		}
+		fmt.Fprintln(logw)
 	}
 	return
 }
@@ -100,11 +125,9 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			idx, final = dns.PrevLabel(qname, qlabel)
 			cqname := qname[idx:] // current name to ask for
 			cqtype := dns.TypeNS  // current type to ask for
-			if final {
-				cqtype = qtype
-			}
-			if q.nomini {
+			if final || q.nomini {
 				cqname = qname
+				cqtype = qtype
 			}
 
 			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
@@ -197,11 +220,6 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 				dns.RcodeToString[msg.Rcode],
 				DnsTypeToString(qtype), qname,
 				len(msg.Answer))
-			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
-				err = ErrQuestionMismatch
-				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q\n",
-					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name)
-			}
 		}
 	}
 	return
@@ -292,17 +310,15 @@ func (q *query) followCNAME(cn string) bool {
 }
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	if q.cache != nil {
+	if q.cache != nil && !q.nomini {
 		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
-			if qtype != dns.TypeNS || !q.nomini {
-				if q.dbg() {
-					q.log("cached answer: @%s %s %q => %s [%v+%v+%v A/N/E]\n",
-						nsaddr, DnsTypeToString(qtype), qname,
-						dns.RcodeToString[msg.Rcode],
-						len(msg.Answer), len(msg.Ns), len(msg.Extra))
-				}
-				return
+			if q.dbg() {
+				q.log("cached answer: @%s %s %q => %s [%v+%v+%v A/N/E]\n",
+					nsaddr, DnsTypeToString(qtype), qname,
+					dns.RcodeToString[msg.Rcode],
+					len(msg.Answer), len(msg.Ns), len(msg.Extra))
 			}
+			return
 		}
 	}
 
@@ -461,7 +477,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 	if (msg == nil || err != nil) && q.useable(nsaddr) {
 		msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
 	}
-	if err == nil && q.cache != nil {
+	if err == nil && q.cache != nil && !q.nomini {
 		q.cache.DnsSet(msg)
 	}
 	return
