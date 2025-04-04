@@ -160,6 +160,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, cn.Target)
 											if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
 												_ = q.dbg() && q.log("CNAME ANSWER %q with %v records\n", cn.Target, len(cnmsg.Answer))
+												if msg.Zero {
+													msg = msg.Copy()
+													msg.Zero = false
+												}
 												msg.Answer = append(msg.Answer, cnmsg.Answer...)
 												return
 											} else {
@@ -289,14 +293,16 @@ func (q *query) followCNAME(cn string) bool {
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	if q.cache != nil {
-		if _, msg = q.cache.DnsGet(nsaddr, qname, qtype); msg != nil {
-			if q.dbg() {
-				q.log("cached answer: @%s %s %q => %s [%v+%v+%v A/N/E]\n",
-					nsaddr, DnsTypeToString(qtype), qname,
-					dns.RcodeToString[msg.Rcode],
-					len(msg.Answer), len(msg.Ns), len(msg.Extra))
+		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
+			if qtype != dns.TypeNS || !q.nomini {
+				if q.dbg() {
+					q.log("cached answer: @%s %s %q => %s [%v+%v+%v A/N/E]\n",
+						nsaddr, DnsTypeToString(qtype), qname,
+						dns.RcodeToString[msg.Rcode],
+						len(msg.Answer), len(msg.Ns), len(msg.Extra))
+				}
+				return
 			}
-			return
 		}
 	}
 
@@ -434,7 +440,6 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 			fmt.Fprintln(q.logw)
 		}
 	}
-
 	return
 }
 
@@ -457,7 +462,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 		msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
 	}
 	if err == nil && q.cache != nil {
-		q.cache.DnsSet(nsaddr, msg)
+		q.cache.DnsSet(msg)
 	}
 	return
 }

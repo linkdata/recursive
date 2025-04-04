@@ -58,7 +58,7 @@ func (cache *Cache) Entries() (n int) {
 	return
 }
 
-func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
+func (cache *Cache) DnsSet(msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
@@ -67,16 +67,16 @@ func (cache *Cache) DnsSet(nsaddr netip.Addr, msg *dns.Msg) {
 			if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
 				ttl = min(cache.MaxTTL, ttl)
 			}
-			cache.cq[qtype].set(nsaddr, msg, ttl)
+			cache.cq[qtype].set(msg, ttl)
 		}
 	}
 }
 
-func (cache *Cache) DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (srv netip.Addr, msg *dns.Msg) {
+func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	if cache != nil {
 		atomic.AddUint64(&cache.count, 1)
 		if qtype <= MaxQtype {
-			if srv, msg = cache.cq[qtype].get(nsaddr, qname); msg != nil {
+			if msg = cache.cq[qtype].get(qname); msg != nil {
 				atomic.AddUint64(&cache.hits, 1)
 			}
 		}
@@ -85,7 +85,7 @@ func (cache *Cache) DnsGet(nsaddr netip.Addr, qname string, qtype uint16) (srv n
 }
 
 func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	srv, msg = cache.DnsGet(netip.Addr{}, qname, qtype)
+	msg = cache.DnsGet(qname, qtype)
 	return
 }
 
