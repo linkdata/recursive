@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/netip"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 
 var ErrInvalidDomainName = errors.New("invalid domain name")
 var ErrNoNameservers = errors.New("no nameservers")
+var ErrQuestionMismatch = errors.New("question mismatch")
 
 type query struct {
 	*Recursive
@@ -26,6 +28,8 @@ type query struct {
 	logw   io.Writer
 	depth  int
 	nomini bool
+	count  int
+	glue   map[string][]netip.Addr
 	cnames map[string]struct{}
 }
 
@@ -45,13 +49,14 @@ func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, 
 		cache:     cache,
 		start:     time.Now(),
 		logw:      logw,
+		glue:      make(map[string][]netip.Addr),
 	}
 	msg, srv, err = q.run(ctx, qname, qtype)
 	if logw != nil {
 		if msg != nil {
 			fmt.Fprintf(logw, "\n%v", msg)
 		}
-		fmt.Fprintf(logw, "\n;; Query time: %v\n;; SERVER: %v\n", time.Since(q.start).Round(time.Millisecond), srv)
+		fmt.Fprintf(logw, "\n;; Sent %v queries in %v\n;; SERVER: %v\n", q.count, time.Since(q.start).Round(time.Millisecond), srv)
 		if err != nil {
 			fmt.Fprintf(logw, ";; ERROR: %v\n", err)
 		}
@@ -59,154 +64,217 @@ func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, 
 	return
 }
 
-func serversOrTypeNS(servers []netip.Addr, qtype uint16) (err error) {
-	if len(servers) == 0 {
-		if qtype != dns.TypeNS {
-			err = ErrNoNameservers
-		}
+type hostAddr struct {
+	host string
+	addr netip.Addr
+}
+
+func (ha hostAddr) String() (s string) {
+	s = ha.host
+	if ha.addr.IsValid() {
+		s += " " + ha.addr.String()
 	}
 	return
 }
 
+func (q *query) addGlue(host string, addr netip.Addr) {
+	addrs := q.glue[host]
+	if !slices.Contains(addrs, addr) {
+		q.glue[host] = append(addrs, addr)
+	}
+}
+
 func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	qname = dns.CanonicalName(qname)
-	servers := []netip.Addr{q.rootServers[0]}
-	if msg, servers, err = q.queryNS(ctx, servers, qname, 1); err == nil {
-		if err = serversOrTypeNS(servers, qtype); err == nil {
-			q.depth++
-			for _, server := range servers {
-				if msg, err = q.exchange(ctx, server, qname, qtype); err == nil {
-					srv = server
-					switch msg.Rcode {
-					case dns.RcodeRefused:
-						if !q.nomini {
-							_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
-							q.nomini = true
-							msg, srv, err = q.run(ctx, qname, qtype)
+	if err = q.dive(); err == nil {
+		defer q.surface()
+
+		qname = dns.CanonicalName(qname)
+
+		nslist := []hostAddr{{"root", q.rootServers[0]}} // current set of servers to query
+		var final bool                                   // at the last part of the name
+		var idx int                                      // start of current label
+		var qlabel int                                   // label to query for, starting from the right
+
+		for !final {
+			qlabel++
+			idx, final = dns.PrevLabel(qname, qlabel)
+			cqname := qname[idx:] // current name to ask for
+			cqtype := dns.TypeNS  // current type to ask for
+			if final || q.nomini {
+				cqname = qname
+				cqtype = qtype
+			}
+
+			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
+			var gotmsg *dns.Msg
+			var nsmsg *dns.Msg
+			for _, ha := range nslist {
+				if !ha.addr.IsValid() {
+					if m, _, e := q.run(ctx, ha.host, dns.TypeA); e == nil {
+						nsmsg = m
+						switch m.Rcode {
+						case dns.RcodeNameError:
+						case dns.RcodeSuccess:
+							for _, rr := range m.Answer {
+								if host, addr := rrHostAddr(rr); host == ha.host {
+									ha.addr = addr
+									break
+								}
+							}
 						}
-					case dns.RcodeSuccess:
-						if qtype != dns.TypeCNAME {
-							for _, rr := range msg.Answer {
-								if cn, ok := rr.(*dns.CNAME); ok {
-									if q.cnames == nil {
-										q.cnames = make(map[string]struct{})
-									}
-									if _, seen := q.cnames[cn.Target]; !seen {
-										if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
-											msg.Answer = append(msg.Answer, cnmsg.Answer...)
+					}
+				}
+				if ha.addr.IsValid() {
+					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
+						switch gotmsg.Rcode {
+						case dns.RcodeRefused:
+							if !q.nomini {
+								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
+								q.nomini = true
+								msg, srv, err = q.run(ctx, qname, qtype)
+								return
+							}
+							final = true
+						case dns.RcodeNameError:
+							srv = ha.addr
+							msg = gotmsg
+							return
+						case dns.RcodeSuccess:
+							newlist := q.extractNS(gotmsg, qname)
+							if len(newlist) > 0 {
+								srv = ha.addr
+								msg = gotmsg
+								nslist = newlist
+							}
+						}
+						if final || q.nomini {
+							srv = ha.addr
+							msg = gotmsg
+							if qtype != dns.TypeCNAME {
+								for _, rr := range msg.Answer {
+									if cn, ok := rr.(*dns.CNAME); ok {
+										if q.followCNAME(cn.Target) {
+											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, cn.Target)
+											if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
+												_ = q.dbg() && q.log("CNAME ANSWER %q with %v records\n", cn.Target, len(cnmsg.Answer))
+												msg.Answer = append(msg.Answer, cnmsg.Answer...)
+												return
+											} else {
+												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", cn.Target, cnerr)
+											}
 										}
 									}
 								}
 							}
 						}
+						break // next qlabel
 					}
-					break
 				}
 			}
+			if gotmsg == nil && qtype != dns.TypeNS {
+				if msg != nil && nsmsg != nil {
+					_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
+					msg.Question[0].Name = qname
+					msg.Question[0].Qtype = qtype
+					msg.Rcode = nsmsg.Rcode
+				}
+			}
+		}
+		if msg != nil {
+			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+				err = ErrQuestionMismatch
+			}
+			_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
+				dns.RcodeToString[msg.Rcode],
+				DnsTypeToString(qtype), qname,
+				len(msg.Answer))
 		}
 	}
 	return
 }
 
-func (q *query) queryNS(ctx context.Context, servers []netip.Addr, qname string, qlabel int) (msg *dns.Msg, next []netip.Addr, err error) {
-	if q.depth > 30 {
-		err = ErrMaxDepth
-		return
-	}
-	q.depth++
-	defer func() { q.depth-- }()
-
-	idx, final := dns.PrevLabel(qname, qlabel)
-	final = final || idx == 0
-	if q.nomini {
-		idx = 0
-	}
-
-	for _, server := range servers {
-		if msg, err = q.exchange(ctx, server, qname[idx:], dns.TypeNS); err == nil && msg != nil {
-			next = extractGlue(msg)
-			if len(next) == 0 {
-				noglue := extractNoGlue(msg, qname[idx:])
-				if len(noglue) > 0 {
-					_ = q.dbg() && q.log("NS without glue: %v\n", noglue)
-					for _, ns := range noglue {
-						if m, _, e := q.run(ctx, ns, dns.TypeA); e == nil {
-							for _, rr := range m.Answer {
-								var ip net.IP
-								switch rr := rr.(type) {
-								case *dns.A:
-									ip = rr.A
-								case *dns.AAAA:
-									ip = rr.AAAA
-								}
-								if ip != nil {
-									if addr, ok := netip.AddrFromSlice(ip); ok {
-										next = append(next, addr)
-									}
-								}
-							}
-							break
-						}
-					}
-				}
-			}
-			if len(next) > 0 {
-				_ = q.dbg() && q.log("%v NS for %q: %v\n", len(next), qname[idx:], next[:min(4, len(next))])
-				if !final {
-					oldNext := next
-					oldMsg := msg
-					if msg, next, err = q.queryNS(ctx, next, qname, qlabel+1); len(next) == 0 {
-						next = oldNext
-						msg = oldMsg
-					}
-				}
-			}
-			return
+func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
+	switch v := rr.(type) {
+	case *dns.A:
+		if ip, ok := netip.AddrFromSlice(v.A); ok {
+			host = v.Hdr.Name
+			addr = ip.Unmap()
 		}
-	}
-	_ = q.dbg() && q.log("NS not found for %q: %v\n", qname[idx:], err)
-	return
-}
-
-func (r *Recursive) clientCookie() string {
-	return ""
-}
-
-func (r *Recursive) addEDNS(msg *dns.Msg) {
-	opt := &dns.OPT{
-		Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT},
-	}
-	opt.SetUDPSize(1232)
-	cookie := &dns.EDNS0_COOKIE{Code: dns.EDNS0COOKIE, Cookie: r.clientCookie()}
-	opt.Option = append(opt.Option, cookie)
-	msg.Extra = append(msg.Extra, opt)
-}
-
-func extractGlue(msg *dns.Msg) (servers []netip.Addr) {
-	for _, rr := range msg.Extra {
-		if a, ok := rr.(*dns.A); ok {
-			if addr, ok := netip.AddrFromSlice(a.A); ok {
-				servers = append(servers, addr)
-			}
+	case *dns.AAAA:
+		if ip, ok := netip.AddrFromSlice(v.AAAA); ok {
+			host = v.Hdr.Name
+			addr = ip
 		}
 	}
 	return
 }
 
-func extractNoGlue(msg *dns.Msg, filtersuffix string) (servers []string) {
+func (q *query) extractNS(msg *dns.Msg, filtersuffix string) (hal []hostAddr) {
+	nsmap := map[string]struct{}{}
 	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns} {
 		for _, rr := range rrs {
 			switch rr := rr.(type) {
-			case *dns.CNAME:
-				servers = append(servers, rr.Target)
 			case *dns.NS:
 				if !strings.HasSuffix(rr.Ns, filtersuffix) {
-					servers = append(servers, rr.Ns)
+					nsmap[rr.Ns] = struct{}{}
 				}
 			}
 		}
 	}
+	for _, rr := range msg.Extra {
+		if host, addr := rrHostAddr(rr); addr.IsValid() {
+			if _, ok := nsmap[host]; ok {
+				q.addGlue(host, addr)
+			}
+		}
+	}
+	for host := range nsmap {
+		addrs := q.glue[host]
+		if len(addrs) == 0 {
+			hal = append(hal, hostAddr{host: host})
+		} else {
+			for _, addr := range addrs {
+				hal = append(hal, hostAddr{host: host, addr: addr})
+			}
+		}
+	}
+	slices.SortFunc(hal, func(a, b hostAddr) int {
+		if a.addr.IsValid() {
+			if b.addr.IsValid() {
+				return a.addr.Compare(b.addr)
+			}
+			return -1
+		}
+		if b.addr.IsValid() {
+			return 1
+		}
+		return 0
+	})
 	return
+}
+
+func (q *query) dive() (err error) {
+	err = ErrMaxDepth
+	if q.depth < maxDepth {
+		q.depth++
+		err = nil
+	}
+	return
+}
+
+func (q *query) surface() {
+	q.depth--
+}
+
+func (q *query) followCNAME(cn string) bool {
+	if q.cnames == nil {
+		q.cnames = make(map[string]struct{})
+	}
+	_, ok := q.cnames[cn]
+	if !ok {
+		q.cnames[cn] = struct{}{}
+	}
+	return !ok
 }
 
 func updateCookies(msg *dns.Msg) {
@@ -220,25 +288,6 @@ func updateCookies(msg *dns.Msg) {
 			}
 		}
 	}
-}
-
-func (r *Recursive) resolveNSWithDNS(ctx context.Context, msg *dns.Msg) ([]string, error) {
-	var servers []string
-	for _, rr := range msg.Ns {
-		if ns, ok := rr.(*dns.NS); ok {
-			nsResponse, err := r.LookupHost(ctx, ns.Ns)
-			if err != nil || len(nsResponse) == 0 {
-				continue
-			}
-			for _, ans := range nsResponse {
-				servers = append(servers, ans+":53")
-			}
-		}
-	}
-	if len(servers) == 0 {
-		return nil, errors.New("no NS servers resolved")
-	}
-	return servers, nil
 }
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
@@ -288,11 +337,16 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 		}
 
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
+			q.count++
 			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 			defer dnsconn.Close()
 
 			m := new(dns.Msg)
 			m.SetQuestion(qname, qtype)
+			opt := new(dns.OPT)
+			opt.Hdr.Name = "."
+			opt.Hdr.Rrtype = dns.TypeOPT
+			opt.SetUDPSize(dns.DefaultMsgSize)
 
 			var hasSrvCookie bool
 			var clicookie, srvcookie string
@@ -315,19 +369,14 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 						h.WriteString(la.String())
 					}
 					clicookie = hex.EncodeToString(h.Sum(nil))
-
-					opt := new(dns.OPT)
-					opt.Hdr.Name = "."
-					opt.Hdr.Rrtype = dns.TypeOPT
-					opt.SetUDPSize(dns.DefaultMsgSize)
 					opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
 						Code:   dns.EDNS0COOKIE,
 						Cookie: clicookie + srvcookie,
 					})
-					m.Extra = append(m.Extra, opt)
 				}
 			}
 
+			m.Extra = append(m.Extra, opt)
 			c := dns.Client{UDPSize: dns.DefaultMsgSize}
 			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 			if useCookies && msg != nil {

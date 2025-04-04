@@ -39,7 +39,7 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxDepth        = 64 // maximum recursion depth
+	maxDepth        = 32 // maximum recursion depth
 	maxRootAttempts = 2  // maximum number of root servers to try
 )
 
@@ -228,7 +228,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 	if logw == nil {
 		logw = r.DefaultLogWriter
 	}
-	if false {
+	if true {
 		msg, srv, err = r.runQuery(ctx, cache, logw, qname, qtype)
 	} else {
 		start := time.Now()
@@ -340,15 +340,6 @@ func (r *Recursive) usingUDP() (yes bool) {
 	yes = r.useUDP
 	r.mu.RUnlock()
 	return
-}
-
-func mustUseable(ctx context.Context, useIPv4, useIPv6 bool, protocol string, addr netip.Addr) (err error) {
-	if err = ctx.Err(); err == nil {
-		if (useIPv4 && addr.Is4()) || (useIPv6 && addr.Is6()) {
-			return
-		}
-	}
-	return net.ErrClosed
 }
 
 func (r *Recursive) useable(addr netip.Addr) (ok bool) {
