@@ -110,7 +110,8 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			var nsmsg *dns.Msg
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
-					if m, _, e := q.run(ctx, ha.host, dns.TypeA); e == nil {
+					var m *dns.Msg
+					if m, _, err = q.run(ctx, ha.host, dns.TypeA); err == nil {
 						nsmsg = m
 						switch m.Rcode {
 						case dns.RcodeNameError:
@@ -171,23 +172,31 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					}
 				}
 			}
-			if gotmsg == nil && qtype != dns.TypeNS {
-				if msg != nil && nsmsg != nil {
-					_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
-					msg.Question[0].Name = qname
-					msg.Question[0].Qtype = qtype
-					msg.Rcode = nsmsg.Rcode
+			if gotmsg == nil {
+				_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
+				if msg != nil {
+					if nsmsg != nil && qtype != dns.TypeNS {
+						msg.Question[0].Name = qname
+						msg.Question[0].Qtype = qtype
+						msg.Rcode = nsmsg.Rcode
+					}
+					if err != nil {
+						msg.Rcode = dns.RcodeServerFailure
+					}
 				}
 			}
 		}
 		if msg != nil {
-			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
-				err = ErrQuestionMismatch
-			}
 			_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
 				dns.RcodeToString[msg.Rcode],
 				DnsTypeToString(qtype), qname,
 				len(msg.Answer))
+			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+				err = ErrQuestionMismatch
+				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q\n",
+					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name)
+			}
+
 		}
 	}
 	return
