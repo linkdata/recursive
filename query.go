@@ -270,6 +270,7 @@ func (q *query) extractNS(msg *dns.Msg, filtersuffix string) (hal []hostAddr) {
 			}
 		}
 	}
+	// Make the NS query order deterministic.
 	slices.SortFunc(hal, func(a, b hostAddr) int {
 		if a.addr.IsValid() {
 			if b.addr.IsValid() {
@@ -280,7 +281,11 @@ func (q *query) extractNS(msg *dns.Msg, filtersuffix string) (hal []hostAddr) {
 		if b.addr.IsValid() {
 			return 1
 		}
-		return 0
+		n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
+		if n == 0 {
+			n = strings.Compare(a.host, b.host)
+		}
+		return n
 	})
 	return
 }
