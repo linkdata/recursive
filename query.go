@@ -60,12 +60,21 @@ func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, 
 		msg, srv, err = q.run(ctx, qname, qtype)
 	}
 	if msg != nil {
-		if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
-			err = ErrQuestionMismatch
-			_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
-				DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
-				DnsTypeToString(qtype), qname,
-			)
+		if msg.Rcode == dns.RcodeSuccess {
+			// A SUCCESS reply must reference the correct QNAME and QTYPE.
+			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+				err = ErrQuestionMismatch
+				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
+					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
+					DnsTypeToString(qtype), qname,
+				)
+			}
+		} else {
+			// NXDOMAIN or other failures may have the returned
+			// question refer to some NS in the chain, but we still want
+			// to associate the reply with the original query.
+			msg.Question[0].Name = qname
+			msg.Question[0].Qtype = qtype
 		}
 		if err == nil {
 			cache.DnsSet(msg)
@@ -131,16 +140,14 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 
 			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
-			var gotmsg *dns.Msg
-			var nsmsg *dns.Msg
+			var nsrcode int     // RCODE from last nameserver query
+			var gotmsg *dns.Msg // last valid response
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
 					var m *dns.Msg
 					if m, _, err = q.run(ctx, ha.host, dns.TypeA); err == nil {
-						nsmsg = m
-						switch m.Rcode {
-						case dns.RcodeNameError:
-						case dns.RcodeSuccess:
+						nsrcode = m.Rcode
+						if m.Rcode == dns.RcodeSuccess {
 							for _, rr := range m.Answer {
 								if host, addr := rrHostAddr(rr); host == ha.host {
 									ha.addr = addr
@@ -148,6 +155,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 								}
 							}
 						}
+
 					}
 				}
 				if ha.addr.IsValid() {
@@ -204,10 +212,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			if gotmsg == nil {
 				_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
 				if msg != nil {
-					if nsmsg != nil && qtype != dns.TypeNS {
+					if nsrcode != dns.RcodeSuccess && qtype != dns.TypeNS {
 						msg.Question[0].Name = qname
 						msg.Question[0].Qtype = qtype
-						msg.Rcode = nsmsg.Rcode
+						msg.Rcode = nsrcode
 					}
 					if err != nil {
 						msg.Rcode = dns.RcodeServerFailure
