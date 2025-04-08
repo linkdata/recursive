@@ -73,7 +73,6 @@ type Recursive struct {
 	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
-	NoMini              bool            // don't use QNAME minimization
 	mu                  sync.RWMutex    // protects following
 	useUDP              bool
 	useIPv4             bool
