@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/netip"
 	"sort"
@@ -41,30 +41,20 @@ const (
 )
 
 var (
+	// ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
+	ErrInvalidCookie = errors.New("invalid cookie")
 	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
 	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// It is equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
-	DefaultCache  = NewCache()
+	// ErrQuestionMismatch is returned when the DNS response is not for what was queried.
+	ErrQuestionMismatch = errors.New("question mismatch")
+	DefaultCache        = NewCache()
+	DefaultTimeout      = time.Second * 5
 )
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
-
-type netError struct {
-	Err  error
-	When time.Time
-}
-
-func (ne netError) Error() string {
-	return ne.Err.Error()
-}
-
-func (ne netError) Unwrap() error {
-	return ne.Err
-}
-
-var DefaultTimeout = time.Second * 5
 
 type Recursive struct {
 	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
@@ -133,7 +123,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		useIPv4:     len(root4) > 0,
 		useIPv6:     len(root6) > 0,
 		rootServers: roots,
-		cookiernd:   rand.Uint64(),
+		cookiernd:   rand.Uint64(), //#nosec G404
 		srvcookies:  make(map[netip.Addr]string),
 		udperrs:     make(map[netip.Addr]netError),
 		tcperrs:     make(map[netip.Addr]netError),
@@ -154,16 +144,16 @@ func New(dialer proxy.ContextDialer) *Recursive {
 func (r *Recursive) ResetCookies() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.cookiernd = rand.Uint64()
+	r.cookiernd = rand.Uint64() //#nosec G404
 	clear(r.srvcookies)
 }
 
 // OrderRoots sorts the root server list by their current latency and removes those that don't respond.
 //
-// If ctx does not have a deadline, a deadline of five seconds will be used.
+// If ctx does not have a deadline, DefaultTimeout will be used.
 func (r *Recursive) OrderRoots(ctx context.Context) {
 	if _, ok := ctx.Deadline(); !ok {
-		newctx, cancel := context.WithTimeout(ctx, time.Second*5)
+		newctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
 		defer cancel()
 		ctx = newctx
 	}
@@ -196,19 +186,79 @@ func (r *Recursive) OrderRoots(ctx context.Context) {
 	}
 }
 
-// ResolveWithOptions will perform a recursive DNS resolution for the provided name and record type,
-// and if logw is non-nil (or DefaultLogWriter is set), write a log of events.
+// ResolveWithOptions performs a recursive DNS resolution for the provided name and record type.
+//
+// If cache is nil, no cache is used. If logw is non-nil (or DefaultLogWriter is set), write a log of events.
 func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	if logw == nil {
 		logw = r.DefaultLogWriter
 	}
-	msg, srv, err = r.runQuery(ctx, cache, logw, qname, qtype)
+	var q *query
+	qname = dns.CanonicalName(qname)
+	if cache != nil {
+		msg = cache.DnsGet(qname, qtype)
+	}
+	if msg == nil {
+		q = &query{
+			Recursive: r,
+			cache:     cache,
+			start:     time.Now(),
+			logw:      logw,
+			glue:      make(map[string][]netip.Addr),
+		}
+		msg, srv, err = q.run(ctx, qname, qtype)
+	}
+	if msg != nil {
+		if msg.Rcode == dns.RcodeSuccess {
+			// A SUCCESS reply must reference the correct QNAME and QTYPE.
+			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+				err = ErrQuestionMismatch
+				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
+					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
+					DnsTypeToString(qtype), qname,
+				)
+			}
+		} else {
+			// NXDOMAIN or other failures may have the returned
+			// question refer to some NS in the chain, but we still want
+			// to associate the reply with the original query.
+			msg.Question[0].Name = qname
+			msg.Question[0].Qtype = qtype
+		}
+		if err == nil {
+			cache.DnsSet(msg)
+		}
+	}
+	if logw != nil {
+		if msg != nil {
+			fmt.Fprintf(logw, "\n%v", msg)
+		}
+		if q != nil {
+			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.count, time.Since(q.start).Round(time.Millisecond))
+		}
+		if srv.IsValid() {
+			fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
+		}
+		if err != nil {
+			fmt.Fprintf(logw, "\n;; ERROR: %v", err)
+		}
+		fmt.Fprintln(logw)
+	}
 	return
 }
 
-// Resolve will perform a recursive DNS resolution for the provided name and record type.
+// DnsResolve performs a recursive DNS resolution for the provided name and record type.
 func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	return r.ResolveWithOptions(ctx, r, nil, qname, qtype)
+}
+
+func (r *Recursive) getRootServers() (nslist []hostAddr) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, addr := range r.rootServers {
+		nslist = append(nslist, hostAddr{"root", addr})
+	}
+	return
 }
 
 // Roots returns the current set of root servers in use.
@@ -239,8 +289,6 @@ func (r *Recursive) useable(addr netip.Addr) (ok bool) {
 	r.mu.RUnlock()
 	return
 }
-
-var ErrInvalidCookie = errors.New("invalid cookie")
 
 func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) {
 	if err != nil {

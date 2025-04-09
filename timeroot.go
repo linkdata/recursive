@@ -30,7 +30,7 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
 			return
 		}
 		rtt += time.Since(now)
-		conn.Close()
+		_ = conn.Close()
 	}
 	rt.rtt = rtt / numProbes
 }

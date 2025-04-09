@@ -17,10 +17,6 @@ import (
 	"github.com/miekg/dns"
 )
 
-var ErrInvalidDomainName = errors.New("invalid domain name")
-var ErrNoNameservers = errors.New("no nameservers")
-var ErrQuestionMismatch = errors.New("question mismatch")
-
 type query struct {
 	*Recursive
 	start  time.Time
@@ -41,61 +37,6 @@ func (q *query) log(format string, args ...any) bool {
 	fmt.Fprintf(q.logw, "[%-5d %2d] %*s", time.Since(q.start).Milliseconds(), q.depth, q.depth, "")
 	fmt.Fprintf(q.logw, format, args...)
 	return false
-}
-
-func (r *Recursive) runQuery(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	var q *query
-	qname = dns.CanonicalName(qname)
-	if cache != nil {
-		msg = cache.DnsGet(qname, qtype)
-	}
-	if msg == nil {
-		q = &query{
-			Recursive: r,
-			cache:     cache,
-			start:     time.Now(),
-			logw:      logw,
-			glue:      make(map[string][]netip.Addr),
-		}
-		msg, srv, err = q.run(ctx, qname, qtype)
-	}
-	if msg != nil {
-		if msg.Rcode == dns.RcodeSuccess {
-			// A SUCCESS reply must reference the correct QNAME and QTYPE.
-			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
-				err = ErrQuestionMismatch
-				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
-					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
-					DnsTypeToString(qtype), qname,
-				)
-			}
-		} else {
-			// NXDOMAIN or other failures may have the returned
-			// question refer to some NS in the chain, but we still want
-			// to associate the reply with the original query.
-			msg.Question[0].Name = qname
-			msg.Question[0].Qtype = qtype
-		}
-		if err == nil {
-			cache.DnsSet(msg)
-		}
-	}
-	if logw != nil {
-		if msg != nil {
-			fmt.Fprintf(logw, "\n%v", msg)
-		}
-		if q != nil {
-			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.count, time.Since(q.start).Round(time.Millisecond))
-		}
-		if srv.IsValid() {
-			fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
-		}
-		if err != nil {
-			fmt.Fprintf(logw, "\n;; ERROR: %v", err)
-		}
-		fmt.Fprintln(logw)
-	}
-	return
 }
 
 type hostAddr struct {
@@ -122,12 +63,13 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 	if err = q.dive(); err == nil {
 		defer q.surface()
 
-		qname = dns.CanonicalName(qname)
+		var nslist []hostAddr // current set of servers to query
+		var final bool        // past the last part of the name
+		var idx int           // start of current label
+		var qlabel int        // label to query for, starting from the right
 
-		nslist := []hostAddr{{"root", q.rootServers[0]}} // current set of servers to query
-		var final bool                                   // at the last part of the name
-		var idx int                                      // start of current label
-		var qlabel int                                   // label to query for, starting from the right
+		qname = dns.CanonicalName(qname)
+		nslist = q.getRootServers()
 
 		for !final {
 			qlabel++
@@ -140,7 +82,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 
 			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
-			var nsrcode int     // RCODE from last nameserver query
+			var nsrcode int     // RCODE from last nameserver A query resolving glueless names
 			var gotmsg *dns.Msg // last valid response
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
@@ -155,24 +97,11 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 								}
 							}
 						}
-
 					}
 				}
 				if ha.addr.IsValid() {
 					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
 						switch gotmsg.Rcode {
-						case dns.RcodeRefused:
-							if !q.nomini {
-								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
-								q.nomini = true
-								msg, srv, err = q.run(ctx, qname, qtype)
-								return
-							}
-							final = true
-						case dns.RcodeNameError:
-							srv = ha.addr
-							msg = gotmsg
-							return
 						case dns.RcodeSuccess:
 							newlist := q.extractNS(gotmsg, qname)
 							if len(newlist) > 0 {
@@ -180,6 +109,18 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 								msg = gotmsg
 								nslist = newlist
 							}
+						case dns.RcodeRefused:
+							if !q.nomini {
+								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
+								q.nomini = true
+								msg, srv, err = q.run(ctx, qname, qtype)
+								return
+							}
+							fallthrough
+						default:
+							srv = ha.addr
+							msg = gotmsg
+							return
 						}
 						if final || q.nomini {
 							srv = ha.addr
@@ -220,6 +161,8 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					if err != nil {
 						msg.Rcode = dns.RcodeServerFailure
 					}
+				} else {
+					err = errors.Join(err, ErrNoResponse)
 				}
 			}
 		}
@@ -395,10 +338,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 					var h maphash.Hash
 					cookiebuf := make([]byte, 8)
 					binary.NativeEndian.PutUint64(cookiebuf, cookiernd)
-					h.Write(cookiebuf)
-					h.Write(nsaddr.AsSlice())
+					_, _ = h.Write(cookiebuf)
+					_, _ = h.Write(nsaddr.AsSlice())
 					if la := nconn.LocalAddr(); la != nil {
-						h.WriteString(la.String())
+						_, _ = h.WriteString(la.String())
 					}
 					clicookie = hex.EncodeToString(h.Sum(nil))
 					opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
@@ -451,8 +394,8 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 					fmt.Fprintf(q.logw, " AUTH")
 				}
 				if opt := msg.IsEdns0(); opt != nil {
-					if er := opt.ExtendedRcode(); er != 0 {
-						fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[uint16(er)])
+					if er := uint16(opt.ExtendedRcode()); /*#nosec G115*/ er != 0 {
+						fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
 					}
 				}
 				fmt.Fprintf(q.logw, ")")
