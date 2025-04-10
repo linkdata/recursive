@@ -222,8 +222,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 			// NXDOMAIN or other failures may have the returned
 			// question refer to some NS in the chain, but we still want
 			// to associate the reply with the original query.
-			msg.Question[0].Name = qname
-			msg.Question[0].Qtype = qtype
+			msg.SetQuestion(qname, qtype)
 		}
 		if err == nil {
 			cache.DnsSet(msg)
