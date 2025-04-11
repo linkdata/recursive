@@ -350,20 +350,23 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 
 func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 	if ne, ok := err.(net.Error); ok {
-		if !ne.Timeout() && strings.Contains(ne.Error(), "network is unreachable") {
-			r.mu.Lock()
-			defer r.mu.Unlock()
-			if r.useIPv6 {
-				disabled = true
-				r.useIPv6 = false
-				var idx int
-				for i := range r.rootServers {
-					if r.rootServers[i].Is4() {
-						r.rootServers[idx] = r.rootServers[i]
-						idx++
+		if !ne.Timeout() {
+			errstr := ne.Error()
+			if strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") {
+				r.mu.Lock()
+				defer r.mu.Unlock()
+				if r.useIPv6 {
+					disabled = true
+					r.useIPv6 = false
+					var idx int
+					for i := range r.rootServers {
+						if r.rootServers[i].Is4() {
+							r.rootServers[idx] = r.rootServers[i]
+							idx++
+						}
 					}
+					r.rootServers = r.rootServers[:idx]
 				}
-				r.rootServers = r.rootServers[:idx]
 			}
 		}
 	}
