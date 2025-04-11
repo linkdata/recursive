@@ -2,11 +2,8 @@ package recursive
 
 import (
 	"context"
-	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"hash/maphash"
 	"io"
 	"net"
 	"net/netip"
@@ -328,26 +325,20 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 
 			if useCookies {
 				q.mu.RLock()
-				cookiernd := q.cookiernd
+				clicookie = q.clicookie
 				srvcookie, hasSrvCookie = q.srvcookies[nsaddr]
 				q.mu.RUnlock()
 
 				useCookies = !hasSrvCookie || srvcookie != ""
 
 				if useCookies {
-					var h maphash.Hash
-					cookiebuf := make([]byte, 8)
-					binary.NativeEndian.PutUint64(cookiebuf, cookiernd)
-					_, _ = h.Write(cookiebuf)
-					_, _ = h.Write(nsaddr.AsSlice())
-					if la := nconn.LocalAddr(); la != nil {
-						_, _ = h.WriteString(la.String())
-					}
-					clicookie = hex.EncodeToString(h.Sum(nil))
 					opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
 						Code:   dns.EDNS0COOKIE,
 						Cookie: clicookie + srvcookie,
 					})
+					if q.logw != nil {
+						fmt.Fprintf(q.logw, " COOKIE:%q", clicookie+srvcookie)
+					}
 				}
 			}
 

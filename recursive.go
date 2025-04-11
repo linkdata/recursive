@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/netip"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -31,6 +32,7 @@ import (
 	A	telia.per.la.
 	NS	seb.inf.ua
 	A	seb.org.tw
+	NS	wetrgijrotigj.bet.ar
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go
@@ -68,7 +70,7 @@ type Recursive struct {
 	useIPv4             bool
 	useIPv6             bool
 	rootServers         []netip.Addr
-	cookiernd           uint64
+	clicookie           string
 	srvcookies          map[netip.Addr]string
 	udperrs             map[netip.Addr]netError
 	tcperrs             map[netip.Addr]netError
@@ -123,7 +125,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		useIPv4:     len(root4) > 0,
 		useIPv6:     len(root6) > 0,
 		rootServers: roots,
-		cookiernd:   rand.Uint64(), //#nosec G404
+		clicookie:   strconv.FormatUint(rand.Uint64(), 16), //#nosec G404
 		srvcookies:  make(map[netip.Addr]string),
 		udperrs:     make(map[netip.Addr]netError),
 		tcperrs:     make(map[netip.Addr]netError),
@@ -144,7 +146,7 @@ func New(dialer proxy.ContextDialer) *Recursive {
 func (r *Recursive) ResetCookies() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.cookiernd = rand.Uint64() //#nosec G404
+	r.clicookie = strconv.FormatUint(rand.Uint64(), 16) //#nosec G404
 	clear(r.srvcookies)
 }
 
