@@ -12,6 +12,7 @@ import (
 
 const DefaultMinTTL = 10
 const DefaultMaxTTL = 3600
+const DefaultNXTTL = 600
 const MaxQtype = 260
 
 var _ Cacher = (*Cache)(nil)
@@ -20,6 +21,7 @@ var _ Resolver = (*Cache)(nil)
 type Cache struct {
 	MinTTL int    // always cache responses for at least this long
 	MaxTTL int    // never cache responses for longer than this (excepting successful NS responses)
+	NXTTL  int    // cache NXDOMAIN responses for this long
 	count  uint64 // atomic
 	hits   uint64 // atomic
 	cq     []*cacheQtype
@@ -33,6 +35,7 @@ func NewCache() *Cache {
 	return &Cache{
 		MinTTL: DefaultMinTTL,
 		MaxTTL: DefaultMaxTTL,
+		NXTTL:  DefaultNXTTL,
 		cq:     cq,
 	}
 }
@@ -63,9 +66,14 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
 			msg.Zero = true
-			ttl := max(cache.MinTTL, MinTTL(msg))
-			if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
-				ttl = min(cache.MaxTTL, ttl)
+			var ttl int
+			if msg.Rcode == dns.RcodeNameError {
+				ttl = cache.NXTTL
+			} else {
+				ttl = max(cache.MinTTL, MinTTL(msg))
+				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+					ttl = min(cache.MaxTTL, ttl)
+				}
 			}
 			cache.cq[qtype].set(msg, ttl)
 		}
