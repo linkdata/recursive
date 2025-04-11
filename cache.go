@@ -10,9 +10,9 @@ import (
 	"github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10
-const DefaultMaxTTL = 3600
-const DefaultNXTTL = 3600
+const DefaultMinTTL = 10       // ten seconds
+const DefaultMaxTTL = 3600 * 6 // six hours
+const DefaultNXTTL = 3600      // one hour
 const MaxQtype = 260
 
 var _ Cacher = (*Cache)(nil)
