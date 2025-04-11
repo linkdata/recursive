@@ -341,7 +341,6 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 					}
 				}
 			}
-
 			m.Extra = append(m.Extra, opt)
 			c := dns.Client{UDPSize: dns.DefaultMsgSize}
 			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)

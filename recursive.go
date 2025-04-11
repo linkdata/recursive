@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/netip"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -76,6 +75,10 @@ type Recursive struct {
 	tcperrs             map[netip.Addr]netError
 }
 
+func makeCookie() string {
+	return fmt.Sprintf("%016x", rand.Uint64()) //#nosec G404
+}
+
 // NewWithOptions returns a new Recursive resolver using the given ContextDialer and
 // using the given Cacher as it's default cache. It does not call OrderRoots.
 //
@@ -125,7 +128,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		useIPv4:     len(root4) > 0,
 		useIPv6:     len(root6) > 0,
 		rootServers: roots,
-		clicookie:   strconv.FormatUint(rand.Uint64(), 16), //#nosec G404
+		clicookie:   makeCookie(),
 		srvcookies:  make(map[netip.Addr]string),
 		udperrs:     make(map[netip.Addr]netError),
 		tcperrs:     make(map[netip.Addr]netError),
@@ -146,7 +149,7 @@ func New(dialer proxy.ContextDialer) *Recursive {
 func (r *Recursive) ResetCookies() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.clicookie = strconv.FormatUint(rand.Uint64(), 16) //#nosec G404
+	r.clicookie = makeCookie()
 	clear(r.srvcookies)
 }
 
