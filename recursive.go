@@ -42,9 +42,9 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxDepth        = 32 // maximum recursion depth
-	maxRootAttempts = 2  // maximum number of root servers to try
-	maxSteps        = 50 // max number of steps to allow in resolving
+	maxDepth        = 32   // maximum recursion depth
+	maxRootAttempts = 2    // maximum number of root servers to try
+	maxSteps        = 1000 // max number of steps to allow in resolving
 )
 
 var (
