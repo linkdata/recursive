@@ -188,8 +188,8 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 		}
 
-		// ask the final NS for the record
-		if qtype != dns.TypeNS && msg != nil {
+		// ask the final nameserves for the record
+		if msg != nil {
 			var nsaddrs []netip.Addr
 			for _, ha := range nslist {
 				if ha.addr.IsValid() {
