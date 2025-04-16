@@ -217,7 +217,13 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 	if msg != nil {
 		if msg.Rcode == dns.RcodeSuccess {
 			// A SUCCESS reply must reference the correct QNAME and QTYPE.
-			if msg.Question[0].Name != qname || msg.Question[0].Qtype != qtype {
+			var gotname string
+			var gottype uint16
+			if len(msg.Question) > 0 {
+				gotname = msg.Question[0].Name
+				gottype = msg.Question[0].Qtype
+			}
+			if gotname != qname || gottype != qtype {
 				err = ErrQuestionMismatch
 				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
 					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
