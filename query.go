@@ -172,12 +172,21 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 			// asked all nameservers or got a usable answer
 			if gotmsg == nil {
-				_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
+				_ = q.dbg() && q.log("no ANSWER for %s %q (%s)\n", DnsTypeToString(qtype), qname, dns.RcodeToString[nsrcode])
 				if msg != nil {
-					if nsrcode != dns.RcodeSuccess && qtype != dns.TypeNS {
-						msg.Question[0].Name = qname
-						msg.Question[0].Qtype = qtype
-						msg.Rcode = nsrcode
+					if qtype == dns.TypeNS {
+						if len(msg.Answer) == 0 {
+							if len(msg.Question) > 0 && msg.Question[0].Name == qname {
+								msg.Answer, msg.Ns = msg.Ns, msg.Answer
+							} else {
+								msg.Rcode = nsrcode
+							}
+						}
+					} else {
+						if nsrcode != dns.RcodeSuccess {
+							msg.SetQuestion(qname, qtype)
+							msg.Rcode = nsrcode
+						}
 					}
 					if err != nil {
 						msg.Rcode = dns.RcodeServerFailure
