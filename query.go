@@ -56,6 +56,14 @@ func (q *query) addGlue(host string, addr netip.Addr) {
 	}
 }
 
+func (q *query) setCache(msg *dns.Msg) {
+	if msg != nil && !msg.Zero {
+		if q.cache != nil && !q.nomini {
+			q.cache.DnsSet(msg)
+		}
+	}
+}
+
 func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	if err = q.dive(); err == nil {
 		defer q.surface()
@@ -81,6 +89,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
 			var nsrcode int     // RCODE from last nameserver A query resolving glueless names
 			var gotmsg *dns.Msg // last valid response
+		trynextnameserver:
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
 					var m *dns.Msg
@@ -96,16 +105,27 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 						}
 					}
 				}
-				if ha.addr.IsValid() {
+				if q.useable(ha.addr) {
 					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
 						switch gotmsg.Rcode {
 						case dns.RcodeSuccess:
+							q.setCache(gotmsg)
 							newlist := q.extractNS(gotmsg, qname)
 							if len(newlist) > 0 {
 								srv = ha.addr
 								msg = gotmsg
 								nslist = newlist
 							}
+						case dns.RcodeServerFailure:
+							if final {
+								q.setCache(gotmsg)
+								srv = ha.addr
+								msg = gotmsg
+								return
+							}
+							msg = nil
+							srv = ha.addr
+							continue trynextnameserver
 						case dns.RcodeRefused:
 							if !q.nomini {
 								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
@@ -115,6 +135,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							}
 							fallthrough
 						default:
+							q.setCache(gotmsg)
 							srv = ha.addr
 							msg = gotmsg
 							return
@@ -149,6 +170,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					}
 				}
 			}
+			// asked all nameservers or got a usable answer
 			if gotmsg == nil {
 				_ = q.dbg() && q.log("no ANSWER for %s %q\n", DnsTypeToString(qtype), qname)
 				if msg != nil {
@@ -162,6 +184,12 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					}
 				} else {
 					err = errors.Join(err, ErrNoResponse)
+				}
+			} else {
+				if msg == nil {
+					_ = q.dbg() && q.log("all nameservers returned SERVFAIL\n")
+					q.setCache(gotmsg)
+					msg = gotmsg
 				}
 			}
 		}
@@ -425,9 +453,6 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 	}
 	if (msg == nil || err != nil) && q.useable(nsaddr) {
 		msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
-	}
-	if err == nil && q.cache != nil && !q.nomini {
-		q.cache.DnsSet(msg)
 	}
 	return
 }
