@@ -226,7 +226,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 			if gotname != qname || gottype != qtype {
 				err = ErrQuestionMismatch
 				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
-					DnsTypeToString(msg.Question[0].Qtype), msg.Question[0].Name,
+					DnsTypeToString(gottype), gotname,
 					DnsTypeToString(qtype), qname,
 				)
 			}
