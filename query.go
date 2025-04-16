@@ -128,12 +128,13 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 										if q.followCNAME(cn.Target) {
 											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, cn.Target)
 											if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
-												_ = q.dbg() && q.log("CNAME ANSWER %q with %v records\n", cn.Target, len(cnmsg.Answer))
+												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], cn.Target, len(cnmsg.Answer))
 												if msg.Zero {
 													msg = msg.Copy()
 													msg.Zero = false
 												}
 												msg.Answer = append(msg.Answer, cnmsg.Answer...)
+												msg.Rcode = cnmsg.Rcode
 												return
 											} else {
 												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", cn.Target, cnerr)
