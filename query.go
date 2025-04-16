@@ -82,12 +82,19 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			idx, final = dns.PrevLabel(qname, qlabel)
 			cqname := qname[idx:] // current name to ask for
 			cqtype := dns.TypeNS  // current type to ask for
-			if final || q.nomini {
+			if q.nomini {
 				cqname = qname
 				cqtype = qtype
 			}
 
-			_ = q.dbg() && q.log("QUERY %s %q from %v\n", DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
+			if q.dbg() {
+				var finaltext string
+				if final {
+					finaltext = " FINAL"
+				}
+				q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
+			}
+
 			var nsrcode int     // RCODE from last nameserver A query resolving glueless names
 			var gotmsg *dns.Msg // last valid response
 		trynextnameserver:
@@ -100,7 +107,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							for _, rr := range m.Answer {
 								if host, addr := rrHostAddr(rr); host == ha.host {
 									ha.addr = addr
-									break
+									q.addGlue(host, addr)
 								}
 							}
 						}
@@ -110,8 +117,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
 						switch gotmsg.Rcode {
 						case dns.RcodeSuccess:
-							q.setCache(gotmsg)
-							newlist := q.extractNS(gotmsg, qname)
+							if gotmsg.Authoritative || idx > 0 {
+								q.setCache(gotmsg)
+							}
+							newlist := q.extractNS(gotmsg)
 							if len(newlist) > 0 {
 								srv = ha.addr
 								msg = gotmsg
@@ -141,36 +150,11 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							msg = gotmsg
 							return
 						}
-						if final || q.nomini {
-							srv = ha.addr
-							msg = gotmsg
-							if qtype != dns.TypeCNAME {
-								for _, rr := range msg.Answer {
-									if cn, ok := rr.(*dns.CNAME); ok {
-										target := dns.CanonicalName(cn.Target)
-										if q.followCNAME(target) {
-											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, target)
-											if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
-												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-												if msg.Zero {
-													msg = msg.Copy()
-													msg.Zero = false
-												}
-												msg.Answer = append(msg.Answer, cnmsg.Answer...)
-												msg.Rcode = cnmsg.Rcode
-												return
-											} else {
-												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
-											}
-										}
-									}
-								}
-							}
-						}
 						break // next qlabel
 					}
 				}
 			}
+
 			// asked all nameservers or got a usable answer
 			if gotmsg == nil {
 				_ = q.dbg() && q.log("no ANSWER for %s %q (%s)\n", DnsTypeToString(qtype), qname, dns.RcodeToString[nsrcode])
@@ -203,6 +187,46 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 				}
 			}
 		}
+
+		// ask the final NS for the record
+		if qtype != dns.TypeNS && msg != nil {
+			var nsaddrs []netip.Addr
+			for _, ha := range nslist {
+				if ha.addr.IsValid() {
+					nsaddrs = append(nsaddrs, ha.addr)
+				} else {
+					nsaddrs = append(nsaddrs, q.glue[ha.host]...)
+				}
+			}
+			_ = q.dbg() && q.log("final nameservers: %v\n", nsaddrs)
+			for _, nsaddr := range nsaddrs {
+				if msg, err = q.exchange(ctx, nsaddr, qname, qtype); err == nil && msg.Rcode != dns.RcodeServerFailure {
+					q.setCache(msg)
+					if qtype != dns.TypeCNAME {
+						for _, rr := range msg.Answer {
+							if cn, ok := rr.(*dns.CNAME); ok {
+								target := dns.CanonicalName(cn.Target)
+								if q.followCNAME(target) {
+									_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
+									if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
+										_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+										msg = msg.Copy()
+										msg.Zero = true
+										msg.Answer = append(msg.Answer, cnmsg.Answer...)
+										msg.Rcode = cnmsg.Rcode
+										return
+									} else {
+										_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
+									}
+								}
+							}
+						}
+					}
+					break
+				}
+			}
+		}
+
 		if msg != nil {
 			_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
 				dns.RcodeToString[msg.Rcode],
@@ -229,21 +253,19 @@ func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
 	return
 }
 
-func (q *query) extractNS(msg *dns.Msg, filtersuffix string) (hal []hostAddr) {
+func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) {
 	nsmap := map[string]struct{}{}
 	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns} {
 		for _, rr := range rrs {
 			switch rr := rr.(type) {
 			case *dns.NS:
 				host := dns.CanonicalName(rr.Ns)
-				if !strings.HasSuffix(host, filtersuffix) {
-					nsmap[host] = struct{}{}
-				}
+				nsmap[host] = struct{}{}
 			}
 		}
 	}
 	for _, rr := range msg.Extra {
-		if host, addr := rrHostAddr(rr); addr.IsValid() {
+		if host, addr := rrHostAddr(rr); q.useable(addr) {
 			if _, ok := nsmap[host]; ok {
 				q.addGlue(host, addr)
 			}
@@ -312,8 +334,8 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 	if q.cache != nil && !q.nomini {
 		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
 			if q.dbg() {
-				q.log("cached answer: @%s %s %q => %s [%v+%v+%v A/N/E]\n",
-					nsaddr, DnsTypeToString(qtype), qname,
+				q.log("cached answer: %s %q => %s [%v+%v+%v A/N/E]\n",
+					DnsTypeToString(qtype), qname,
 					dns.RcodeToString[msg.Rcode],
 					len(msg.Answer), len(msg.Ns), len(msg.Extra))
 			}
