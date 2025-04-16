@@ -41,8 +41,9 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxDepth        = 32 // maximum recursion depth
-	maxRootAttempts = 2  // maximum number of root servers to try
+	maxDepth        = 32   // maximum recursion depth
+	maxRootAttempts = 2    // maximum number of root servers to try
+	maxSteps        = 1000 // max number of steps to allow in resolving
 )
 
 var (
@@ -248,7 +249,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 			fmt.Fprintf(logw, "\n%v", msg)
 		}
 		if q != nil {
-			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.count, time.Since(q.start).Round(time.Millisecond))
+			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.sent, time.Since(q.start).Round(time.Millisecond))
 		}
 		if srv.IsValid() {
 			fmt.Fprintf(logw, "\n;; SERVER: %v", srv)

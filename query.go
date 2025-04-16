@@ -21,7 +21,8 @@ type query struct {
 	logw   io.Writer
 	depth  int
 	nomini bool
-	count  int
+	sent   int
+	steps  int
 	glue   map[string][]netip.Addr
 	cnames map[string]struct{}
 }
@@ -303,6 +304,11 @@ func (q *query) followCNAME(cn string) bool {
 }
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
+	q.steps++
+	if q.steps > maxSteps {
+		err = ErrMaxDepth
+		return
+	}
 	if q.cache != nil && !q.nomini {
 		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
 			if q.dbg() {
@@ -349,7 +355,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 		}
 
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
-			q.count++
+			q.sent++
 			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 			defer dnsconn.Close()
 
