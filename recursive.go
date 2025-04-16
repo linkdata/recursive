@@ -33,6 +33,7 @@ import (
 	A	seb.org.tw
 	NS	wetrgijrotigj.bet.ar
 	A	h6xyrckrof16xv31.xn--kprw13d
+	MX	3sj82qujmol2npax.us.kg
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go

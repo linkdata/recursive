@@ -125,10 +125,11 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							if qtype != dns.TypeCNAME {
 								for _, rr := range msg.Answer {
 									if cn, ok := rr.(*dns.CNAME); ok {
-										if q.followCNAME(cn.Target) {
-											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, cn.Target)
-											if cnmsg, _, cnerr := q.run(ctx, cn.Target, qtype); cnerr == nil {
-												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], cn.Target, len(cnmsg.Answer))
+										target := dns.CanonicalName(cn.Target)
+										if q.followCNAME(target) {
+											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", cqname, target)
+											if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
+												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
 												if msg.Zero {
 													msg = msg.Copy()
 													msg.Zero = false
@@ -137,7 +138,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 												msg.Rcode = cnmsg.Rcode
 												return
 											} else {
-												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", cn.Target, cnerr)
+												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
 											}
 										}
 									}
@@ -178,12 +179,12 @@ func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
 	switch v := rr.(type) {
 	case *dns.A:
 		if ip, ok := netip.AddrFromSlice(v.A); ok {
-			host = v.Hdr.Name
+			host = dns.CanonicalName(v.Hdr.Name)
 			addr = ip.Unmap()
 		}
 	case *dns.AAAA:
 		if ip, ok := netip.AddrFromSlice(v.AAAA); ok {
-			host = v.Hdr.Name
+			host = dns.CanonicalName(v.Hdr.Name)
 			addr = ip
 		}
 	}
@@ -196,8 +197,9 @@ func (q *query) extractNS(msg *dns.Msg, filtersuffix string) (hal []hostAddr) {
 		for _, rr := range rrs {
 			switch rr := rr.(type) {
 			case *dns.NS:
-				if !strings.HasSuffix(rr.Ns, filtersuffix) {
-					nsmap[rr.Ns] = struct{}{}
+				host := dns.CanonicalName(rr.Ns)
+				if !strings.HasSuffix(host, filtersuffix) {
+					nsmap[host] = struct{}{}
 				}
 			}
 		}
