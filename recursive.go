@@ -37,6 +37,7 @@ import (
 	A	9ghuun5oshdr6hvi.prd.mg
 	NS	5xqy3o9qafuvdqtv.mil.sy
 	A	eoh.be
+	NS	tella.net.ms
 */
 
 //go:generate go run ./cmd/genhints roothints.gen.go
