@@ -334,10 +334,16 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 	if q.cache != nil && !q.nomini {
 		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
 			if q.dbg() {
-				q.log("cached answer: %s %q => %s [%v+%v+%v A/N/E]\n",
+				auth := ""
+				if msg.MsgHdr.Authoritative {
+					auth = " AUTH"
+				}
+				q.log("cached answer: %s %q => %s [%v+%v+%v A/N/E]%s\n",
 					DnsTypeToString(qtype), qname,
 					dns.RcodeToString[msg.Rcode],
-					len(msg.Answer), len(msg.Ns), len(msg.Extra))
+					len(msg.Answer), len(msg.Ns), len(msg.Extra),
+					auth,
+				)
 			}
 			return
 		}
