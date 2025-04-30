@@ -216,9 +216,13 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					nsaddrs = append(nsaddrs, q.glue[ha.host]...)
 				}
 			}
+			slices.SortFunc(nsaddrs, func(a, b netip.Addr) int { return a.Compare(b) })
+			nsaddrs = slices.Compact(nsaddrs)
 			_ = q.dbg() && q.log("final nameservers: %v\n", nsaddrs)
 			for _, nsaddr := range nsaddrs {
-				if msg, err = q.exchange(ctx, nsaddr, qname, qtype); err == nil && msg.Rcode != dns.RcodeServerFailure {
+				var finalmsg *dns.Msg
+				if finalmsg, err = q.exchange(ctx, nsaddr, qname, qtype); err == nil && finalmsg.Rcode != dns.RcodeServerFailure {
+					msg = finalmsg
 					q.setCache(msg)
 					if qtype != dns.TypeCNAME {
 						for _, rr := range msg.Answer {
@@ -241,16 +245,33 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 						}
 					}
 					break
+				} else {
+					_ = q.dbg() && q.log("FAILED @%v %s %q: %v\n", nsaddr, DnsTypeToString(qtype), qname, err)
+				}
+			}
+			if err != nil {
+				// all final nameservers failed to be queried,
+				// so don't use the last NS message unless usable
+				if msg == nil || qtype != dns.TypeNS || qname != msg.Question[0].Name {
+					msg = nil
 				}
 			}
 		}
 
-		if msg != nil {
-			_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
-				dns.RcodeToString[msg.Rcode],
-				DnsTypeToString(qtype), qname,
-				len(msg.Answer))
+		if msg == nil {
+			// manufacture a SERVFAIL
+			msg = new(dns.Msg)
+			msg.SetQuestion(qname, qtype)
+			msg.Rcode = dns.RcodeServerFailure
+		} else {
+			// we got a message to return, disregard network errors
+			err = nil
 		}
+
+		_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
+			dns.RcodeToString[msg.Rcode],
+			DnsTypeToString(qtype), qname,
+			len(msg.Answer))
 	}
 	return
 }
