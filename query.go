@@ -14,6 +14,10 @@ import (
 	"github.com/miekg/dns"
 )
 
+const (
+	cacheExtra = true // set to false to debug glue lookups
+)
+
 type query struct {
 	*Recursive
 	start  time.Time
@@ -65,6 +69,16 @@ func (q *query) setCache(msg *dns.Msg) {
 	}
 }
 
+func (q *query) glueTypes() (gt []uint16) {
+	if q.useIPv4 {
+		gt = append(gt, dns.TypeA)
+	}
+	if q.useIPv6 {
+		gt = append(gt, dns.TypeAAAA)
+	}
+	return
+}
+
 func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	if err = q.dive(); err == nil {
 		defer q.surface()
@@ -86,6 +100,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 				cqname = qname
 				cqtype = qtype
 			}
+			switch qtype {
+			case dns.TypeA, dns.TypeAAAA:
+				cqtype = qtype
+			}
 
 			if q.dbg() {
 				var finaltext string
@@ -100,14 +118,17 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 		trynextnameserver:
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
-					var m *dns.Msg
-					if m, _, err = q.run(ctx, ha.host, dns.TypeA); err == nil {
-						nsrcode = m.Rcode
-						if m.Rcode == dns.RcodeSuccess {
-							for _, rr := range m.Answer {
-								if host, addr := rrHostAddr(rr); host == ha.host {
-									ha.addr = addr
-									q.addGlue(host, addr)
+					_ = q.dbg() && q.log("GLUE lookup for NS %q\n", ha.host)
+					for _, gluetype := range q.glueTypes() {
+						var m *dns.Msg
+						if m, _, err = q.run(ctx, ha.host, gluetype); err == nil {
+							nsrcode = m.Rcode
+							if m.Rcode == dns.RcodeSuccess {
+								for _, rr := range m.Answer {
+									if host, addr := rrHostAddr(rr); host == ha.host {
+										ha.addr = addr
+										q.addGlue(host, addr)
+									}
 								}
 							}
 						}
@@ -333,6 +354,9 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 	}
 	if q.cache != nil && !q.nomini {
 		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
+			if !cacheExtra {
+				msg.Extra = nil
+			}
 			if q.dbg() {
 				auth := ""
 				if msg.MsgHdr.Authoritative {
