@@ -114,8 +114,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 				cqname = qname
 				cqtype = qtype
 			}
-			switch qtype {
-			case dns.TypeA, dns.TypeAAAA:
+			if _, ok := q.glue[qname]; ok {
 				cqtype = qtype
 			}
 
@@ -324,7 +323,6 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) {
 			switch rr := rr.(type) {
 			case *dns.NS:
 				host := dns.CanonicalName(rr.Ns)
-				q.needGlue(host)
 				nsmap[host] = struct{}{}
 			}
 			host, addr := rrHostAddr(rr)
@@ -334,6 +332,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) {
 	for _, rr := range msg.Extra {
 		host, addr := rrHostAddr(rr)
 		if _, ok := nsmap[host]; ok {
+			q.needGlue(host)
 			q.addGlue(host, addr)
 		}
 	}
