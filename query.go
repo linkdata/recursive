@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/netip"
 	"slices"
@@ -54,10 +55,23 @@ func (ha hostAddr) String() (s string) {
 	return
 }
 
+// needGlue returns true if the host was added to the glue map
+func (q *query) needGlue(host string) (yes bool) {
+	if _, ok := q.glue[host]; !ok {
+		yes = true
+		q.glue[host] = nil
+	}
+	return
+}
+
+// addGlue adds the addr to the glue map for host if it exists and addr is usable
 func (q *query) addGlue(host string, addr netip.Addr) {
-	addrs := q.glue[host]
-	if !slices.Contains(addrs, addr) {
-		q.glue[host] = append(addrs, addr)
+	if q.useable(addr) {
+		if addrs, ok := q.glue[host]; ok {
+			if !slices.Contains(addrs, addr) {
+				q.glue[host] = append(addrs, addr)
+			}
+		}
 	}
 }
 
@@ -118,16 +132,18 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 		trynextnameserver:
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
-					_ = q.dbg() && q.log("GLUE lookup for NS %q\n", ha.host)
-					for _, gluetype := range q.glueTypes() {
-						var m *dns.Msg
-						if m, _, err = q.run(ctx, ha.host, gluetype); err == nil {
-							nsrcode = m.Rcode
-							if m.Rcode == dns.RcodeSuccess {
-								for _, rr := range m.Answer {
-									if host, addr := rrHostAddr(rr); host == ha.host {
-										ha.addr = addr
-										q.addGlue(host, addr)
+					if q.needGlue(ha.host) {
+						_ = q.dbg() && q.log("GLUE lookup for NS %q\n", ha.host)
+						for _, gluetype := range q.glueTypes() {
+							var m *dns.Msg
+							if m, _, err = q.run(ctx, ha.host, gluetype); err == nil {
+								nsrcode = m.Rcode
+								if m.Rcode == dns.RcodeSuccess {
+									for _, rr := range m.Answer {
+										if host, addr := rrHostAddr(rr); host == ha.host {
+											ha.addr = addr
+											q.addGlue(host, addr)
+										}
 									}
 								}
 							}
@@ -218,7 +234,16 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 			slices.SortFunc(nsaddrs, func(a, b netip.Addr) int { return a.Compare(b) })
 			nsaddrs = slices.Compact(nsaddrs)
-			_ = q.dbg() && q.log("final nameservers: %v\n", nsaddrs)
+			if q.dbg() {
+				q.log("final nameservers: %v\n", nsaddrs)
+				if q.depth == 1 {
+					keys := slices.Collect(maps.Keys(q.glue))
+					slices.Sort(keys)
+					for _, k := range keys {
+						q.log("glue: %q: %v\n", k, q.glue[k])
+					}
+				}
+			}
 			for _, nsaddr := range nsaddrs {
 				var finalmsg *dns.Msg
 				if finalmsg, err = q.exchange(ctx, nsaddr, qname, qtype); err == nil && finalmsg.Rcode != dns.RcodeServerFailure {
@@ -299,15 +324,17 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) {
 			switch rr := rr.(type) {
 			case *dns.NS:
 				host := dns.CanonicalName(rr.Ns)
+				q.needGlue(host)
 				nsmap[host] = struct{}{}
 			}
+			host, addr := rrHostAddr(rr)
+			q.addGlue(host, addr)
 		}
 	}
 	for _, rr := range msg.Extra {
-		if host, addr := rrHostAddr(rr); q.useable(addr) {
-			if _, ok := nsmap[host]; ok {
-				q.addGlue(host, addr)
-			}
+		host, addr := rrHostAddr(rr)
+		if _, ok := nsmap[host]; ok {
+			q.addGlue(host, addr)
 		}
 	}
 	for host := range nsmap {

@@ -301,9 +301,11 @@ func (r *Recursive) usingUDP() (yes bool) {
 }
 
 func (r *Recursive) useable(addr netip.Addr) (ok bool) {
-	r.mu.RLock()
-	ok = (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6())
-	r.mu.RUnlock()
+	if addr.IsValid() {
+		r.mu.RLock()
+		ok = (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6())
+		r.mu.RUnlock()
+	}
 	return
 }
 
