@@ -194,9 +194,6 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							msg.Rcode = nsrcode
 						}
 					}
-					if err != nil {
-						msg.Rcode = dns.RcodeServerFailure
-					}
 				} else {
 					err = errors.Join(err, ErrNoResponse)
 				}
