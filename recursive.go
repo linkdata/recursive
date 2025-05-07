@@ -314,6 +314,8 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 		isIpv6err = nsaddr.Is6()
 		_, ok := err.(net.Error)
 		ok = ok || errors.Is(err, io.EOF)
+		ok = ok || strings.Contains(err.Error(), "i/o timeout")
+		ok = ok || strings.Contains(err.Error(), "connection was refused")
 		if ok {
 			var m map[netip.Addr]netError
 			switch protocol {
