@@ -273,7 +273,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					_ = q.dbg() && q.log("FAILED @%v %s %q: %v\n", nsaddr, DnsTypeToString(qtype), qname, err)
 				}
 			}
-			if err != nil {
+			if err != nil || len(nsaddrs) == 0 {
 				// all final nameservers failed to be queried,
 				// so don't use the last NS message unless usable
 				if msg == nil || qtype != dns.TypeNS || qname != msg.Question[0].Name {
