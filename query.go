@@ -153,7 +153,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
 						switch gotmsg.Rcode {
 						case dns.RcodeSuccess:
-							if gotmsg.Authoritative || idx > 0 {
+							if gotmsg.Authoritative || (idx > 0 && (gotmsg.Rcode == dns.RcodeNameError || len(gotmsg.Answer) > 0)) {
 								q.setCache(gotmsg)
 							}
 							newlist := q.extractNS(gotmsg)
