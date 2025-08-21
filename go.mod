@@ -1,6 +1,6 @@
 module github.com/linkdata/recursive
 
-go 1.23.0
+go 1.24
 
 require (
 	github.com/linkdata/rate v1.14.1
