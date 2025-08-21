@@ -59,21 +59,17 @@
 				
 				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (65.4%)</option>
 				
-				<option value="file2">github.com/linkdata/recursive/cmd/cli/main.go (0.0%)</option>
+				<option value="file2">github.com/linkdata/recursive/neterror.go (0.0%)</option>
 				
-				<option value="file3">github.com/linkdata/recursive/cmd/genhints/main.go (0.0%)</option>
+				<option value="file3">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/neterror.go (0.0%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (73.9%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (65.1%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/query.go (73.9%)</option>
+				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/recursive.go (65.1%)</option>
-				
-				<option value="file8">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
-				
-				<option value="file9">github.com/linkdata/recursive/util.go (22.2%)</option>
+				<option value="file7">github.com/linkdata/recursive/util.go (22.2%)</option>
 				
 				</select>
 			</div>
@@ -287,203 +283,7 @@ func (cq *cacheQtype) clean(now time.Time) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file2" style="display: none">package main
-
-import (
-        "context"
-        "flag"
-        "fmt"
-        "io"
-        "log"
-        "net/netip"
-        "os"
-        "runtime"
-        "runtime/pprof"
-        "strings"
-        "time"
-
-        "github.com/linkdata/rate"
-        "github.com/linkdata/recursive"
-        "github.com/miekg/dns"
-)
-
-var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
-var flagTimeout = flag.Int("timeout", 60, "individual query timeout in seconds")
-var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in milliseconds")
-var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
-var flagCount = flag.Int("count", 1, "repeat count")
-var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
-var flag4 = flag.Bool("4", true, "use IPv4")
-var flag6 = flag.Bool("6", false, "use IPv6")
-var debug = flag.Bool("debug", false, "print debug output")
-
-func main() <span class="cov0" title="0">{
-        flag.Parse()
-        if *flagCpuprofile != "" </span><span class="cov0" title="0">{
-                f, err := os.Create(*flagCpuprofile)
-                if err != nil </span><span class="cov0" title="0">{
-                        log.Fatal(err)
-                }</span>
-                <span class="cov0" title="0">defer f.Close()
-                _ = pprof.StartCPUProfile(f)
-                defer pprof.StopCPUProfile()</span>
-        }
-
-        <span class="cov0" title="0">qtype := dns.TypeA
-        qnames := []string{}
-        for _, arg := range flag.Args() </span><span class="cov0" title="0">{
-                if x, ok := dns.StringToType[strings.ToUpper(arg)]; ok </span><span class="cov0" title="0">{
-                        qtype = x
-                }</span> else<span class="cov0" title="0"> {
-                        qnames = append(qnames, arg)
-                }</span>
-        }
-
-        <span class="cov0" title="0">if len(qnames) == 0 </span><span class="cov0" title="0">{
-                fmt.Println("missing one or more names to query")
-                return
-        }</span>
-
-        <span class="cov0" title="0">var roots4, roots6 []netip.Addr
-        if *flag4 </span><span class="cov0" title="0">{
-                roots4 = recursive.Roots4
-        }</span>
-        <span class="cov0" title="0">if *flag6 </span><span class="cov0" title="0">{
-                roots6 = recursive.Roots6
-        }</span>
-
-        <span class="cov0" title="0">ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
-        defer cancel()
-
-        maxrate := int32(*flagRatelimit) // #nosec G115
-        var rateLimiter &lt;-chan struct{}
-        if maxrate &gt; 0 </span><span class="cov0" title="0">{
-                rateLimiter = rate.NewTicker(nil, &amp;maxrate).C
-        }</span>
-
-        <span class="cov0" title="0">rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
-        rec.OrderRoots(ctx)
-
-        var dbgout io.Writer
-        if *debug </span><span class="cov0" title="0">{
-                dbgout = os.Stderr
-        }</span>
-
-        <span class="cov0" title="0">for i := 0; i &lt; *flagCount; i++ </span><span class="cov0" title="0">{
-                if i &gt; 0 &amp;&amp; *flagSleep &gt; 0 </span><span class="cov0" title="0">{
-                        time.Sleep(time.Millisecond * time.Duration(*flagSleep))
-                }</span>
-                <span class="cov0" title="0">for _, qname := range qnames </span><span class="cov0" title="0">{
-
-                        ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
-                        if retv, _, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil </span><span class="cov0" title="0">{
-                                if !*debug </span><span class="cov0" title="0">{
-                                        fmt.Println(retv)
-                                }</span>
-                        } else<span class="cov0" title="0"> {
-                                fmt.Printf("%s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
-                        }</span>
-                        <span class="cov0" title="0">cancel()</span>
-                }
-        }
-
-        <span class="cov0" title="0">fmt.Printf(";; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
-
-        if *flagMemprofile != "" </span><span class="cov0" title="0">{
-                f, err := os.Create(*flagMemprofile)
-                if err != nil </span><span class="cov0" title="0">{
-                        log.Fatal(err)
-                }</span>
-                <span class="cov0" title="0">defer f.Close()
-                runtime.GC() // get up-to-date statistics
-                if err := pprof.WriteHeapProfile(f); err != nil </span><span class="cov0" title="0">{
-                        log.Fatal("could not write memory profile: ", err)
-                }</span>
-        }
-}
-</pre>
-		
-		<pre class="file" id="file3" style="display: none">package main
-
-import (
-        "bytes"
-        _ "embed"
-        "fmt"
-        "io"
-        "net/http"
-        "net/netip"
-        "os"
-        "sort"
-        "text/template"
-
-        "github.com/miekg/dns"
-)
-
-//go:embed roothints.go.tmpl
-var roothintsgotmpl string
-
-type Roots struct {
-        Roots4 []netip.Addr
-        Roots6 []netip.Addr
-}
-
-func main() <span class="cov0" title="0">{
-        resp, err := http.Get("https://www.internic.net/domain/named.root")
-        if err == nil </span><span class="cov0" title="0">{
-                defer resp.Body.Close()
-                var body []byte
-                if body, err = io.ReadAll(resp.Body); err == nil </span><span class="cov0" title="0">{
-                        var root4, root6 []netip.Addr
-                        zp := dns.NewZoneParser(bytes.NewReader(body), "", "")
-                        for rr, ok := zp.Next(); ok; rr, ok = zp.Next() </span><span class="cov0" title="0">{
-                                switch rr := rr.(type) </span>{
-                                case *dns.A:<span class="cov0" title="0">
-                                        if ip, ok := netip.AddrFromSlice(rr.A); ok </span><span class="cov0" title="0">{
-                                                if ip = ip.Unmap(); ip.Is4() </span><span class="cov0" title="0">{
-                                                        root4 = append(root4, ip)
-                                                        ip.AsSlice()
-                                                        if !netip.AddrFrom4(ip.As4()).Is4() </span><span class="cov0" title="0">{
-                                                                panic("not 4")</span>
-                                                        }
-                                                }
-                                        }
-                                case *dns.AAAA:<span class="cov0" title="0">
-                                        if ip, ok := netip.AddrFromSlice(rr.AAAA); ok </span><span class="cov0" title="0">{
-                                                root6 = append(root6, ip)
-                                        }</span>
-                                }
-                        }
-
-                        <span class="cov0" title="0">sort.Slice(root4, func(i, j int) bool </span><span class="cov0" title="0">{ return root4[i].Less(root4[j]) }</span>)
-                        <span class="cov0" title="0">sort.Slice(root6, func(i, j int) bool </span><span class="cov0" title="0">{ return root6[i].Less(root6[j]) }</span>)
-
-                        <span class="cov0" title="0">if err = zp.Err(); err == nil </span><span class="cov0" title="0">{
-                                var of *os.File
-                                if len(os.Args) &lt; 2 </span><span class="cov0" title="0">{
-                                        of = os.Stdout
-                                }</span> else<span class="cov0" title="0"> {
-                                        if of, err = os.Create(os.Args[1]); err == nil </span><span class="cov0" title="0">{
-                                                defer of.Close()
-                                        }</span>
-                                }
-                                <span class="cov0" title="0">if err == nil </span><span class="cov0" title="0">{
-                                        var t *template.Template
-                                        if t, err = template.New("").Parse(roothintsgotmpl); err == nil </span><span class="cov0" title="0">{
-                                                err = t.Execute(of, Roots{Roots4: root4, Roots6: root6})
-                                        }</span>
-                                }
-                        }
-                }
-        }
-        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
-                fmt.Fprintln(os.Stderr, err)
-                os.Exit(1)
-        }</span>
-}
-</pre>
-		
-		<pre class="file" id="file4" style="display: none">package recursive
+		<pre class="file" id="file2" style="display: none">package recursive
 
 import "time"
 
@@ -501,7 +301,7 @@ func (ne netError) Unwrap() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package recursive
+		<pre class="file" id="file3" style="display: none">package recursive
 
 import (
         "context"
@@ -593,7 +393,7 @@ func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.N
 // func (std *Recursive) LookupTXT(ctx context.Context, name string) ([]string, error)
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package recursive
+		<pre class="file" id="file4" style="display: none">package recursive
 
 import (
         "context"
@@ -1164,7 +964,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file5" style="display: none">package recursive
 
 import (
         "context"
@@ -1572,7 +1372,7 @@ func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov0
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package recursive
+		<pre class="file" id="file6" style="display: none">package recursive
 
 import (
         "context"
@@ -1610,7 +1410,7 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package recursive
+		<pre class="file" id="file7" style="display: none">package recursive
 
 import (
         "net/netip"
