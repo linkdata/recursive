@@ -16,7 +16,7 @@ func Test_Resolve1111(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 	defer cancel()
 	var sb strings.Builder
-	retv, _, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, &sb, "one.one.one.one", dns.TypeA)
+	retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, &sb, "one.one.one.one", dns.TypeA)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,9 +36,35 @@ func Test_Resolve1111(t *testing.T) {
 			}
 		}
 	}
+
+	t.Log(retv)
+	t.Log(";; SERVER ", srv)
+	t.Log(sb.String())
+
 	if !foundit {
-		t.Log(sb.String())
-		t.Log(retv)
 		t.Error("did not resolve one.one.one.one to 1.1.1.1")
+	}
+	if !srv.IsValid() {
+		t.Error("did not return server IP")
+	}
+	if retv.Zero {
+		t.Error("expected Z to not be set")
+	}
+
+	// do it again, should use the cache
+	msg, _, err := rec.DnsResolve(ctx, "one.one.one.one", dns.TypeA)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !msg.Zero {
+		t.Error("expected Z to be set")
+	}
+	entries := recursive.DefaultCache.Entries()
+	if entries == 0 {
+		t.Error(entries)
+	}
+	hitratio := recursive.DefaultCache.HitRatio()
+	if hitratio == 0 {
+		t.Error("hit ratio is zero")
 	}
 }
