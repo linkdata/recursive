@@ -38,7 +38,7 @@ func main() {
 			log.Fatal(err)
 		}
 		defer f.Close()
-		pprof.StartCPUProfile(f)
+		_ = pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
 
@@ -68,7 +68,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
 	defer cancel()
 
-	maxrate := int32(*flagRatelimit)
+	maxrate := int32(*flagRatelimit) // #nosec G115
 	var rateLimiter <-chan struct{}
 	if maxrate > 0 {
 		rateLimiter = rate.NewTicker(nil, &maxrate).C
