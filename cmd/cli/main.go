@@ -21,7 +21,6 @@ import (
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
 var flagTimeout = flag.Int("timeout", 60, "individual query timeout in seconds")
-var flagNomini = flag.Bool("nomini", false, "disable QNAME minimization")
 var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in milliseconds")
 var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
 var flagCount = flag.Int("count", 1, "repeat count")
