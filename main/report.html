@@ -555,7 +555,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                         if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil </span><span class="cov8" title="1">{
                                                 switch gotmsg.Rcode </span>{
                                                 case dns.RcodeSuccess:<span class="cov8" title="1">
-                                                        if gotmsg.Authoritative || (idx &gt; 0 &amp;&amp; (gotmsg.Rcode == dns.RcodeNameError || len(gotmsg.Answer) &gt; 0)) </span><span class="cov8" title="1">{
+                                                        if gotmsg.Authoritative || (idx &gt; 0 &amp;&amp; (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) &gt; 0)) </span><span class="cov8" title="1">{
                                                                 q.setCache(gotmsg)
                                                         }</span>
                                                         <span class="cov8" title="1">newlist := q.extractNS(gotmsg)
@@ -754,9 +754,9 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
@@ -1013,9 +1013,8 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-        maxDepth        = 32   // maximum recursion depth
-        maxRootAttempts = 2    // maximum number of root servers to try
-        maxSteps        = 1000 // max number of steps to allow in resolving
+        maxDepth = 32   // maximum recursion depth
+        maxSteps = 1000 // max number of steps to allow in resolving
 )
 
 var (
@@ -1324,7 +1323,7 @@ func (r *Recursive) getRootServers() (nslist []hostAddr) <span class="cov8" titl
         <span class="cov8" title="1">return</span>
 }
 
-// Roots returns the current set of root servers in use.
+// GetRoots returns the current set of root servers in use.
 func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) <span class="cov0" title="0">{
         r.mu.RLock()
         defer r.mu.RUnlock()
