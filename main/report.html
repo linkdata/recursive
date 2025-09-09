@@ -964,10 +964,11 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 
 import (
         "context"
+        crand "crypto/rand"
         "errors"
         "fmt"
         "io"
-        "math/rand/v2"
+        rand "math/rand/v2"
         "net"
         "net/netip"
         "sort"
@@ -1055,8 +1056,18 @@ type Recursive struct {
 }
 
 func makeCookie() string <span class="cov8" title="1">{
-        return fmt.Sprintf("%016x", rand.Uint64()) //#nosec G404
-}</span>
+        b := make([]byte, 8)
+        if _, err := crand.Read(b); err != nil </span><span class="cov0" title="0">{
+                panic(err)</span>
+        }
+        <span class="cov8" title="1">return fmt.Sprintf("%x", b)</span>
+}
+
+func shuffleAddrs(a []netip.Addr) <span class="cov8" title="1">{
+        rand.Shuffle(len(a), func(i, j int) </span><span class="cov8" title="1">{
+                a[i], a[j] = a[j], a[i]
+        }</span>)
+}
 
 // NewWithOptions returns a new Recursive resolver using the given ContextDialer and
 // using the given Cacher as it's default cache. It does not call OrderRoots.
@@ -1079,12 +1090,12 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
         <span class="cov8" title="1">var root4, root6 []netip.Addr
         if len(roots4) &gt; 0 </span><span class="cov8" title="1">{
                 root4 = append(root4, roots4...)
-                rand.Shuffle(len(root4), func(i, j int) </span><span class="cov8" title="1">{ root4[i], root4[j] = root4[j], root4[i] }</span>)
-        }
+                shuffleAddrs(root4)
+        }</span>
         <span class="cov8" title="1">if len(roots6) &gt; 0 </span><span class="cov8" title="1">{
                 root6 = append(root6, roots6...)
-                rand.Shuffle(len(root6), func(i, j int) </span><span class="cov8" title="1">{ root6[i], root6[j] = root6[j], root6[i] }</span>)
-        }
+                shuffleAddrs(root6)
+        }</span>
 
         <span class="cov8" title="1">roots := make([]netip.Addr, 0, len(root4)+len(root6))
         n := min(len(root4), len(root6))
