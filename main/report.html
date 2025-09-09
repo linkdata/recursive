@@ -754,9 +754,9 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
