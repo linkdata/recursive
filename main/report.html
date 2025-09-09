@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (73.9%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (73.5%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (65.3%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (70.5%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -747,9 +747,9 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
@@ -861,10 +861,8 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         var clicookie, srvcookie string
 
                         if useCookies </span><span class="cov8" title="1">{
-                                q.mu.RLock()
                                 clicookie = q.clicookie
-                                srvcookie, hasSrvCookie = q.srvcookies[nsaddr]
-                                q.mu.RUnlock()
+                                srvcookie, hasSrvCookie = q.getSrvCookie(nsaddr)
 
                                 useCookies = !hasSrvCookie || srvcookie != ""
 
@@ -897,9 +895,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                                         }
                                 }
                                 <span class="cov8" title="1">if !hasSrvCookie || srvcookie != newsrvcookie </span><span class="cov8" title="1">{
-                                        q.mu.Lock()
-                                        q.srvcookies[nsaddr] = newsrvcookie
-                                        q.mu.Unlock()
+                                        q.setSrvCookie(nsaddr, newsrvcookie)
                                 }</span>
                         }
                 }
@@ -1030,6 +1026,16 @@ var (
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
 
+const (
+        maxSrvCookies = 8192
+        srvCookieTTL  = 24 * time.Hour
+)
+
+type srvCookie struct {
+        value string
+        ts    time.Time
+}
+
 type Recursive struct {
         proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
         Cacher                              // (read-only) Cacher passed to NewWithOptions
@@ -1043,7 +1049,7 @@ type Recursive struct {
         useIPv6             bool
         rootServers         []netip.Addr
         clicookie           string
-        srvcookies          map[netip.Addr]string
+        srvcookies          map[netip.Addr]srvCookie
         udperrs             map[netip.Addr]netError
         tcperrs             map[netip.Addr]netError
 }
@@ -1102,7 +1108,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
                 useIPv6:     len(root6) &gt; 0,
                 rootServers: roots,
                 clicookie:   makeCookie(),
-                srvcookies:  make(map[netip.Addr]string),
+                srvcookies:  make(map[netip.Addr]srvCookie),
                 udperrs:     make(map[netip.Addr]netError),
                 tcperrs:     make(map[netip.Addr]netError),
         }</span>
@@ -1124,6 +1130,56 @@ func (r *Recursive) ResetCookies() <span class="cov0" title="0">{
         defer r.mu.Unlock()
         r.clicookie = makeCookie()
         clear(r.srvcookies)
+}</span>
+
+func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov8" title="1">{
+        cutoff := now.Add(-srvCookieTTL)
+        for addr, c := range r.srvcookies </span><span class="cov8" title="1">{
+                if c.ts.Before(cutoff) </span><span class="cov8" title="1">{
+                        delete(r.srvcookies, addr)
+                }</span>
+        }
+        <span class="cov8" title="1">if len(r.srvcookies) &lt;= maxSrvCookies </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">type ac struct {
+                addr netip.Addr
+                ts   time.Time
+        }
+        l := make([]ac, 0, len(r.srvcookies))
+        for addr, c := range r.srvcookies </span><span class="cov8" title="1">{
+                l = append(l, ac{addr: addr, ts: c.ts})
+        }</span>
+        <span class="cov8" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov8" title="1">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov8" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov8" title="1">{
+                delete(r.srvcookies, l[i].addr)
+        }</span>
+}
+
+func (r *Recursive) cleanupSrvCookies(now time.Time) <span class="cov8" title="1">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        r.cleanupSrvCookiesLocked(now)
+}</span>
+
+func (r *Recursive) getSrvCookie(addr netip.Addr) (string, bool) <span class="cov8" title="1">{
+        now := time.Now()
+        r.cleanupSrvCookies(now)
+        r.mu.RLock()
+        c, ok := r.srvcookies[addr]
+        r.mu.RUnlock()
+        if ok &amp;&amp; now.Sub(c.ts) &lt; srvCookieTTL </span><span class="cov8" title="1">{
+                return c.value, true
+        }</span>
+        <span class="cov8" title="1">return "", false</span>
+}
+
+func (r *Recursive) setSrvCookie(addr netip.Addr, val string) <span class="cov8" title="1">{
+        now := time.Now()
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        r.cleanupSrvCookiesLocked(now)
+        r.srvcookies[addr] = srvCookie{value: val, ts: now}
 }</span>
 
 // OrderRoots sorts the root server list by their current latency and removes those that don't respond.
@@ -1172,7 +1228,8 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
         if logw == nil </span><span class="cov8" title="1">{
                 logw = r.DefaultLogWriter
         }</span>
-        <span class="cov8" title="1">var q *query
+        <span class="cov8" title="1">r.cleanupSrvCookies(time.Now())
+        var q *query
         qname = dns.CanonicalName(qname)
         if cache != nil </span><span class="cov8" title="1">{
                 msg = cache.DnsGet(qname, qtype)
