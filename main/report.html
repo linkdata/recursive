@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (73.8%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (61.3%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (70.8%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (67.0%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -431,7 +431,7 @@ func (q *query) dbg() bool <span class="cov8" title="1">{
         return q.logw != nil
 }</span>
 
-func (q *query) log(format string, args ...any) bool <span class="cov8" title="1">{
+func (q *query) log(format string, args ...any) bool <span class="cov0" title="0">{
         fmt.Fprintf(q.logw, "[%-5d %2d] %*s", time.Since(q.start).Milliseconds(), q.depth, q.depth, "")
         fmt.Fprintf(q.logw, format, args...)
         return false
@@ -449,12 +449,12 @@ type hostAddr struct {
         addr netip.Addr
 }
 
-func (ha hostAddr) String() (s string) <span class="cov8" title="1">{
+func (ha hostAddr) String() (s string) <span class="cov0" title="0">{
         s = ha.host
-        if ha.addr.IsValid() </span><span class="cov8" title="1">{
+        if ha.addr.IsValid() </span><span class="cov0" title="0">{
                 s += " " + ha.addr.String()
         }</span>
-        <span class="cov8" title="1">return</span>
+        <span class="cov0" title="0">return</span>
 }
 
 // needGlue returns true if the host was added to the glue map
@@ -520,12 +520,12 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                 cqtype = qtype
                         }</span>
 
-                        <span class="cov8" title="1">if q.dbg() </span><span class="cov8" title="1">{
+                        <span class="cov8" title="1">if q.dbg() </span><span class="cov0" title="0">{
                                 var finaltext string
-                                if final </span><span class="cov8" title="1">{
+                                if final </span><span class="cov0" title="0">{
                                         finaltext = " FINAL"
                                 }</span>
-                                <span class="cov8" title="1">q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])</span>
+                                <span class="cov0" title="0">q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])</span>
                         }
 
                         <span class="cov8" title="1">var nsrcode int     // RCODE from last nameserver A query resolving glueless names
@@ -635,12 +635,12 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                         }
                         <span class="cov8" title="1">slices.SortFunc(nsaddrs, func(a, b netip.Addr) int </span><span class="cov8" title="1">{ return a.Compare(b) }</span>)
                         <span class="cov8" title="1">nsaddrs = slices.Compact(nsaddrs)
-                        if q.dbg() </span><span class="cov8" title="1">{
+                        if q.dbg() </span><span class="cov0" title="0">{
                                 q.log("final nameservers: %v\n", nsaddrs)
-                                if q.depth == 1 </span><span class="cov8" title="1">{
+                                if q.depth == 1 </span><span class="cov0" title="0">{
                                         keys := slices.Collect(maps.Keys(q.glue))
                                         slices.Sort(keys)
-                                        for _, k := range keys </span><span class="cov8" title="1">{
+                                        for _, k := range keys </span><span class="cov0" title="0">{
                                                 q.log("glue: %q: %v\n", k, q.glue[k])
                                         }</span>
                                 }
@@ -803,12 +803,12 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         if !cacheExtra </span><span class="cov0" title="0">{
                                 msg.Extra = nil
                         }</span>
-                        <span class="cov8" title="1">if q.dbg() </span><span class="cov8" title="1">{
+                        <span class="cov8" title="1">if q.dbg() </span><span class="cov0" title="0">{
                                 auth := ""
-                                if msg.MsgHdr.Authoritative </span><span class="cov8" title="1">{
+                                if msg.MsgHdr.Authoritative </span><span class="cov0" title="0">{
                                         auth = " AUTH"
                                 }</span>
-                                <span class="cov8" title="1">q.log("cached answer: %s %q =&gt; %s [%v+%v+%v A/N/E]%s\n",
+                                <span class="cov0" title="0">q.log("cached answer: %s %q =&gt; %s [%v+%v+%v A/N/E]%s\n",
                                         DnsTypeToString(qtype), qname,
                                         dns.RcodeToString[msg.Rcode],
                                         len(msg.Answer), len(msg.Ns), len(msg.Extra),
@@ -831,16 +831,16 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         &lt;-q.rateLimiter
                 }</span>
 
-                <span class="cov8" title="1">if q.dbg() </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if q.dbg() </span><span class="cov0" title="0">{
                         var protostr string
                         var dash6str string
                         if protocol != "udp" </span><span class="cov0" title="0">{
                                 protostr = " +" + protocol
                         }</span>
-                        <span class="cov8" title="1">if nsaddr.Is6() </span><span class="cov0" title="0">{
+                        <span class="cov0" title="0">if nsaddr.Is6() </span><span class="cov0" title="0">{
                                 dash6str = " -6"
                         }</span>
-                        <span class="cov8" title="1">q.log("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, DnsTypeToString(qtype), qname)</span>
+                        <span class="cov0" title="0">q.log("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, DnsTypeToString(qtype), qname)</span>
                 }
 
                 <span class="cov8" title="1">var nconn net.Conn
@@ -878,7 +878,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                                                 Code:   dns.EDNS0COOKIE,
                                                 Cookie: clicookie + srvcookie,
                                         })
-                                        if q.logw != nil </span><span class="cov8" title="1">{
+                                        if q.logw != nil </span><span class="cov0" title="0">{
                                                 fmt.Fprintf(q.logw, " COOKIE:c=%q s=%q", maskCookie(clicookie), maskCookie(srvcookie))
                                         }</span>
                                 }
@@ -911,8 +911,8 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                 ipv6disabled := isIpv6Err &amp;&amp; q.maybeDisableIPv6(err)
                 udpDisabled := isUdpErr &amp;&amp; q.maybeDisableUdp(err)
 
-                if q.logw != nil </span><span class="cov8" title="1">{
-                        if msg != nil </span><span class="cov8" title="1">{
+                if q.logw != nil </span><span class="cov0" title="0">{
+                        if msg != nil </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " =&gt; %s [%v+%v+%v A/N/E] (%v, %d bytes",
                                         dns.RcodeToString[msg.Rcode],
                                         len(msg.Answer), len(msg.Ns), len(msg.Extra),
@@ -920,26 +920,26 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                                 if msg.MsgHdr.Truncated </span><span class="cov0" title="0">{
                                         fmt.Fprintf(q.logw, " TRNC")
                                 }</span>
-                                <span class="cov8" title="1">if msg.MsgHdr.Authoritative </span><span class="cov8" title="1">{
+                                <span class="cov0" title="0">if msg.MsgHdr.Authoritative </span><span class="cov0" title="0">{
                                         fmt.Fprintf(q.logw, " AUTH")
                                 }</span>
-                                <span class="cov8" title="1">if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
+                                <span class="cov0" title="0">if opt := msg.IsEdns0(); opt != nil </span><span class="cov0" title="0">{
                                         if er := uint16(opt.ExtendedRcode()); /*#nosec G115*/ er != 0 </span><span class="cov0" title="0">{
                                                 fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
                                         }</span>
                                 }
-                                <span class="cov8" title="1">fmt.Fprintf(q.logw, ")")</span>
+                                <span class="cov0" title="0">fmt.Fprintf(q.logw, ")")</span>
                         }
-                        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                        <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " error: %v", err)
                         }</span>
-                        <span class="cov8" title="1">if ipv6disabled </span><span class="cov0" title="0">{
+                        <span class="cov0" title="0">if ipv6disabled </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " (IPv6 disabled)")
                         }</span>
-                        <span class="cov8" title="1">if udpDisabled </span><span class="cov0" title="0">{
+                        <span class="cov0" title="0">if udpDisabled </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " (UDP disabled)")
                         }</span>
-                        <span class="cov8" title="1">fmt.Fprintln(q.logw)</span>
+                        <span class="cov0" title="0">fmt.Fprintln(q.logw)</span>
                 }
         }
         <span class="cov8" title="1">return</span>
@@ -1294,20 +1294,20 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
                         }</span>
                 }
         }
-        <span class="cov8" title="1">if logw != nil </span><span class="cov8" title="1">{
-                if msg != nil </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if logw != nil </span><span class="cov0" title="0">{
+                if msg != nil </span><span class="cov0" title="0">{
                         fmt.Fprintf(logw, "\n%v", msg)
                 }</span>
-                <span class="cov8" title="1">if q != nil </span><span class="cov8" title="1">{
+                <span class="cov0" title="0">if q != nil </span><span class="cov0" title="0">{
                         fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.sent, time.Since(q.start).Round(time.Millisecond))
                 }</span>
-                <span class="cov8" title="1">if srv.IsValid() </span><span class="cov8" title="1">{
+                <span class="cov0" title="0">if srv.IsValid() </span><span class="cov0" title="0">{
                         fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
                 }</span>
-                <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
                         fmt.Fprintf(logw, "\n;; ERROR: %v", err)
                 }</span>
-                <span class="cov8" title="1">fmt.Fprintln(logw)</span>
+                <span class="cov0" title="0">fmt.Fprintln(logw)</span>
         }
         <span class="cov8" title="1">return</span>
 }
