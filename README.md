@@ -32,3 +32,6 @@ func main() {
 }
 
 ```
+
+The resolver can log query details. To protect privacy, logs only include the
+first few characters of the client and server cookie values.
