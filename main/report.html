@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (73.5%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (73.8%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (70.5%)</option>
 				
@@ -436,6 +436,13 @@ func (q *query) log(format string, args ...any) bool <span class="cov8" title="1
         fmt.Fprintf(q.logw, format, args...)
         return false
 }</span>
+
+func maskCookie(s string) string <span class="cov8" title="1">{
+        if len(s) &gt; 8 </span><span class="cov8" title="1">{
+                return s[:8] + "..."
+        }</span>
+        <span class="cov8" title="1">return s</span>
+}
 
 type hostAddr struct {
         host string
@@ -872,7 +879,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                                                 Cookie: clicookie + srvcookie,
                                         })
                                         if q.logw != nil </span><span class="cov8" title="1">{
-                                                fmt.Fprintf(q.logw, " COOKIE:%q", clicookie+srvcookie)
+                                                fmt.Fprintf(q.logw, " COOKIE:c=%q s=%q", maskCookie(clicookie), maskCookie(srvcookie))
                                         }</span>
                                 }
                         }
