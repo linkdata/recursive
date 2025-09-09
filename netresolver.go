@@ -11,7 +11,7 @@ import (
 // override some of the standard Go net.Resolver functions
 
 func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) {
-	msg, _, err := rc.DnsResolve(ctx, host, qtype)
+	msg, _, err := rc.dnsResolve(ctx, host, qtype)
 	if msg != nil {
 		for _, rr := range msg.Answer {
 			switch rr := rr.(type) {
@@ -72,7 +72,7 @@ func (rc *Recursive) LookupIPAddr(ctx context.Context, host string) (addrs []net
 
 func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.NS, err error) {
 	var msg *dns.Msg
-	if msg, _, err = rc.DnsResolve(ctx, name, dns.TypeNS); err == nil {
+	if msg, _, err = rc.dnsResolve(ctx, name, dns.TypeNS); err == nil {
 		for _, rr := range msg.Answer {
 			switch rr := rr.(type) {
 			case *dns.NS:

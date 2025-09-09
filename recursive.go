@@ -90,6 +90,7 @@ type Recursive struct {
 	srvcookies          map[netip.Addr]srvCookie
 	udperrs             map[netip.Addr]netError
 	tcperrs             map[netip.Addr]netError
+	dnsResolve          func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
 }
 
 func makeCookie() string {
@@ -142,7 +143,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 	roots = append(roots, root4[n:]...)
 	roots = append(roots, root6[n:]...)
 
-	return &Recursive{
+	r := &Recursive{
 		ContextDialer: dialer,
 		Cacher:        cache,
 		Resolver: &net.Resolver{
@@ -160,6 +161,8 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		udperrs:     make(map[netip.Addr]netError),
 		tcperrs:     make(map[netip.Addr]netError),
 	}
+	r.dnsResolve = r.DnsResolve
+	return r
 }
 
 // New returns a new Recursive resolver using the given ContextDialer and
