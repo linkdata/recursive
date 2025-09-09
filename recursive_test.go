@@ -12,6 +12,11 @@ import (
 )
 
 func Test_Resolve1111(t *testing.T) {
+	if c, err := net.DialTimeout("tcp", "1.1.1.1:53", time.Second); err != nil {
+		t.Skipf("skipping; network unavailable: %v", err)
+	} else {
+		c.Close()
+	}
 	rec := recursive.New(nil)
 	ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 	defer cancel()
