@@ -2,10 +2,11 @@ package recursive
 
 import (
 	"context"
+	crand "crypto/rand"
 	"errors"
 	"fmt"
 	"io"
-	"math/rand/v2"
+	rand "math/rand/v2"
 	"net"
 	"net/netip"
 	"sort"
@@ -93,7 +94,17 @@ type Recursive struct {
 }
 
 func makeCookie() string {
-	return fmt.Sprintf("%016x", rand.Uint64()) //#nosec G404
+	b := make([]byte, 8)
+	if _, err := crand.Read(b); err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%x", b)
+}
+
+func shuffleAddrs(a []netip.Addr) {
+	rand.Shuffle(len(a), func(i, j int) {
+		a[i], a[j] = a[j], a[i]
+	})
 }
 
 // NewWithOptions returns a new Recursive resolver using the given ContextDialer and
@@ -117,11 +128,11 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 	var root4, root6 []netip.Addr
 	if len(roots4) > 0 {
 		root4 = append(root4, roots4...)
-		rand.Shuffle(len(root4), func(i, j int) { root4[i], root4[j] = root4[j], root4[i] })
+		shuffleAddrs(root4)
 	}
 	if len(roots6) > 0 {
 		root6 = append(root6, roots6...)
-		rand.Shuffle(len(root6), func(i, j int) { root6[i], root6[j] = root6[j], root6[i] })
+		shuffleAddrs(root6)
 	}
 
 	roots := make([]netip.Addr, 0, len(root4)+len(root6))
