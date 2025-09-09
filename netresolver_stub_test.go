@@ -18,7 +18,7 @@ func newStubRecursive(responses map[uint16]*dns.Msg) *Recursive {
 		if msg, ok := responses[qtype]; ok {
 			m := msg.Copy()
 			m.SetQuestion(qname, qtype)
-			return m, netip.Addr{}, nil
+			return m, netip.MustParseAddr("192.0.2.53"), nil
 		}
 		return nil, netip.Addr{}, nil
 	}
