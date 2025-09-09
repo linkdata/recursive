@@ -55,11 +55,11 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/linkdata/recursive/cache.go (74.0%)</option>
+				<option value="file0">github.com/linkdata/recursive/cache.go (92.0%)</option>
 				
-				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (65.4%)</option>
+				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (88.5%)</option>
 				
-				<option value="file2">github.com/linkdata/recursive/neterror.go (0.0%)</option>
+				<option value="file2">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
 				
@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/util.go (22.2%)</option>
+				<option value="file7">github.com/linkdata/recursive/util.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -182,18 +182,18 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
         return
 }</span>
 
-func (cache *Cache) Clear() <span class="cov0" title="0">{
-        if cache != nil </span><span class="cov0" title="0">{
-                for _, cq := range cache.cq </span><span class="cov0" title="0">{
+func (cache *Cache) Clear() <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                for _, cq := range cache.cq </span><span class="cov8" title="1">{
                         cq.clear()
                 }</span>
         }
 }
 
-func (cache *Cache) Clean() <span class="cov0" title="0">{
-        if cache != nil </span><span class="cov0" title="0">{
+func (cache *Cache) Clean() <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
                 now := time.Now()
-                for _, cq := range cache.cq </span><span class="cov0" title="0">{
+                for _, cq := range cache.cq </span><span class="cov8" title="1">{
                         cq.clean(now)
                 }</span>
         }
@@ -209,11 +209,11 @@ func MinTTL(msg *dns.Msg) int <span class="cov8" title="1">{
                 minTTL = min(minTTL, int(rr.Header().Ttl))
         }</span>
         <span class="cov8" title="1">for _, rr := range msg.Extra </span><span class="cov8" title="1">{
-                if rr.Header().Rrtype != dns.TypeOPT </span><span class="cov0" title="0">{
+                if rr.Header().Rrtype != dns.TypeOPT </span><span class="cov8" title="1">{
                         minTTL = min(minTTL, int(rr.Header().Ttl))
                 }</span>
         }
-        <span class="cov8" title="1">if minTTL == math.MaxInt </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if minTTL == math.MaxInt </span><span class="cov8" title="1">{
                 minTTL = -1
         }</span>
         <span class="cov8" title="1">return minTTL</span>
@@ -268,15 +268,15 @@ func (cq *cacheQtype) get(qname string) *dns.Msg <span class="cov8" title="1">{
         <span class="cov8" title="1">return nil</span>
 }
 
-func (cq *cacheQtype) clear() <span class="cov0" title="0">{
+func (cq *cacheQtype) clear() <span class="cov8" title="1">{
         cq.clean(time.Time{})
 }</span>
 
-func (cq *cacheQtype) clean(now time.Time) <span class="cov0" title="0">{
+func (cq *cacheQtype) clean(now time.Time) <span class="cov8" title="1">{
         cq.mu.Lock()
         defer cq.mu.Unlock()
-        for qname, cv := range cq.cache </span><span class="cov0" title="0">{
-                if now.IsZero() || now.After(cv.expires) </span><span class="cov0" title="0">{
+        for qname, cv := range cq.cache </span><span class="cov8" title="1">{
+                if now.IsZero() || now.After(cv.expires) </span><span class="cov8" title="1">{
                         delete(cq.cache, qname)
                 }</span>
         }
@@ -292,11 +292,11 @@ type netError struct {
         When time.Time
 }
 
-func (ne netError) Error() string <span class="cov0" title="0">{
+func (ne netError) Error() string <span class="cov8" title="1">{
         return ne.Err.Error()
 }</span>
 
-func (ne netError) Unwrap() error <span class="cov0" title="0">{
+func (ne netError) Unwrap() error <span class="cov8" title="1">{
         return ne.Err
 }</span>
 </pre>
@@ -1500,21 +1500,21 @@ func DnsTypeToString(qtype uint16) string <span class="cov8" title="1">{
         if s, ok := dns.TypeToString[qtype]; ok </span><span class="cov8" title="1">{
                 return s
         }</span>
-        <span class="cov0" title="0">return strconv.Itoa(int(qtype))</span>
+        <span class="cov8" title="1">return strconv.Itoa(int(qtype))</span>
 }
 
-func AddrFromRR(rr dns.RR) netip.Addr <span class="cov0" title="0">{
+func AddrFromRR(rr dns.RR) netip.Addr <span class="cov8" title="1">{
         switch v := rr.(type) </span>{
-        case *dns.A:<span class="cov0" title="0">
-                if ip, ok := netip.AddrFromSlice(v.A); ok </span><span class="cov0" title="0">{
+        case *dns.A:<span class="cov8" title="1">
+                if ip, ok := netip.AddrFromSlice(v.A); ok </span><span class="cov8" title="1">{
                         return ip.Unmap()
                 }</span>
-        case *dns.AAAA:<span class="cov0" title="0">
-                if ip, ok := netip.AddrFromSlice(v.AAAA); ok </span><span class="cov0" title="0">{
+        case *dns.AAAA:<span class="cov8" title="1">
+                if ip, ok := netip.AddrFromSlice(v.AAAA); ok </span><span class="cov8" title="1">{
                         return ip
                 }</span>
         }
-        <span class="cov0" title="0">return netip.Addr{}</span>
+        <span class="cov8" title="1">return netip.Addr{}</span>
 }
 </pre>
 		
