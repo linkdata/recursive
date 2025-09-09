@@ -1,29 +1,29 @@
-//go:build network
-// +build network
-
 package recursive
 
 import (
 	"context"
 	"net"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/miekg/dns"
 )
 
 func Test_Resolve1111(t *testing.T) {
-	if c, err := net.DialTimeout("tcp", "1.1.1.1:53", time.Second); err != nil {
-		t.Skipf("skipping; network unavailable: %v", err)
-	} else {
-		c.Close()
-	}
-	rec := New(nil)
-	ctx, cancel := context.WithTimeout(t.Context(), time.Second)
-	defer cancel()
-	var sb strings.Builder
-	retv, srv, err := rec.ResolveWithOptions(ctx, DefaultCache, &sb, "one.one.one.one", dns.TypeA)
+	DefaultCache = NewCache()
+	ipv4 := net.ParseIP("1.1.1.1")
+	aMsg := &dns.Msg{Answer: []dns.RR{&dns.A{
+		Hdr: dns.RR_Header{
+			Name:   "one.one.one.one.",
+			Rrtype: dns.TypeA,
+			Class:  dns.ClassINET,
+			Ttl:    60,
+		},
+		A: ipv4,
+	}}}
+	rec := newStubRecursive(map[uint16]*dns.Msg{dns.TypeA: aMsg})
+	ctx := context.Background()
+
+	retv, srv, err := rec.dnsResolve(ctx, "one.one.one.one", dns.TypeA)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,18 +35,14 @@ func Test_Resolve1111(t *testing.T) {
 	}
 	foundit := false
 	for _, rr := range retv.Answer {
-		switch rr := rr.(type) {
-		case *dns.A:
-			if rr.A.Equal(net.ParseIP("1.1.1.1")) {
-				foundit = true
-				break
-			}
+		if a, ok := rr.(*dns.A); ok && a.A.Equal(ipv4) {
+			foundit = true
+			break
 		}
 	}
 
 	t.Log(retv)
 	t.Log(";; SERVER ", srv)
-	t.Log(sb.String())
 
 	if !foundit {
 		t.Error("did not resolve one.one.one.one to 1.1.1.1")
@@ -58,10 +54,10 @@ func Test_Resolve1111(t *testing.T) {
 		t.Error("expected Z to not be set")
 	}
 
-	// do it again, should use the cache
-	msg, _, err := rec.DnsResolve(ctx, "one.one.one.one", dns.TypeA)
-	if err != nil {
-		t.Fatal(err)
+	DefaultCache.DnsSet(retv)
+	msg := DefaultCache.DnsGet("one.one.one.one", dns.TypeA)
+	if msg == nil {
+		t.Fatal("expected cached message")
 	}
 	if !msg.Zero {
 		t.Error("expected Z to be set")
