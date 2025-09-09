@@ -61,11 +61,11 @@
 				
 				<option value="file2">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
-				<option value="file3">github.com/linkdata/recursive/netresolver.go (0.0%)</option>
+				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
 				<option value="file4">github.com/linkdata/recursive/query.go (73.8%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (70.5%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (70.8%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -313,77 +313,77 @@ import (
 
 // override some of the standard Go net.Resolver functions
 
-func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) <span class="cov0" title="0">{
-        msg, _, err := rc.DnsResolve(ctx, host, qtype)
-        if msg != nil </span><span class="cov0" title="0">{
-                for _, rr := range msg.Answer </span><span class="cov0" title="0">{
+func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) <span class="cov8" title="1">{
+        msg, _, err := rc.dnsResolve(ctx, host, qtype)
+        if msg != nil </span><span class="cov8" title="1">{
+                for _, rr := range msg.Answer </span><span class="cov8" title="1">{
                         switch rr := rr.(type) </span>{
-                        case *dns.A:<span class="cov0" title="0">
+                        case *dns.A:<span class="cov8" title="1">
                                 ips = append(ips, rr.A)</span>
-                        case *dns.AAAA:<span class="cov0" title="0">
+                        case *dns.AAAA:<span class="cov8" title="1">
                                 ips = append(ips, rr.AAAA)</span>
                         }
                 }
         }
-        <span class="cov0" title="0">return ips, err</span>
+        <span class="cov8" title="1">return ips, err</span>
 }
 
-func (rc *Recursive) LookupIP(ctx context.Context, network, host string) (ips []net.IP, err error) <span class="cov0" title="0">{
-        if network == "ip" || network == "ip4" </span><span class="cov0" title="0">{
+func (rc *Recursive) LookupIP(ctx context.Context, network, host string) (ips []net.IP, err error) <span class="cov8" title="1">{
+        if network == "ip" || network == "ip4" </span><span class="cov8" title="1">{
                 ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeA)
         }</span>
-        <span class="cov0" title="0">if network == "ip" || network == "ip6" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if network == "ip" || network == "ip6" </span><span class="cov8" title="1">{
                 ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeAAAA)
         }</span>
-        <span class="cov0" title="0">if len(ips) &gt; 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if len(ips) &gt; 0 </span><span class="cov8" title="1">{
                 err = nil
         }</span>
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (rc *Recursive) LookupHost(ctx context.Context, host string) (addrs []string, err error) <span class="cov0" title="0">{
+func (rc *Recursive) LookupHost(ctx context.Context, host string) (addrs []string, err error) <span class="cov8" title="1">{
         var ips []net.IP
-        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov0" title="0">{
-                for _, ip := range ips </span><span class="cov0" title="0">{
+        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov8" title="1">{
+                for _, ip := range ips </span><span class="cov8" title="1">{
                         addrs = append(addrs, ip.String())
                 }</span>
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (rc *Recursive) LookupNetIP(ctx context.Context, network, host string) (addrs []netip.Addr, err error) <span class="cov0" title="0">{
+func (rc *Recursive) LookupNetIP(ctx context.Context, network, host string) (addrs []netip.Addr, err error) <span class="cov8" title="1">{
         var ips []net.IP
-        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov0" title="0">{
-                for _, ip := range ips </span><span class="cov0" title="0">{
-                        if ip, ok := netip.AddrFromSlice(ip); ok </span><span class="cov0" title="0">{
+        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov8" title="1">{
+                for _, ip := range ips </span><span class="cov8" title="1">{
+                        if ip, ok := netip.AddrFromSlice(ip); ok </span><span class="cov8" title="1">{
                                 addrs = append(addrs, ip)
                         }</span>
                 }
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (rc *Recursive) LookupIPAddr(ctx context.Context, host string) (addrs []net.IPAddr, err error) <span class="cov0" title="0">{
+func (rc *Recursive) LookupIPAddr(ctx context.Context, host string) (addrs []net.IPAddr, err error) <span class="cov8" title="1">{
         var ips []net.IP
-        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov0" title="0">{
-                for _, ip := range ips </span><span class="cov0" title="0">{
+        if ips, err = rc.LookupIP(ctx, "ip", host); err == nil </span><span class="cov8" title="1">{
+                for _, ip := range ips </span><span class="cov8" title="1">{
                         addrs = append(addrs, net.IPAddr{IP: ip})
                 }</span>
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
-func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.NS, err error) <span class="cov0" title="0">{
+func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.NS, err error) <span class="cov8" title="1">{
         var msg *dns.Msg
-        if msg, _, err = rc.DnsResolve(ctx, name, dns.TypeNS); err == nil </span><span class="cov0" title="0">{
-                for _, rr := range msg.Answer </span><span class="cov0" title="0">{
+        if msg, _, err = rc.dnsResolve(ctx, name, dns.TypeNS); err == nil </span><span class="cov8" title="1">{
+                for _, rr := range msg.Answer </span><span class="cov8" title="1">{
                         switch rr := rr.(type) </span>{
-                        case *dns.NS:<span class="cov0" title="0">
+                        case *dns.NS:<span class="cov8" title="1">
                                 nslist = append(nslist, &amp;net.NS{Host: rr.Ns})</span>
                         }
                 }
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
 // func (std *Recursive) LookupAddr(ctx context.Context, addr string) ([]string, error)
@@ -754,9 +754,9 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
@@ -1059,6 +1059,7 @@ type Recursive struct {
         srvcookies          map[netip.Addr]srvCookie
         udperrs             map[netip.Addr]netError
         tcperrs             map[netip.Addr]netError
+        dnsResolve          func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
 }
 
 func makeCookie() string <span class="cov8" title="1">{
@@ -1111,7 +1112,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
         <span class="cov8" title="1">roots = append(roots, root4[n:]...)
         roots = append(roots, root6[n:]...)
 
-        return &amp;Recursive{
+        r := &amp;Recursive{
                 ContextDialer: dialer,
                 Cacher:        cache,
                 Resolver: &amp;net.Resolver{
@@ -1128,7 +1129,9 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
                 srvcookies:  make(map[netip.Addr]srvCookie),
                 udperrs:     make(map[netip.Addr]netError),
                 tcperrs:     make(map[netip.Addr]netError),
-        }</span>
+        }
+        r.dnsResolve = r.DnsResolve
+        return r</span>
 }
 
 // New returns a new Recursive resolver using the given ContextDialer and
