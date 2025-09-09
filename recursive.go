@@ -200,7 +200,8 @@ func (r *Recursive) OrderRoots(ctx context.Context) {
 
 // ResolveWithOptions performs a recursive DNS resolution for the provided name and record type.
 //
-// If cache is nil, no cache is used. If logw is non-nil (or DefaultLogWriter is set), write a log of events.
+// If cache is nil, no cache is used; nil caches are supported without crashing.
+// If logw is non-nil (or DefaultLogWriter is set), write a log of events.
 func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	if logw == nil {
 		logw = r.DefaultLogWriter
@@ -245,7 +246,9 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 			}
 		}
 		if err == nil {
-			cache.DnsSet(msg)
+			if cache != nil {
+				cache.DnsSet(msg)
+			}
 		}
 	}
 	if logw != nil {
