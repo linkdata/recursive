@@ -44,9 +44,8 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxDepth        = 32   // maximum recursion depth
-	maxRootAttempts = 2    // maximum number of root servers to try
-	maxSteps        = 1000 // max number of steps to allow in resolving
+	maxDepth = 32   // maximum recursion depth
+	maxSteps = 1000 // max number of steps to allow in resolving
 )
 
 var (
@@ -355,7 +354,7 @@ func (r *Recursive) getRootServers() (nslist []hostAddr) {
 	return
 }
 
-// Roots returns the current set of root servers in use.
+// GetRoots returns the current set of root servers in use.
 func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

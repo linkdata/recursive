@@ -5,7 +5,7 @@ import (
 )
 
 type Cacher interface {
-	// DnsSet may make a copy of msg and set it's dns.Msg.Zero to true and return it later with DnsGet.
+	// DnsSet may make a copy of msg and set its dns.Msg.Zero to true and return it later with DnsGet.
 	DnsSet(msg *dns.Msg)
 
 	// DnsGet returns the cached dns.Msg for the given qname and qtype, or nil.
