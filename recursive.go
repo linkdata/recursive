@@ -64,6 +64,16 @@ var (
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
 
+const (
+	maxSrvCookies = 8192
+	srvCookieTTL  = 24 * time.Hour
+)
+
+type srvCookie struct {
+	value string
+	ts    time.Time
+}
+
 type Recursive struct {
 	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
 	Cacher                              // (read-only) Cacher passed to NewWithOptions
@@ -77,7 +87,7 @@ type Recursive struct {
 	useIPv6             bool
 	rootServers         []netip.Addr
 	clicookie           string
-	srvcookies          map[netip.Addr]string
+	srvcookies          map[netip.Addr]srvCookie
 	udperrs             map[netip.Addr]netError
 	tcperrs             map[netip.Addr]netError
 }
@@ -136,7 +146,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		useIPv6:     len(root6) > 0,
 		rootServers: roots,
 		clicookie:   makeCookie(),
-		srvcookies:  make(map[netip.Addr]string),
+		srvcookies:  make(map[netip.Addr]srvCookie),
 		udperrs:     make(map[netip.Addr]netError),
 		tcperrs:     make(map[netip.Addr]netError),
 	}
@@ -158,6 +168,56 @@ func (r *Recursive) ResetCookies() {
 	defer r.mu.Unlock()
 	r.clicookie = makeCookie()
 	clear(r.srvcookies)
+}
+
+func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) {
+	cutoff := now.Add(-srvCookieTTL)
+	for addr, c := range r.srvcookies {
+		if c.ts.Before(cutoff) {
+			delete(r.srvcookies, addr)
+		}
+	}
+	if len(r.srvcookies) <= maxSrvCookies {
+		return
+	}
+	type ac struct {
+		addr netip.Addr
+		ts   time.Time
+	}
+	l := make([]ac, 0, len(r.srvcookies))
+	for addr, c := range r.srvcookies {
+		l = append(l, ac{addr: addr, ts: c.ts})
+	}
+	sort.Slice(l, func(i, j int) bool { return l[i].ts.Before(l[j].ts) })
+	for i := 0; len(r.srvcookies) > maxSrvCookies && i < len(l); i++ {
+		delete(r.srvcookies, l[i].addr)
+	}
+}
+
+func (r *Recursive) cleanupSrvCookies(now time.Time) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cleanupSrvCookiesLocked(now)
+}
+
+func (r *Recursive) getSrvCookie(addr netip.Addr) (string, bool) {
+	now := time.Now()
+	r.cleanupSrvCookies(now)
+	r.mu.RLock()
+	c, ok := r.srvcookies[addr]
+	r.mu.RUnlock()
+	if ok && now.Sub(c.ts) < srvCookieTTL {
+		return c.value, true
+	}
+	return "", false
+}
+
+func (r *Recursive) setSrvCookie(addr netip.Addr, val string) {
+	now := time.Now()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cleanupSrvCookiesLocked(now)
+	r.srvcookies[addr] = srvCookie{value: val, ts: now}
 }
 
 // OrderRoots sorts the root server list by their current latency and removes those that don't respond.
@@ -206,6 +266,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 	if logw == nil {
 		logw = r.DefaultLogWriter
 	}
+	r.cleanupSrvCookies(time.Now())
 	var q *query
 	qname = dns.CanonicalName(qname)
 	if cache != nil {

@@ -466,10 +466,8 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 			var clicookie, srvcookie string
 
 			if useCookies {
-				q.mu.RLock()
 				clicookie = q.clicookie
-				srvcookie, hasSrvCookie = q.srvcookies[nsaddr]
-				q.mu.RUnlock()
+				srvcookie, hasSrvCookie = q.getSrvCookie(nsaddr)
 
 				useCookies = !hasSrvCookie || srvcookie != ""
 
@@ -502,9 +500,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 					}
 				}
 				if !hasSrvCookie || srvcookie != newsrvcookie {
-					q.mu.Lock()
-					q.srvcookies[nsaddr] = newsrvcookie
-					q.mu.Unlock()
+					q.setSrvCookie(nsaddr, newsrvcookie)
 				}
 			}
 		}
