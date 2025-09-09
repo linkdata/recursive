@@ -42,6 +42,13 @@ func (q *query) log(format string, args ...any) bool {
 	return false
 }
 
+func maskCookie(s string) string {
+	if len(s) > 8 {
+		return s[:8] + "..."
+	}
+	return s
+}
+
 type hostAddr struct {
 	host string
 	addr netip.Addr
@@ -477,7 +484,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 						Cookie: clicookie + srvcookie,
 					})
 					if q.logw != nil {
-						fmt.Fprintf(q.logw, " COOKIE:%q", clicookie+srvcookie)
+						fmt.Fprintf(q.logw, " COOKIE:c=%q s=%q", maskCookie(clicookie), maskCookie(srvcookie))
 					}
 				}
 			}
