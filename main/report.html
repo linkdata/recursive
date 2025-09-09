@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/linkdata/recursive/query.go (73.9%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (65.1%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (65.3%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -747,9 +747,9 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
@@ -1166,7 +1166,8 @@ func (r *Recursive) OrderRoots(ctx context.Context) <span class="cov8" title="1"
 
 // ResolveWithOptions performs a recursive DNS resolution for the provided name and record type.
 //
-// If cache is nil, no cache is used. If logw is non-nil (or DefaultLogWriter is set), write a log of events.
+// If cache is nil, no cache is used; nil caches are supported without crashing.
+// If logw is non-nil (or DefaultLogWriter is set), write a log of events.
 func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
         if logw == nil </span><span class="cov8" title="1">{
                 logw = r.DefaultLogWriter
@@ -1211,8 +1212,10 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
                         }</span>
                 }
                 <span class="cov8" title="1">if err == nil </span><span class="cov8" title="1">{
-                        cache.DnsSet(msg)
-                }</span>
+                        if cache != nil </span><span class="cov8" title="1">{
+                                cache.DnsSet(msg)
+                        }</span>
+                }
         }
         <span class="cov8" title="1">if logw != nil </span><span class="cov8" title="1">{
                 if msg != nil </span><span class="cov8" title="1">{
