@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (61.3%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (66.1%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (67.0%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (72.2%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -489,7 +489,7 @@ func (q *query) glueTypes() (gt []uint16) <span class="cov8" title="1">{
         if q.useIPv4 </span><span class="cov8" title="1">{
                 gt = append(gt, dns.TypeA)
         }</span>
-        <span class="cov8" title="1">if q.useIPv6 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if q.useIPv6 </span><span class="cov8" title="1">{
                 gt = append(gt, dns.TypeAAAA)
         }</span>
         <span class="cov8" title="1">return</span>
@@ -564,14 +564,14 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                                 msg = gotmsg
                                                                 nslist = newlist
                                                         }</span>
-                                                case dns.RcodeServerFailure:<span class="cov0" title="0">
-                                                        if final </span><span class="cov0" title="0">{
+                                                case dns.RcodeServerFailure:<span class="cov8" title="1">
+                                                        if final </span><span class="cov8" title="1">{
                                                                 q.setCache(gotmsg)
                                                                 srv = ha.addr
                                                                 msg = gotmsg
                                                                 return
                                                         }</span>
-                                                        <span class="cov0" title="0">msg = nil
+                                                        <span class="cov8" title="1">msg = nil
                                                         srv = ha.addr
                                                         continue trynextnameserver</span>
                                                 case dns.RcodeRefused:<span class="cov0" title="0">
@@ -615,7 +615,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                         err = errors.Join(err, ErrNoResponse)
                                 }</span>
                         } else<span class="cov8" title="1"> {
-                                if msg == nil </span><span class="cov0" title="0">{
+                                if msg == nil </span><span class="cov8" title="1">{
                                         _ = q.dbg() &amp;&amp; q.log("all nameservers returned SERVFAIL\n")
                                         q.setCache(gotmsg)
                                         msg = gotmsg
@@ -756,7 +756,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         }</span>
                         <span class="cov8" title="1">return -1</span>
                 }
-                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
                 }</span>
                 <span class="cov8" title="1">n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
@@ -823,7 +823,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                 var network string
                 if nsaddr.Is4() </span><span class="cov8" title="1">{
                         network = protocol + "4"
-                }</span> else<span class="cov0" title="0"> {
+                }</span> else<span class="cov8" title="1"> {
                         network = protocol + "6"
                 }</span>
 
@@ -960,7 +960,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
                         }</span>
                 }
         }
-        <span class="cov8" title="1">if (msg == nil || err != nil) &amp;&amp; q.useable(nsaddr) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if (msg == nil || err != nil) &amp;&amp; q.useable(nsaddr) </span><span class="cov8" title="1">{
                 msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
         }</span>
         <span class="cov8" title="1">return</span>
@@ -1358,7 +1358,7 @@ func (r *Recursive) useable(addr netip.Addr) (ok bool) <span class="cov8" title=
 }
 
 func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) <span class="cov8" title="1">{
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 isIpv6err = nsaddr.Is6()
                 _, ok := err.(net.Error)
                 ok = ok || errors.Is(err, io.EOF)
@@ -1389,7 +1389,7 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
                 switch protocol </span>{
                 case "udp", "udp4", "udp6":<span class="cov8" title="1">
                         m = r.udperrs</span>
-                case "tcp", "tcp4", "tcp6":<span class="cov0" title="0">
+                case "tcp", "tcp4", "tcp6":<span class="cov8" title="1">
                         m = r.tcperrs</span>
                 }
                 <span class="cov8" title="1">err = net.ErrClosed
@@ -1416,8 +1416,8 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
         <span class="cov8" title="1">return</span>
 }
 
-func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov0" title="0">{
-        if err != nil </span><span class="cov0" title="0">{
+func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov8" title="1">{
                 errstr := err.Error()
                 if strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") </span><span class="cov0" title="0">{
                         r.mu.Lock()
@@ -1436,7 +1436,7 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov
                         }
                 }
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 
 func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov0" title="0">{
