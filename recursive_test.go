@@ -1,4 +1,4 @@
-package recursive_test
+package recursive
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/linkdata/recursive"
 	"github.com/miekg/dns"
 )
 
@@ -17,11 +16,11 @@ func Test_Resolve1111(t *testing.T) {
 	} else {
 		c.Close()
 	}
-	rec := recursive.New(nil)
+	rec := New(nil)
 	ctx, cancel := context.WithTimeout(t.Context(), time.Second)
 	defer cancel()
 	var sb strings.Builder
-	retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, &sb, "one.one.one.one", dns.TypeA)
+	retv, srv, err := rec.ResolveWithOptions(ctx, DefaultCache, &sb, "one.one.one.one", dns.TypeA)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,11 +63,11 @@ func Test_Resolve1111(t *testing.T) {
 	if !msg.Zero {
 		t.Error("expected Z to be set")
 	}
-	entries := recursive.DefaultCache.Entries()
+	entries := DefaultCache.Entries()
 	if entries == 0 {
 		t.Error(entries)
 	}
-	hitratio := recursive.DefaultCache.HitRatio()
+	hitratio := DefaultCache.HitRatio()
 	if hitratio == 0 {
 		t.Error("hit ratio is zero")
 	}
