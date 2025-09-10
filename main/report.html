@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/linkdata/recursive/cache.go (92.0%)</option>
+				<option value="file0">github.com/linkdata/recursive/cache.go (95.8%)</option>
 				
 				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (88.5%)</option>
 				
@@ -107,8 +107,8 @@ type Cache struct {
         MinTTL time.Duration // always cache responses for at least this long
         MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
         NXTTL  time.Duration // cache NXDOMAIN responses for this long
-        count  uint64        // atomic
-        hits   uint64        // atomic
+        count  atomic.Uint64
+        hits   atomic.Uint64
         cq     []*cacheQtype
 }
 
@@ -126,14 +126,13 @@ func NewCache() *Cache <span class="cov8" title="1">{
 }
 
 // HitRatio returns the hit ratio as a percentage.
-func (cache *Cache) HitRatio() float64 <span class="cov8" title="1">{
+func (cache *Cache) HitRatio() (n float64) <span class="cov8" title="1">{
         if cache != nil </span><span class="cov8" title="1">{
-                if count := atomic.LoadUint64(&amp;cache.count); count &gt; 0 </span><span class="cov8" title="1">{
-                        hits := atomic.LoadUint64(&amp;cache.hits)
-                        return float64(hits*100) / float64(count)
+                if count := cache.count.Load(); count &gt; 0 </span><span class="cov8" title="1">{
+                        n = float64(cache.hits.Load()*100) / float64(count)
                 }</span>
         }
-        <span class="cov0" title="0">return 0</span>
+        <span class="cov8" title="1">return</span>
 }
 
 // Entries returns the number of entries in the cache.
@@ -151,10 +150,8 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov8" title="1">{
                 if qtype := msg.Question[0].Qtype; qtype &lt;= MaxQtype </span><span class="cov8" title="1">{
                         msg = msg.Copy()
                         msg.Zero = true
-                        var ttl time.Duration
-                        if msg.Rcode == dns.RcodeNameError </span><span class="cov0" title="0">{
-                                ttl = cache.NXTTL
-                        }</span> else<span class="cov8" title="1"> {
+                        ttl := cache.NXTTL
+                        if msg.Rcode != dns.RcodeNameError </span><span class="cov8" title="1">{
                                 ttl = max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
                                 if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
                                         ttl = min(cache.MaxTTL, ttl)
@@ -167,10 +164,10 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov8" title="1">{
 
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span class="cov8" title="1">{
         if cache != nil </span><span class="cov8" title="1">{
-                atomic.AddUint64(&amp;cache.count, 1)
+                cache.count.Add(1)
                 if qtype &lt;= MaxQtype </span><span class="cov8" title="1">{
                         if msg = cache.cq[qtype].get(qname); msg != nil </span><span class="cov8" title="1">{
-                                atomic.AddUint64(&amp;cache.hits, 1)
+                                cache.hits.Add(1)
                         }</span>
                 }
         }
