@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/linkdata/recursive/query.go (66.5%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (85.3%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (87.2%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -1165,7 +1165,7 @@ func New(dialer proxy.ContextDialer) *Recursive <span class="cov8" title="1">{
 }</span>
 
 // ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
-func (r *Recursive) ResetCookies() <span class="cov0" title="0">{
+func (r *Recursive) ResetCookies() <span class="cov8" title="1">{
         r.mu.Lock()
         defer r.mu.Unlock()
         r.clicookie = makeCookie()
