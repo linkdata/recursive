@@ -22,8 +22,8 @@ type Cache struct {
 	MinTTL time.Duration // always cache responses for at least this long
 	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
 	NXTTL  time.Duration // cache NXDOMAIN responses for this long
-	count  uint64        // atomic
-	hits   uint64        // atomic
+	count  atomic.Uint64
+	hits   atomic.Uint64
 	cq     []*cacheQtype
 }
 
@@ -41,14 +41,13 @@ func NewCache() *Cache {
 }
 
 // HitRatio returns the hit ratio as a percentage.
-func (cache *Cache) HitRatio() float64 {
+func (cache *Cache) HitRatio() (n float64) {
 	if cache != nil {
-		if count := atomic.LoadUint64(&cache.count); count > 0 {
-			hits := atomic.LoadUint64(&cache.hits)
-			return float64(hits*100) / float64(count)
+		if count := cache.count.Load(); count > 0 {
+			n = float64(cache.hits.Load()*100) / float64(count)
 		}
 	}
-	return 0
+	return
 }
 
 // Entries returns the number of entries in the cache.
@@ -66,10 +65,8 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
 			msg.Zero = true
-			var ttl time.Duration
-			if msg.Rcode == dns.RcodeNameError {
-				ttl = cache.NXTTL
-			} else {
+			ttl := cache.NXTTL
+			if msg.Rcode != dns.RcodeNameError {
 				ttl = max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
 				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
 					ttl = min(cache.MaxTTL, ttl)
@@ -82,10 +79,10 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	if cache != nil {
-		atomic.AddUint64(&cache.count, 1)
+		cache.count.Add(1)
 		if qtype <= MaxQtype {
 			if msg = cache.cq[qtype].get(qname); msg != nil {
-				atomic.AddUint64(&cache.hits, 1)
+				cache.hits.Add(1)
 			}
 		}
 	}
