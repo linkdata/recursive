@@ -25,7 +25,7 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
 	var rtt time.Duration
 	for i := 0; i < numProbes; i++ {
 		now := time.Now()
-		conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
+		conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, dnsPort).String())
 		if err != nil {
 			return
 		}
