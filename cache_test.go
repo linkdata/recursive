@@ -56,3 +56,20 @@ func TestCacheClean(t *testing.T) {
 		t.Fatalf("Entries() after Clean = %d; want 0", entries)
 	}
 }
+
+func TestCacheTTLExpiration(t *testing.T) {
+	c := NewCache()
+	c.MinTTL = 0
+	c.MaxTTL = 60 * time.Second
+	msg := newTestMsg("example.org.", 0)
+	c.DnsSet(msg)
+	if entries := c.Entries(); entries != 1 {
+		t.Fatalf("Entries() before expiration = %d; want 1", entries)
+	}
+	if got := c.DnsGet("example.org.", dns.TypeA); got != nil {
+		t.Fatalf("DnsGet after expiration returned %v; want nil", got)
+	}
+	if entries := c.Entries(); entries != 0 {
+		t.Fatalf("Entries() after expiration = %d; want 0", entries)
+	}
+}
