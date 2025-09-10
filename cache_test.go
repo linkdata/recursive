@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"context"
 	"net"
 	"testing"
 	"time"
@@ -71,5 +72,25 @@ func TestCacheTTLExpiration(t *testing.T) {
 	}
 	if entries := c.Entries(); entries != 0 {
 		t.Fatalf("Entries() after expiration = %d; want 0", entries)
+	}
+}
+
+func TestCacheDnsResolve(t *testing.T) {
+	c := NewCache()
+	msg := newTestMsg("example.org.", 5)
+	c.DnsSet(msg)
+
+	got, srv, err := c.DnsResolve(context.Background(), "example.org.", dns.TypeA)
+	if err != nil {
+		t.Fatalf("DnsResolve error: %v", err)
+	}
+	if got == nil {
+		t.Fatalf("DnsResolve returned nil msg")
+	}
+	if srv.IsValid() {
+		t.Fatalf("DnsResolve returned valid server address %v", srv)
+	}
+	if ratio := c.HitRatio(); ratio != 100 {
+		t.Fatalf("HitRatio() = %v; want 100", ratio)
 	}
 }

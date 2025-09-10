@@ -53,6 +53,25 @@ func TestMinTTL(t *testing.T) {
 	}
 }
 
+func TestMinTTLIgnoresOPT(t *testing.T) {
+	msg := new(dns.Msg)
+	msg.SetQuestion("example.org.", dns.TypeA)
+	msg.Answer = []dns.RR{
+		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 30}, A: net.ParseIP("192.0.2.1")},
+	}
+	msg.Extra = []dns.RR{
+		&dns.OPT{Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT, Class: 4096}},
+	}
+	if ttl := MinTTL(msg); ttl != 30 {
+		t.Fatalf("MinTTL ignoring OPT = %d; want 30", ttl)
+	}
+	onlyOpt := new(dns.Msg)
+	onlyOpt.Extra = []dns.RR{&dns.OPT{Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT, Class: 4096}}}
+	if ttl := MinTTL(onlyOpt); ttl != -1 {
+		t.Fatalf("MinTTL(onlyOpt) = %d; want -1", ttl)
+	}
+}
+
 func TestNetError(t *testing.T) {
 	inner := errors.New("boom")
 	ne := netError{Err: inner}
