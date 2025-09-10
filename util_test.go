@@ -2,10 +2,11 @@ package recursive
 
 import (
 	"errors"
-	"github.com/miekg/dns"
 	"net"
 	"net/netip"
 	"testing"
+
+	"github.com/miekg/dns"
 )
 
 func TestDnsTypeToString(t *testing.T) {
@@ -39,13 +40,16 @@ func TestMinTTL(t *testing.T) {
 	msg.SetQuestion("example.org.", dns.TypeA)
 	msg.Answer = []dns.RR{
 		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 30}, A: net.ParseIP("192.0.2.1")},
-		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 10}, A: net.ParseIP("192.0.2.2")},
+		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 20}, A: net.ParseIP("192.0.2.2")},
+	}
+	msg.Ns = []dns.RR{
+		&dns.NS{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeNS, Class: dns.ClassINET, Ttl: 10}, Ns: "ns1.example.org."},
 	}
 	msg.Extra = []dns.RR{
-		&dns.NS{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeNS, Class: dns.ClassINET, Ttl: 20}, Ns: "ns.example.org."},
+		&dns.NS{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeNS, Class: dns.ClassINET, Ttl: 5}, Ns: "ns2.example.org."},
 	}
-	if ttl := MinTTL(msg); ttl != 10 {
-		t.Errorf("MinTTL() = %d; want 10", ttl)
+	if ttl := MinTTL(msg); ttl != 5 {
+		t.Errorf("MinTTL() = %d; want 5", ttl)
 	}
 	empty := new(dns.Msg)
 	if ttl := MinTTL(empty); ttl != -1 {

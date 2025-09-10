@@ -2,7 +2,6 @@ package recursive
 
 import (
 	"context"
-	"math"
 	"net/netip"
 	"sync/atomic"
 	"time"
@@ -109,24 +108,4 @@ func (cache *Cache) Clean() {
 			cq.clean(now)
 		}
 	}
-}
-
-// MinTTL returns the lowest resource record TTL in the message, or -1 if there are no records.
-func MinTTL(msg *dns.Msg) int {
-	minTTL := math.MaxInt
-	for _, rr := range msg.Answer {
-		minTTL = min(minTTL, int(rr.Header().Ttl))
-	}
-	for _, rr := range msg.Ns {
-		minTTL = min(minTTL, int(rr.Header().Ttl))
-	}
-	for _, rr := range msg.Extra {
-		if rr.Header().Rrtype != dns.TypeOPT {
-			minTTL = min(minTTL, int(rr.Header().Ttl))
-		}
-	}
-	if minTTL == math.MaxInt {
-		minTTL = -1
-	}
-	return minTTL
 }
