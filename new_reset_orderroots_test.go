@@ -106,3 +106,16 @@ func TestResetCookies(t *testing.T) {
 		t.Fatalf("expected srvcookies cleared, got %d", len(r.srvcookies))
 	}
 }
+
+func TestGetRoots(t *testing.T) {
+	ipv4 := netip.MustParseAddr("192.0.2.1")
+	ipv6 := netip.MustParseAddr("2001:db8::1")
+	r := &Recursive{rootServers: []netip.Addr{ipv4, ipv6}}
+	roots4, roots6 := r.GetRoots()
+	if len(roots4) != 1 || roots4[0] != ipv4 {
+		t.Fatalf("roots4 = %v; want [%v]", roots4, ipv4)
+	}
+	if len(roots6) != 1 || roots6[0] != ipv6 {
+		t.Fatalf("roots6 = %v; want [%v]", roots6, ipv6)
+	}
+}
