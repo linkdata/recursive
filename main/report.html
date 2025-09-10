@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (66.5%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (66.8%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (85.3%)</option>
 				
@@ -160,7 +160,7 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov8" title="1">{
                                         ttl = min(cache.MaxTTL, ttl)
                                 }</span>
                         }
-                        <span class="cov8" title="1">cache.cq[qtype].set(msg, int(ttl/time.Second))</span>
+                        <span class="cov8" title="1">cache.cq[qtype].set(msg, ttl)</span>
                 }
         }
 }
@@ -245,9 +245,9 @@ func (cq *cacheQtype) entries() (n int) <span class="cov8" title="1">{
         return
 }</span>
 
-func (cq *cacheQtype) set(msg *dns.Msg, ttl int) <span class="cov8" title="1">{
+func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) <span class="cov8" title="1">{
         qname := msg.Question[0].Name
-        expires := time.Now().Add(time.Duration(ttl) * time.Second)
+        expires := time.Now().Add(ttl)
         cq.mu.Lock()
         cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
         cq.mu.Unlock()
@@ -773,7 +773,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
