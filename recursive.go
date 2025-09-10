@@ -9,9 +9,11 @@ import (
 	rand "math/rand/v2"
 	"net"
 	"net/netip"
+	"os"
 	"sort"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/miekg/dns"
@@ -53,6 +55,8 @@ var (
 	ErrInvalidCookie = errors.New("invalid cookie")
 	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
 	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
+	// ErrMaxSteps is returned when resolving exceeds the step limit.
+	ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// It is equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
@@ -391,10 +395,15 @@ func (r *Recursive) useable(addr netip.Addr) (ok bool) {
 func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) {
 	if err != nil {
 		isIpv6err = nsaddr.Is6()
-		_, ok := err.(net.Error)
-		ok = ok || errors.Is(err, io.EOF)
-		ok = ok || strings.Contains(err.Error(), "timeout")
-		ok = ok || strings.Contains(err.Error(), "refused")
+		var ne net.Error
+		ok := errors.Is(err, io.EOF)
+		if errors.As(err, &ne) {
+			ok = true
+		}
+		ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
+		ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+		errstr := err.Error()
+		ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
 		if ok {
 			var m map[netip.Addr]netError
 			switch protocol {
@@ -450,7 +459,8 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 	if err != nil {
 		errstr := err.Error()
-		if strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") {
+		if errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTUNREACH) ||
+			strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") {
 			r.mu.Lock()
 			defer r.mu.Unlock()
 			if r.useIPv6 {
@@ -471,8 +481,10 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 }
 
 func (r *Recursive) maybeDisableUdp(err error) (disabled bool) {
-	if ne, ok := err.(net.Error); ok {
-		if !ne.Timeout() && strings.Contains(ne.Error(), "network not implemented") {
+	var ne net.Error
+	if errors.As(err, &ne) && !ne.Timeout() {
+		errstr := err.Error()
+		if errors.Is(err, syscall.ENOSYS) || errors.Is(err, syscall.EPROTONOSUPPORT) || strings.Contains(errstr, "network not implemented") {
 			r.mu.Lock()
 			defer r.mu.Unlock()
 			disabled = r.useUDP

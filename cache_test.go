@@ -3,6 +3,7 @@ package recursive
 import (
 	"net"
 	"testing"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -19,7 +20,7 @@ func newTestMsg(name string, ttl uint32) *dns.Msg {
 func TestCacheSetGetAndStats(t *testing.T) {
 	c := NewCache()
 	c.MinTTL = 0
-	c.MaxTTL = 60
+	c.MaxTTL = 60 * time.Second
 	msg := newTestMsg("example.org.", 5)
 	c.DnsSet(msg)
 	if entries := c.Entries(); entries != 1 {
@@ -43,7 +44,7 @@ func TestCacheSetGetAndStats(t *testing.T) {
 func TestCacheClean(t *testing.T) {
 	c := NewCache()
 	c.MinTTL = 0
-	c.MaxTTL = -1
+	c.MaxTTL = -1 * time.Second
 	msg := new(dns.Msg)
 	msg.SetQuestion("example.org.", dns.TypeA)
 	c.DnsSet(msg)

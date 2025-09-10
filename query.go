@@ -400,7 +400,7 @@ func (q *query) followCNAME(cn string) bool {
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
 	q.steps++
 	if q.steps > maxSteps {
-		err = ErrMaxDepth
+		err = ErrMaxSteps
 		return
 	}
 	if q.cache != nil && !q.nomini {
