@@ -23,9 +23,9 @@ func (cq *cacheQtype) entries() (n int) {
 	return
 }
 
-func (cq *cacheQtype) set(msg *dns.Msg, ttl int) {
+func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) {
 	qname := msg.Question[0].Name
-	expires := time.Now().Add(time.Duration(ttl) * time.Second)
+	expires := time.Now().Add(ttl)
 	cq.mu.Lock()
 	cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
 	cq.mu.Unlock()

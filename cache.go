@@ -75,7 +75,7 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 					ttl = min(cache.MaxTTL, ttl)
 				}
 			}
-			cache.cq[qtype].set(msg, int(ttl/time.Second))
+			cache.cq[qtype].set(msg, ttl)
 		}
 	}
 }
