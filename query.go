@@ -457,7 +457,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 			ctx = ctx2
 		}
 
-		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil {
+		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, dnsPort).String()); err == nil {
 			q.sent++
 			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
 			defer dnsconn.Close()

@@ -111,10 +111,10 @@ func stubResponses1111() map[stubKey]*dns.Msg {
 			nsRR("one.", "x.nic.one."),
 		},
 		Extra: []dns.RR{
-			aRR("a.nic.one.", "37.209.192.9"),
-			aRR("b.nic.one.", "37.209.194.9"),
-			aRR("c.nic.one.", "37.209.196.9"),
-			aRR("x.nic.one.", "156.154.172.82"),
+			aRR("a.nic.one.", "127.0.1.2"),
+			aRR("b.nic.one.", "127.0.1.3"),
+			aRR("c.nic.one.", "127.0.1.4"),
+			aRR("x.nic.one.", "127.0.1.5"),
 		},
 	}
 	// a.nic.one.: NS one.one.
@@ -124,7 +124,7 @@ func stubResponses1111() map[stubKey]*dns.Msg {
 			nsRR("one.one.", "auth.g1-dns.com."),
 		},
 		Extra: []dns.RR{
-			aRR("auth.g1-dns.one.", "185.10.11.11"),
+			aRR("auth.g1-dns.one.", "127.0.1.6"),
 		},
 	}
 	// auth.g1-dns.one.: NS one.one.one.
@@ -143,10 +143,10 @@ func stubResponses1111() map[stubKey]*dns.Msg {
 			nsRR("com.", "d.gtld-servers.net."),
 		},
 		Extra: []dns.RR{
-			aRR("a.gtld-servers.net.", "192.5.6.30"),
-			aRR("b.gtld-servers.net.", "192.33.14.30"),
-			aRR("c.gtld-servers.net.", "192.26.92.30"),
-			aRR("d.gtld-servers.net.", "192.31.80.30"),
+			aRR("a.gtld-servers.net.", "127.0.1.7"),
+			aRR("b.gtld-servers.net.", "127.0.1.8"),
+			aRR("c.gtld-servers.net.", "127.0.1.9"),
+			aRR("d.gtld-servers.net.", "127.0.1.10"),
 		},
 	}
 	responses[stubKey{"cloudflare.com.", dns.TypeA}] = &dns.Msg{
@@ -157,30 +157,26 @@ func stubResponses1111() map[stubKey]*dns.Msg {
 			nsRR("cloudflare.com.", "ns6.cloudflare.com."),
 		},
 		Extra: []dns.RR{
-			aRR("ns3.cloudflare.com.", "162.159.0.33"),
-			aRR("ns4.cloudflare.com.", "162.159.1.33"),
-			aRR("ns5.cloudflare.com.", "162.159.2.9"),
-			aRR("ns6.cloudflare.com.", "162.159.3.11"),
+			aRR("ns3.cloudflare.com.", "127.0.1.11"),
+			aRR("ns4.cloudflare.com.", "127.0.1.12"),
+			aRR("ns5.cloudflare.com.", "127.0.1.13"),
+			aRR("ns6.cloudflare.com.", "127.0.1.14"),
 		},
 	}
 	responses[stubKey{"ns.cloudflare.com.", dns.TypeA}] = &dns.Msg{
 		Answer: []dns.RR{
-			aRR("ns.cloudflare.com.", "162.159.0.33"),
-			aRR("ns.cloudflare.com.", "162.159.4.8"),
+			aRR("ns.cloudflare.com.", "127.0.1.15"),
+			aRR("ns.cloudflare.com.", "127.0.1.16"),
 		},
 	}
 	responses[stubKey{"dorthy.ns.cloudflare.com.", dns.TypeA}] = &dns.Msg{
 		Answer: []dns.RR{
-			aRR("dorthy.ns.cloudflare.com.", "108.162.192.249"),
-			aRR("dorthy.ns.cloudflare.com.", "173.245.58.249"),
-			aRR("dorthy.ns.cloudflare.com.", "172.64.32.249"),
+			aRR("dorthy.ns.cloudflare.com.", "127.0.1.17"),
 		},
 	}
 	responses[stubKey{"terin.ns.cloudflare.com.", dns.TypeA}] = &dns.Msg{
 		Answer: []dns.RR{
-			aRR("terin.ns.cloudflare.com.", "108.162.193.236"),
-			aRR("terin.ns.cloudflare.com.", "172.64.33.236"),
-			aRR("terin.ns.cloudflare.com.", "173.245.59.236"),
+			aRR("terin.ns.cloudflare.com.", "127.0.1.18"),
 		},
 	}
 	// Final NS for one.one.one.one.
