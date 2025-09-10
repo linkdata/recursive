@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/linkdata/recursive/cache.go (95.8%)</option>
+				<option value="file0">github.com/linkdata/recursive/cache.go (93.8%)</option>
 				
 				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (100.0%)</option>
 				
@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (66.8%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (66.5%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (85.3%)</option>
 				
@@ -202,7 +202,7 @@ func MinTTL(msg *dns.Msg) int <span class="cov8" title="1">{
         for _, rr := range msg.Answer </span><span class="cov8" title="1">{
                 minTTL = min(minTTL, int(rr.Header().Ttl))
         }</span>
-        <span class="cov8" title="1">for _, rr := range msg.Ns </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">for _, rr := range msg.Ns </span><span class="cov0" title="0">{
                 minTTL = min(minTTL, int(rr.Header().Ttl))
         }</span>
         <span class="cov8" title="1">for _, rr := range msg.Extra </span><span class="cov8" title="1">{
@@ -598,7 +598,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                                 return
                                                         }</span>
                                                         <span class="cov0" title="0">fallthrough</span>
-                                                default:<span class="cov0" title="0">
+                                                default:<span class="cov8" title="1">
                                                         q.setCache(gotmsg)
                                                         srv = ha.addr
                                                         msg = gotmsg
@@ -725,8 +725,8 @@ func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) <span class="cov8" tit
                         host = dns.CanonicalName(v.Hdr.Name)
                         addr = ip.Unmap()
                 }</span>
-        case *dns.AAAA:<span class="cov8" title="1">
-                if ip, ok := netip.AddrFromSlice(v.AAAA); ok </span><span class="cov8" title="1">{
+        case *dns.AAAA:<span class="cov0" title="0">
+                if ip, ok := netip.AddrFromSlice(v.AAAA); ok </span><span class="cov0" title="0">{
                         host = dns.CanonicalName(v.Hdr.Name)
                         addr = ip
                 }</span>
@@ -770,7 +770,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -868,7 +868,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         ctx = ctx2
                 }</span>
 
-                <span class="cov8" title="1">if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, 53).String()); err == nil </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, dnsPort).String()); err == nil </span><span class="cov8" title="1">{
                         q.sent++
                         dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
                         defer dnsconn.Close()
@@ -904,7 +904,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
                                 newsrvcookie := srvcookie
-                                if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
+                                if opt := msg.IsEdns0(); opt != nil </span><span class="cov0" title="0">{
                                         for _, rr := range opt.Option </span><span class="cov0" title="0">{
                                                 switch rr := rr.(type) </span>{
                                                 case *dns.EDNS0_COOKIE:<span class="cov0" title="0">
@@ -1507,7 +1507,7 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
         var rtt time.Duration
         for i := 0; i &lt; numProbes; i++ </span><span class="cov8" title="1">{
                 now := time.Now()
-                conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
+                conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, dnsPort).String())
                 if err != nil </span><span class="cov8" title="1">{
                         return
                 }</span>
