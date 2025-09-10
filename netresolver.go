@@ -4,15 +4,16 @@ import (
 	"context"
 	"net"
 	"net/netip"
+	"slices"
 
 	"github.com/miekg/dns"
 )
 
 // override some of the standard Go net.Resolver functions
 
-func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) {
-	msg, _, err := rc.dnsResolve(ctx, host, qtype)
-	if msg != nil {
+func (rc *Recursive) lookupNetIP(ctx context.Context, host string, qtype uint16) (ips []net.IP, err error) {
+	var msg *dns.Msg
+	if msg, _, err = rc.dnsResolve(ctx, host, qtype); msg != nil {
 		for _, rr := range msg.Answer {
 			switch rr := rr.(type) {
 			case *dns.A:
@@ -22,15 +23,31 @@ func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string,
 			}
 		}
 	}
-	return ips, err
+	return
 }
 
 func (rc *Recursive) LookupIP(ctx context.Context, network, host string) (ips []net.IP, err error) {
+	seen := map[string]struct{}{}
+	add := func(list []net.IP) {
+		for _, ip := range list {
+			key := ip.String()
+			if _, ok := seen[key]; !ok {
+				seen[key] = struct{}{}
+				ips = append(ips, ip)
+			}
+		}
+	}
 	if network == "ip" || network == "ip4" {
-		ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeA)
+		var list []net.IP
+		if list, err = rc.lookupNetIP(ctx, host, dns.TypeA); err == nil {
+			add(list)
+		}
 	}
 	if network == "ip" || network == "ip6" {
-		ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeAAAA)
+		var list []net.IP
+		if list, err = rc.lookupNetIP(ctx, host, dns.TypeAAAA); err == nil {
+			add(list)
+		}
 	}
 	if len(ips) > 0 {
 		err = nil
@@ -56,6 +73,8 @@ func (rc *Recursive) LookupNetIP(ctx context.Context, network, host string) (add
 				addrs = append(addrs, ip)
 			}
 		}
+		slices.SortFunc(addrs, func(a, b netip.Addr) int { return a.Compare(b) })
+		addrs = slices.Compact(addrs)
 	}
 	return
 }

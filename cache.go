@@ -10,20 +10,20 @@ import (
 	"github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10       // ten seconds
-const DefaultMaxTTL = 3600 * 6 // six hours
-const DefaultNXTTL = 3600      // one hour
+const DefaultMinTTL = 10 * time.Second // ten seconds
+const DefaultMaxTTL = 6 * time.Hour    // six hours
+const DefaultNXTTL = time.Hour         // one hour
 const MaxQtype = 260
 
 var _ Cacher = (*Cache)(nil)
 var _ Resolver = (*Cache)(nil)
 
 type Cache struct {
-	MinTTL int    // always cache responses for at least this long
-	MaxTTL int    // never cache responses for longer than this (excepting successful NS responses)
-	NXTTL  int    // cache NXDOMAIN responses for this long
-	count  uint64 // atomic
-	hits   uint64 // atomic
+	MinTTL time.Duration // always cache responses for at least this long
+	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
+	NXTTL  time.Duration // cache NXDOMAIN responses for this long
+	count  uint64        // atomic
+	hits   uint64        // atomic
 	cq     []*cacheQtype
 }
 
@@ -66,16 +66,16 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
 			msg = msg.Copy()
 			msg.Zero = true
-			var ttl int
+			var ttl time.Duration
 			if msg.Rcode == dns.RcodeNameError {
 				ttl = cache.NXTTL
 			} else {
-				ttl = max(cache.MinTTL, MinTTL(msg))
+				ttl = max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
 				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
 					ttl = min(cache.MaxTTL, ttl)
 				}
 			}
-			cache.cq[qtype].set(msg, ttl)
+			cache.cq[qtype].set(msg, int(ttl/time.Second))
 		}
 	}
 }

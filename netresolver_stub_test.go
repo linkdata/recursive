@@ -29,8 +29,13 @@ func TestLookupFunctionsWithStub(t *testing.T) {
 	ipv4 := net.ParseIP("192.0.2.1")
 	ipv6 := net.ParseIP("2001:db8::1")
 
-	aMsg := &dns.Msg{Answer: []dns.RR{&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}, A: ipv4}}}
-	aaaaMsg := &dns.Msg{Answer: []dns.RR{&dns.AAAA{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 60}, AAAA: ipv6}}}
+	aMsg := &dns.Msg{Answer: []dns.RR{
+		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}, A: ipv4},
+		&dns.A{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 60}, A: ipv4},
+	}}
+	aaaaMsg := &dns.Msg{Answer: []dns.RR{
+		&dns.AAAA{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 60}, AAAA: ipv6},
+	}}
 	nsMsg := &dns.Msg{Answer: []dns.RR{&dns.NS{Hdr: dns.RR_Header{Name: "example.org.", Rrtype: dns.TypeNS, Class: dns.ClassINET, Ttl: 60}, Ns: "ns.example.org."}}}
 
 	r := newStubRecursive(map[uint16]*dns.Msg{
@@ -50,6 +55,9 @@ func TestLookupFunctionsWithStub(t *testing.T) {
 	}
 	if !ips[0].Equal(ipv6) && !ips[1].Equal(ipv6) {
 		t.Errorf("IPv6 address missing from LookupIP")
+	}
+	if ips[0].Equal(ips[1]) {
+		t.Errorf("duplicate IPs returned from LookupIP")
 	}
 
 	ips4, err := r.LookupIP(ctx, "ip4", "example.org")
