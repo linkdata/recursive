@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/netip"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -45,6 +46,9 @@ func Test_Resolve1111(t *testing.T) {
 	servers := make([]*dnstest.Server, 0, len(addrs))
 	srv, err := dnstest.NewServer(net.JoinHostPort(addrs[0], "0"), dnstestResps)
 	if err != nil {
+		if runtime.GOOS == "darwin" {
+			t.Log("see https://superuser.com/questions/458875/how-do-you-get-loopback-addresses-other-than-127-0-0-1-to-work-on-os-x")
+		}
 		t.Fatalf("start server: %v", err)
 	}
 	servers = append(servers, srv)
