@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (66.1%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (66.5%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (72.2%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (85.3%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -95,20 +95,20 @@ import (
         "github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10       // ten seconds
-const DefaultMaxTTL = 3600 * 6 // six hours
-const DefaultNXTTL = 3600      // one hour
+const DefaultMinTTL = 10 * time.Second // ten seconds
+const DefaultMaxTTL = 6 * time.Hour    // six hours
+const DefaultNXTTL = time.Hour         // one hour
 const MaxQtype = 260
 
 var _ Cacher = (*Cache)(nil)
 var _ Resolver = (*Cache)(nil)
 
 type Cache struct {
-        MinTTL int    // always cache responses for at least this long
-        MaxTTL int    // never cache responses for longer than this (excepting successful NS responses)
-        NXTTL  int    // cache NXDOMAIN responses for this long
-        count  uint64 // atomic
-        hits   uint64 // atomic
+        MinTTL time.Duration // always cache responses for at least this long
+        MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
+        NXTTL  time.Duration // cache NXDOMAIN responses for this long
+        count  uint64        // atomic
+        hits   uint64        // atomic
         cq     []*cacheQtype
 }
 
@@ -151,16 +151,16 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov8" title="1">{
                 if qtype := msg.Question[0].Qtype; qtype &lt;= MaxQtype </span><span class="cov8" title="1">{
                         msg = msg.Copy()
                         msg.Zero = true
-                        var ttl int
+                        var ttl time.Duration
                         if msg.Rcode == dns.RcodeNameError </span><span class="cov0" title="0">{
                                 ttl = cache.NXTTL
                         }</span> else<span class="cov8" title="1"> {
-                                ttl = max(cache.MinTTL, MinTTL(msg))
+                                ttl = max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
                                 if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
                                         ttl = min(cache.MaxTTL, ttl)
                                 }</span>
                         }
-                        <span class="cov8" title="1">cache.cq[qtype].set(msg, ttl)</span>
+                        <span class="cov8" title="1">cache.cq[qtype].set(msg, int(ttl/time.Second))</span>
                 }
         }
 }
@@ -307,15 +307,16 @@ import (
         "context"
         "net"
         "net/netip"
+        "slices"
 
         "github.com/miekg/dns"
 )
 
 // override some of the standard Go net.Resolver functions
 
-func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string, qtype uint16) ([]net.IP, error) <span class="cov8" title="1">{
-        msg, _, err := rc.dnsResolve(ctx, host, qtype)
-        if msg != nil </span><span class="cov8" title="1">{
+func (rc *Recursive) lookupNetIP(ctx context.Context, host string, qtype uint16) (ips []net.IP, err error) <span class="cov8" title="1">{
+        var msg *dns.Msg
+        if msg, _, err = rc.dnsResolve(ctx, host, qtype); msg != nil </span><span class="cov8" title="1">{
                 for _, rr := range msg.Answer </span><span class="cov8" title="1">{
                         switch rr := rr.(type) </span>{
                         case *dns.A:<span class="cov8" title="1">
@@ -325,16 +326,32 @@ func (rc *Recursive) lookupNetIP(ctx context.Context, ips []net.IP, host string,
                         }
                 }
         }
-        <span class="cov8" title="1">return ips, err</span>
+        <span class="cov8" title="1">return</span>
 }
 
 func (rc *Recursive) LookupIP(ctx context.Context, network, host string) (ips []net.IP, err error) <span class="cov8" title="1">{
-        if network == "ip" || network == "ip4" </span><span class="cov8" title="1">{
-                ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeA)
-        }</span>
+        seen := map[string]struct{}{}
+        add := func(list []net.IP) </span><span class="cov8" title="1">{
+                for _, ip := range list </span><span class="cov8" title="1">{
+                        key := ip.String()
+                        if _, ok := seen[key]; !ok </span><span class="cov8" title="1">{
+                                seen[key] = struct{}{}
+                                ips = append(ips, ip)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">if network == "ip" || network == "ip4" </span><span class="cov8" title="1">{
+                var list []net.IP
+                if list, err = rc.lookupNetIP(ctx, host, dns.TypeA); err == nil </span><span class="cov8" title="1">{
+                        add(list)
+                }</span>
+        }
         <span class="cov8" title="1">if network == "ip" || network == "ip6" </span><span class="cov8" title="1">{
-                ips, err = rc.lookupNetIP(ctx, ips, host, dns.TypeAAAA)
-        }</span>
+                var list []net.IP
+                if list, err = rc.lookupNetIP(ctx, host, dns.TypeAAAA); err == nil </span><span class="cov8" title="1">{
+                        add(list)
+                }</span>
+        }
         <span class="cov8" title="1">if len(ips) &gt; 0 </span><span class="cov8" title="1">{
                 err = nil
         }</span>
@@ -359,6 +376,8 @@ func (rc *Recursive) LookupNetIP(ctx context.Context, network, host string) (add
                                 addrs = append(addrs, ip)
                         }</span>
                 }
+                <span class="cov8" title="1">slices.SortFunc(addrs, func(a, b netip.Addr) int </span><span class="cov8" title="1">{ return a.Compare(b) }</span>)
+                <span class="cov8" title="1">addrs = slices.Compact(addrs)</span>
         }
         <span class="cov8" title="1">return</span>
 }
@@ -754,7 +773,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -794,8 +813,8 @@ func (q *query) followCNAME(cn string) bool <span class="cov0" title="0">{
 
 func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) <span class="cov8" title="1">{
         q.steps++
-        if q.steps &gt; maxSteps </span><span class="cov0" title="0">{
-                err = ErrMaxDepth
+        if q.steps &gt; maxSteps </span><span class="cov8" title="1">{
+                err = ErrMaxSteps
                 return
         }</span>
         <span class="cov8" title="1">if q.cache != nil &amp;&amp; !q.nomini </span><span class="cov8" title="1">{
@@ -978,9 +997,11 @@ import (
         rand "math/rand/v2"
         "net"
         "net/netip"
+        "os"
         "sort"
         "strings"
         "sync"
+        "syscall"
         "time"
 
         "github.com/miekg/dns"
@@ -1022,6 +1043,8 @@ var (
         ErrInvalidCookie = errors.New("invalid cookie")
         // ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
         ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
+        // ErrMaxSteps is returned when resolving exceeds the step limit.
+        ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
         // ErrNoResponse is returned when no authoritative server could be successfully queried.
         // It is equivalent to SERVFAIL.
         ErrNoResponse = errors.New("no authoritative response")
@@ -1360,20 +1383,25 @@ func (r *Recursive) useable(addr netip.Addr) (ok bool) <span class="cov8" title=
 func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) <span class="cov8" title="1">{
         if err != nil </span><span class="cov8" title="1">{
                 isIpv6err = nsaddr.Is6()
-                _, ok := err.(net.Error)
-                ok = ok || errors.Is(err, io.EOF)
-                ok = ok || strings.Contains(err.Error(), "timeout")
-                ok = ok || strings.Contains(err.Error(), "refused")
-                if ok </span><span class="cov0" title="0">{
+                var ne net.Error
+                ok := errors.Is(err, io.EOF)
+                if errors.As(err, &amp;ne) </span><span class="cov8" title="1">{
+                        ok = true
+                }</span>
+                <span class="cov8" title="1">ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
+                ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+                errstr := err.Error()
+                ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
+                if ok </span><span class="cov8" title="1">{
                         var m map[netip.Addr]netError
                         switch protocol </span>{
-                        case "udp":<span class="cov0" title="0">
+                        case "udp":<span class="cov8" title="1">
                                 isUdpErr = true
                                 m = r.udperrs</span>
-                        case "tcp":<span class="cov0" title="0">
+                        case "tcp":<span class="cov8" title="1">
                                 m = r.tcperrs</span>
                         }
-                        <span class="cov0" title="0">if m != nil </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if m != nil </span><span class="cov8" title="1">{
                                 r.mu.Lock()
                                 m[nsaddr] = netError{Err: err, When: time.Now()}
                                 r.mu.Unlock()
@@ -1419,36 +1447,39 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov8" title="1">{
         if err != nil </span><span class="cov8" title="1">{
                 errstr := err.Error()
-                if strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") </span><span class="cov0" title="0">{
+                if errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTUNREACH) ||
+                        strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") </span><span class="cov8" title="1">{
                         r.mu.Lock()
                         defer r.mu.Unlock()
-                        if r.useIPv6 </span><span class="cov0" title="0">{
+                        if r.useIPv6 </span><span class="cov8" title="1">{
                                 disabled = true
                                 r.useIPv6 = false
                                 var idx int
-                                for i := range r.rootServers </span><span class="cov0" title="0">{
-                                        if r.rootServers[i].Is4() </span><span class="cov0" title="0">{
+                                for i := range r.rootServers </span><span class="cov8" title="1">{
+                                        if r.rootServers[i].Is4() </span><span class="cov8" title="1">{
                                                 r.rootServers[idx] = r.rootServers[i]
                                                 idx++
                                         }</span>
                                 }
-                                <span class="cov0" title="0">r.rootServers = r.rootServers[:idx]</span>
+                                <span class="cov8" title="1">r.rootServers = r.rootServers[:idx]</span>
                         }
                 }
         }
         <span class="cov8" title="1">return</span>
 }
 
-func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov0" title="0">{
-        if ne, ok := err.(net.Error); ok </span><span class="cov0" title="0">{
-                if !ne.Timeout() &amp;&amp; strings.Contains(ne.Error(), "network not implemented") </span><span class="cov0" title="0">{
+func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov8" title="1">{
+        var ne net.Error
+        if errors.As(err, &amp;ne) &amp;&amp; !ne.Timeout() </span><span class="cov8" title="1">{
+                errstr := err.Error()
+                if errors.Is(err, syscall.ENOSYS) || errors.Is(err, syscall.EPROTONOSUPPORT) || strings.Contains(errstr, "network not implemented") </span><span class="cov8" title="1">{
                         r.mu.Lock()
                         defer r.mu.Unlock()
                         disabled = r.useUDP
                         r.useUDP = false
                 }</span>
         }
-        <span class="cov0" title="0">return</span>
+        <span class="cov8" title="1">return</span>
 }
 </pre>
 		
