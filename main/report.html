@@ -57,7 +57,7 @@
 				
 				<option value="file0">github.com/linkdata/recursive/cache.go (95.8%)</option>
 				
-				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (88.5%)</option>
+				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (100.0%)</option>
 				
 				<option value="file2">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
@@ -258,7 +258,7 @@ func (cq *cacheQtype) get(qname string) *dns.Msg <span class="cov8" title="1">{
                 if time.Since(cv.expires) &lt; 0 </span><span class="cov8" title="1">{
                         return cv.Msg
                 }</span>
-                <span class="cov0" title="0">cq.mu.Lock()
+                <span class="cov8" title="1">cq.mu.Lock()
                 delete(cq.cache, qname)
                 cq.mu.Unlock()</span>
         }
