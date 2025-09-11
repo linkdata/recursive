@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (79.9%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (78.9%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (95.4%)</option>
 				
@@ -884,10 +884,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
                                 newsrvcookie := srvcookie
                                 if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
-                                        for _, rr := range opt.Option </span><span class="cov8" title="1">{
+                                        for _, rr := range opt.Option </span><span class="cov0" title="0">{
                                                 switch rr := rr.(type) </span>{
-                                                case *dns.EDNS0_COOKIE:<span class="cov8" title="1">
-                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov8" title="1">{
+                                                case *dns.EDNS0_COOKIE:<span class="cov0" title="0">
+                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov0" title="0">{
                                                                 newsrvcookie = strings.TrimPrefix(rr.Cookie, clicookie)
                                                         }</span> else<span class="cov0" title="0"> {
                                                                 msg = nil
@@ -983,29 +983,6 @@ import (
         "github.com/miekg/dns"
         "golang.org/x/net/proxy"
 )
-
-/*
-        Good tests:
-        NS        google.tw.cn.
-        NS        bankgirot.nu.
-        NS        skandia.com.ci.
-        A        m.hkirc.net.hk.
-        A        www.microsoft.com.
-        A   console.aws.amazon.com.
-        A   *.en.se.
-        A        teli.se.
-        A        telia.biz.mv.
-        A        telia.per.la.
-        NS        seb.inf.ua
-        A        seb.org.tw
-        NS        wetrgijrotigj.bet.ar
-        A        h6xyrckrof16xv31.xn--kprw13d
-        MX        3sj82qujmol2npax.us.kg
-        A        9ghuun5oshdr6hvi.prd.mg
-        NS        5xqy3o9qafuvdqtv.mil.sy
-        A        eoh.be
-        NS        tella.net.ms
-*/
 
 //go:generate go run ./cmd/genhints roothints.gen.go
 
