@@ -200,9 +200,12 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 		msg = cache.DnsGet(qname, qtype)
 	}
 
+	// MANUALFIX: declare q outside if block
+	var q *query
+
 	// If not in cache, perform recursive resolution
 	if msg == nil {
-		q := &query{
+		q = &query{
 			Recursive: r,
 			cache:     cache,
 			start:     time.Now(),
@@ -374,7 +377,13 @@ func (r *Recursive) useable(addr netip.Addr) bool {
 	if !addr.IsValid() {
 		return false
 	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return (r.config.useIPv4 && addr.Is4()) || (r.config.useIPv6 && addr.Is6())
+}
 
+// MANUALFIX: moved to query.handleNoResponse()
+/*
 	if *msg == nil {
 		if q.dbg() {
 			q.log("all nameservers returned SERVFAIL\n")
@@ -385,6 +394,7 @@ func (r *Recursive) useable(addr netip.Addr) bool {
 
 	return true
 }
+*/
 
 func (q *query) resolveFinal(ctx context.Context, nslist []hostAddr,
 	qname string, qtype uint16, msg *dns.Msg) (*dns.Msg, netip.Addr, error) {
