@@ -163,6 +163,26 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							if gotmsg.Authoritative || (idx > 0 && (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) > 0)) {
 								q.setCache(gotmsg)
 							}
+							if q.nomini && qtype != dns.TypeCNAME {
+								for _, rr := range gotmsg.Answer {
+									if cn, ok := rr.(*dns.CNAME); ok {
+										target := dns.CanonicalName(cn.Target)
+										if q.followCNAME(target) {
+											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
+											if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
+												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+												msg = gotmsg.Copy()
+												msg.Zero = true
+												msg.Answer = append(msg.Answer, cnmsg.Answer...)
+												msg.Rcode = cnmsg.Rcode
+												return
+											} else {
+												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
+											}
+										}
+									}
+								}
+							}
 							newlist := q.extractNS(gotmsg)
 							if len(newlist) > 0 {
 								srv = ha.addr
