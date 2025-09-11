@@ -20,29 +20,6 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-/*
-	Good tests:
-	NS	google.tw.cn.
-	NS	bankgirot.nu.
-	NS	skandia.com.ci.
-	A	m.hkirc.net.hk.
-	A	www.microsoft.com.
-	A   console.aws.amazon.com.
-	A   *.en.se.
-	A	teli.se.
-	A	telia.biz.mv.
-	A	telia.per.la.
-	NS	seb.inf.ua
-	A	seb.org.tw
-	NS	wetrgijrotigj.bet.ar
-	A	h6xyrckrof16xv31.xn--kprw13d
-	MX	3sj82qujmol2npax.us.kg
-	A	9ghuun5oshdr6hvi.prd.mg
-	NS	5xqy3o9qafuvdqtv.mil.sy
-	A	eoh.be
-	NS	tella.net.ms
-*/
-
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
