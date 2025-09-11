@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (78.9%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (75.8%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (95.4%)</option>
 				
@@ -553,6 +553,26 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                         if gotmsg.Authoritative || (idx &gt; 0 &amp;&amp; (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) &gt; 0)) </span><span class="cov8" title="1">{
                                                                 q.setCache(gotmsg)
                                                         }</span>
+                                                        <span class="cov8" title="1">if q.nomini &amp;&amp; qtype != dns.TypeCNAME </span><span class="cov0" title="0">{
+                                                                for _, rr := range gotmsg.Answer </span><span class="cov0" title="0">{
+                                                                        if cn, ok := rr.(*dns.CNAME); ok </span><span class="cov0" title="0">{
+                                                                                target := dns.CanonicalName(cn.Target)
+                                                                                if q.followCNAME(target) </span><span class="cov0" title="0">{
+                                                                                        _ = q.dbg() &amp;&amp; q.log("CNAME QUERY %q =&gt; %q\n", qname, target)
+                                                                                        if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil </span><span class="cov0" title="0">{
+                                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+                                                                                                msg = gotmsg.Copy()
+                                                                                                msg.Zero = true
+                                                                                                msg.Answer = append(msg.Answer, cnmsg.Answer...)
+                                                                                                msg.Rcode = cnmsg.Rcode
+                                                                                                return
+                                                                                        }</span> else<span class="cov0" title="0"> {
+                                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ERROR %q: %v\n", target, cnerr)
+                                                                                        }</span>
+                                                                                }
+                                                                        }
+                                                                }
+                                                        }
                                                         <span class="cov8" title="1">newlist := q.extractNS(gotmsg)
                                                         if len(newlist) &gt; 0 </span><span class="cov8" title="1">{
                                                                 srv = ha.addr
