@@ -1,0 +1,1946 @@
+// File: recursive.go
+
+package recursive
+
+import (
+	"context"
+	crand "crypto/rand"
+	"errors"
+	"fmt"
+	"io"
+	rand "math/rand/v2"
+	"net"
+	"net/netip"
+	"sort"
+	"sync"
+	"time"
+
+	"github.com/miekg/dns"
+	"golang.org/x/net/proxy"
+)
+
+//go:generate go run ./cmd/genhints roothints.gen.go
+
+const (
+	maxDepth      = 32   // maximum recursion depth
+	maxSteps      = 1000 // max number of steps to allow in resolving
+	maxSrvCookies = 8192
+	srvCookieTTL  = 24 * time.Hour
+)
+
+var (
+	// ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
+	ErrInvalidCookie = errors.New("invalid cookie")
+	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
+	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
+	// ErrMaxSteps is returned when resolving exceeds the step limit.
+	ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
+	// ErrNoResponse is returned when no authoritative server could be successfully queried.
+	// It is equivalent to SERVFAIL.
+	ErrNoResponse = errors.New("no authoritative response")
+	// ErrQuestionMismatch is returned when the DNS response is not for what was queried.
+	ErrQuestionMismatch = errors.New("question mismatch")
+	
+	DefaultCache   = NewCache()
+	DefaultTimeout = time.Second * 5
+)
+
+var _ Resolver = (*Recursive)(nil) // ensure we implement interface
+
+// Recursive is a recursive DNS resolver with optional caching and QNAME minimization.
+type Recursive struct {
+	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
+	Cacher                              // (read-only) Cacher passed to NewWithOptions
+	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
+	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
+	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
+	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
+	
+	mu          sync.RWMutex
+	config      resolverConfig
+	cookies     cookieManager
+	netErrors   networkErrors
+	dnsResolve  func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
+}
+
+type resolverConfig struct {
+	useUDP      bool
+	useIPv4     bool
+	useIPv6     bool
+	rootServers []netip.Addr
+}
+
+type cookieManager struct {
+	clientCookie string
+	serverCookies map[netip.Addr]srvCookie
+}
+
+type networkErrors struct {
+	udpErrors map[netip.Addr]netError
+	tcpErrors map[netip.Addr]netError
+}
+
+type srvCookie struct {
+	value string
+	ts    time.Time
+}
+
+// NewWithOptions returns a new Recursive resolver using the given ContextDialer and
+// using the given Cacher as it's default cache. It does not call OrderRoots.
+//
+// Passing nil for dialer will use a net.Dialer.
+// Passing nil for cache means it won't use any cache by default.
+// Passing nil for the roots will use the default set of roots.
+// Passing nil for the rateLimiter means no rate limiting
+func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr, rateLimiter <-chan struct{}) *Recursive {
+	if dialer == nil {
+		dialer = &net.Dialer{}
+	}
+	
+	roots := prepareRootServers(roots4, roots6)
+	
+	r := &Recursive{
+		ContextDialer: dialer,
+		Cacher:        cache,
+		Resolver: &net.Resolver{
+			PreferGo: true,
+			Dial:     dialer.DialContext,
+		},
+		Timeout:     DefaultTimeout,
+		rateLimiter: rateLimiter,
+		config: resolverConfig{
+			useUDP:      true,
+			useIPv4:     len(roots4) > 0 || (roots4 == nil && len(Roots4) > 0),
+			useIPv6:     len(roots6) > 0 || (roots6 == nil && len(Roots6) > 0),
+			rootServers: roots,
+		},
+		cookies: cookieManager{
+			clientCookie:  makeCookie(),
+			serverCookies: make(map[netip.Addr]srvCookie),
+		},
+		netErrors: networkErrors{
+			udpErrors: make(map[netip.Addr]netError),
+			tcpErrors: make(map[netip.Addr]netError),
+		},
+	}
+	r.dnsResolve = r.DnsResolve
+	return r
+}
+
+// New returns a new Recursive resolver using the given ContextDialer and
+// has DefaultCache as it's cache.
+//
+// It calls OrderRoots before returning.
+func New(dialer proxy.ContextDialer) *Recursive {
+	r := NewWithOptions(dialer, DefaultCache, nil, nil, nil)
+	r.OrderRoots(context.Background())
+	return r
+}
+
+// ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
+func (r *Recursive) ResetCookies() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cookies.clientCookie = makeCookie()
+	clear(r.cookies.serverCookies)
+}
+
+// OrderRoots sorts the root server list by their current latency and removes those that don't respond.
+//
+// If ctx does not have a deadline, DefaultTimeout will be used.
+func (r *Recursive) OrderRoots(ctx context.Context) {
+	if _, ok := ctx.Deadline(); !ok {
+		newctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+		defer cancel()
+		ctx = newctx
+	}
+	
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	
+	rootRtts := r.measureRootLatencies(ctx)
+	r.updateRootServers(rootRtts)
+}
+
+// GetRoots returns the current set of root servers in use.
+func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	
+	for _, addr := range r.config.rootServers {
+		if addr.Is4() {
+			root4 = append(root4, addr)
+		} else if addr.Is6() {
+			root6 = append(root6, addr)
+		}
+	}
+	return
+}
+
+// DnsResolve performs a recursive DNS resolution for the provided name and record type.
+func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	return r.ResolveWithOptions(ctx, r, nil, qname, qtype)
+}
+
+// ResolveWithOptions performs a recursive DNS resolution for the provided name and record type.
+//
+// If cache is nil, no cache is used; nil caches are supported without crashing.
+// If logw is non-nil (or DefaultLogWriter is set), write a log of events.
+func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	if logw == nil {
+		logw = r.DefaultLogWriter
+	}
+	
+	r.cleanupServerCookies(time.Now())
+	qname = dns.CanonicalName(qname)
+	
+	// Try cache first
+	if cache != nil {
+		msg = cache.DnsGet(qname, qtype)
+	}
+	
+	// If not in cache, perform recursive resolution
+	if msg == nil {
+		q := &query{
+			Recursive: r,
+			cache:     cache,
+			start:     time.Now(),
+			logw:      logw,
+			glue:      make(map[string][]netip.Addr),
+		}
+		msg, srv, err = q.run(ctx, qname, qtype)
+	}
+	
+	// Validate and cache the response
+	if msg != nil {
+		err = r.validateResponse(msg, qname, qtype, q)
+		if err == nil && cache != nil {
+			cache.DnsSet(msg)
+		}
+	}
+	
+	// Log the results if requested
+	if logw != nil {
+		r.logResults(logw, msg, srv, err, q)
+	}
+	
+	return
+}
+
+// Helper methods
+
+func prepareRootServers(roots4, roots6 []netip.Addr) []netip.Addr {
+	if roots4 == nil {
+		roots4 = Roots4
+	}
+	if roots6 == nil {
+		roots6 = Roots6
+	}
+	
+	var root4, root6 []netip.Addr
+	if len(roots4) > 0 {
+		root4 = append(root4, roots4...)
+		shuffleAddrs(root4)
+	}
+	if len(roots6) > 0 {
+		root6 = append(root6, roots6...)
+		shuffleAddrs(root6)
+	}
+	
+	// Interleave IPv4 and IPv6 addresses
+	roots := make([]netip.Addr, 0, len(root4)+len(root6))
+	n := min(len(root4), len(root6))
+	for i := 0; i < n; i++ {
+		roots = append(roots, root4[i], root6[i])
+	}
+	roots = append(roots, root4[n:]...)
+	roots = append(roots, root6[n:]...)
+	
+	return roots
+}
+
+func makeCookie() string {
+	b := make([]byte, 8)
+	if _, err := crand.Read(b); err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("%x", b)
+}
+
+func shuffleAddrs(a []netip.Addr) {
+	rand.Shuffle(len(a), func(i, j int) {
+		a[i], a[j] = a[j], a[i]
+	})
+}
+
+func (r *Recursive) measureRootLatencies(ctx context.Context) []*rootRtt {
+	var l []*rootRtt
+	var wg sync.WaitGroup
+	
+	for _, addr := range r.config.rootServers {
+		rt := &rootRtt{addr: addr}
+		l = append(l, rt)
+		wg.Add(1)
+		go timeRoot(ctx, r, &wg, rt)
+	}
+	wg.Wait()
+	
+	sort.Slice(l, func(i, j int) bool { return l[i].rtt < l[j].rtt })
+	return l
+}
+
+func (r *Recursive) updateRootServers(rootRtts []*rootRtt) {
+	var newRootServers []netip.Addr
+	useIPv4 := false
+	useIPv6 := false
+	
+	for _, rt := range rootRtts {
+		if rt.rtt < time.Minute {
+			useIPv4 = useIPv4 || rt.addr.Is4()
+			useIPv6 = useIPv6 || rt.addr.Is6()
+			newRootServers = append(newRootServers, rt.addr)
+		}
+	}
+	
+	if len(newRootServers) > 0 {
+		r.config.rootServers = newRootServers
+		r.config.useIPv4 = useIPv4
+		r.config.useIPv6 = useIPv6
+	}
+}
+
+func (r *Recursive) validateResponse(msg *dns.Msg, qname string, qtype uint16, q *query) error {
+	if msg.Rcode == dns.RcodeSuccess {
+		// A SUCCESS reply must reference the correct QNAME and QTYPE.
+		var gotname string
+		var gottype uint16
+		if len(msg.Question) > 0 {
+			gotname = msg.Question[0].Name
+			gottype = msg.Question[0].Qtype
+		}
+		if gotname != qname || gottype != qtype {
+			if q != nil && q.dbg() {
+				q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
+					DnsTypeToString(gottype), gotname,
+					DnsTypeToString(qtype), qname,
+				)
+			}
+			return ErrQuestionMismatch
+		}
+	} else {
+		if !msg.Zero {
+			// NXDOMAIN or other failures may have the returned
+			// question refer to some NS in the chain, but we still want
+			// to associate the reply with the original query.
+			msg.SetQuestion(qname, qtype)
+		}
+	}
+	return nil
+}
+
+func (r *Recursive) logResults(logw io.Writer, msg *dns.Msg, srv netip.Addr, err error, q *query) {
+	if msg != nil {
+		fmt.Fprintf(logw, "\n%v", msg)
+	}
+	if q != nil {
+		fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.sent, time.Since(q.start).Round(time.Millisecond))
+	}
+	if srv.IsValid() {
+		fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
+	}
+	if err != nil {
+		fmt.Fprintf(logw, "\n;; ERROR: %v", err)
+	}
+	fmt.Fprintln(logw)
+}
+
+func (r *Recursive) getRootServers() (nslist []hostAddr) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for _, addr := range r.config.rootServers {
+		nslist = append(nslist, hostAddr{"root", addr})
+	}
+	return
+}
+
+func (r *Recursive) usingUDP() bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.config.useUDP
+}
+
+func (r *Recursive) useable(addr netip.Addr) bool {
+	if !addr.IsValid() {
+		return false
+	}
+	
+	if *msg == nil {
+		if q.dbg() {
+			q.log("all nameservers returned SERVFAIL\n")
+		}
+		q.setCache(gotmsg)
+		*msg = gotmsg
+	}
+	
+	return true
+}
+
+func (q *query) resolveFinal(ctx context.Context, nslist []hostAddr, 
+	qname string, qtype uint16, msg *dns.Msg) (*dns.Msg, netip.Addr, error) {
+	
+	// Collect all nameserver addresses
+	nsaddrs := q.collectNameserverAddresses(nslist)
+	
+	if q.dbg() {
+		q.logFinalNameservers(nsaddrs)
+	}
+	
+	// Query final nameservers
+	for _, nsaddr := range nsaddrs {
+		finalmsg, err := q.exchange(ctx, nsaddr, qname, qtype)
+		if err != nil {
+			if q.dbg() {
+				q.log("FAILED @%v %s %q: %v\n", nsaddr, DnsTypeToString(qtype), qname, err)
+			}
+			continue
+		}
+		
+		if finalmsg.Rcode == dns.RcodeServerFailure {
+			continue
+		}
+		
+		msg = finalmsg
+		q.setCache(msg)
+		
+		// Handle CNAME responses
+		if qtype != dns.TypeCNAME {
+			if cnameMsg := q.followCNAMEs(ctx, msg, qname, qtype); cnameMsg != nil {
+				return cnameMsg, nsaddr, nil
+			}
+		}
+		
+		return msg, nsaddr, nil
+	}
+	
+	// All final nameservers failed
+	if len(nsaddrs) == 0 || (qtype != dns.TypeNS || qname != msg.Question[0].Name) {
+		return nil, netip.Addr{}, nil
+	}
+	
+	return msg, netip.Addr{}, nil
+}
+
+func (q *query) collectNameserverAddresses(nslist []hostAddr) []netip.Addr {
+	var nsaddrs []netip.Addr
+	for _, ha := range nslist {
+		if ha.addr.IsValid() {
+			nsaddrs = append(nsaddrs, ha.addr)
+		} else {
+			nsaddrs = append(nsaddrs, q.glue[ha.host]...)
+		}
+	}
+	
+	slices.SortFunc(nsaddrs, func(a, b netip.Addr) int { return a.Compare(b) })
+	return slices.Compact(nsaddrs)
+}
+
+func (q *query) followCNAMEs(ctx context.Context, msg *dns.Msg, qname string, qtype uint16) *dns.Msg {
+	for _, rr := range msg.Answer {
+		cn, ok := rr.(*dns.CNAME)
+		if !ok {
+			continue
+		}
+		
+		target := dns.CanonicalName(cn.Target)
+		if !q.followCNAME(target) {
+			continue
+		}
+		
+		if q.dbg() {
+			q.log("CNAME QUERY %q => %q\n", qname, target)
+		}
+		
+		cnmsg, _, cnerr := q.run(ctx, target, qtype)
+		if cnerr != nil {
+			if q.dbg() {
+				q.log("CNAME ERROR %q: %v\n", target, cnerr)
+			}
+			continue
+		}
+		
+		if q.dbg() {
+			q.log("CNAME ANSWER %s %q with %v records\n", 
+				dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+		}
+		
+		result := msg.Copy()
+		result.Zero = true
+		result.Answer = append(result.Answer, cnmsg.Answer...)
+		result.Rcode = cnmsg.Rcode
+		return result
+	}
+	
+	return nil
+}
+
+func (q *query) logQuery(final bool, qtype uint16, qname string, nslist []hostAddr) {
+	var finaltext string
+	if final {
+		finaltext = " FINAL"
+	}
+	maxShow := min(4, len(nslist))
+	q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(qtype), qname, nslist[:maxShow])
+}
+
+func (q *query) logFinalNameservers(nsaddrs []netip.Addr) {
+	q.log("final nameservers: %v\n", nsaddrs)
+	if q.depth == 1 {
+		keys := slices.Collect(maps.Keys(q.glue))
+		slices.Sort(keys)
+		for _, k := range keys {
+			q.log("glue: %q: %v\n", k, q.glue[k])
+		}
+	}
+}
+
+// Helper methods for query
+
+func (q *query) dbg() bool {
+	return q.logw != nil
+}
+
+func (q *query) log(format string, args ...any) bool {
+	fmt.Fprintf(q.logw, "[%-5d %2d] %*s", time.Since(q.start).Milliseconds(), q.depth, q.depth, "")
+	fmt.Fprintf(q.logw, format, args...)
+	return false
+}
+
+func (q *query) dive() error {
+	if q.depth >= maxDepth {
+		return ErrMaxDepth
+	}
+	q.depth++
+	return nil
+}
+
+func (q *query) surface() {
+	q.depth--
+}
+
+func (q *query) needGlue(host string) bool {
+	if _, ok := q.glue[host]; !ok {
+		q.glue[host] = nil
+		return true
+	}
+	return false
+}
+
+func (q *query) addGlue(host string, addr netip.Addr) {
+	if !q.useable(addr) {
+		return
+	}
+	
+	addrs, ok := q.glue[host]
+	if !ok {
+		return
+	}
+	
+	if !slices.Contains(addrs, addr) {
+		q.glue[host] = append(addrs, addr)
+	}
+}
+
+func (q *query) setCache(msg *dns.Msg) {
+	if msg == nil || msg.Zero || q.cache == nil || q.nomini {
+		return
+	}
+	q.cache.DnsSet(msg)
+}
+
+func (q *query) glueTypes() []uint16 {
+	var gt []uint16
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	
+	if q.config.useIPv4 {
+		gt = append(gt, dns.TypeA)
+	}
+	if q.config.useIPv6 {
+		gt = append(gt, dns.TypeAAAA)
+	}
+	return gt
+}
+
+func (q *query) followCNAME(cn string) bool {
+	if q.cnames == nil {
+		q.cnames = make(map[string]struct{})
+	}
+	
+	if _, exists := q.cnames[cn]; exists {
+		return false
+	}
+	
+	q.cnames[cn] = struct{}{}
+	return true
+}
+
+func (q *query) extractNS(msg *dns.Msg) []hostAddr {
+	nsmap := make(map[string]struct{})
+	
+	// Extract NS records
+	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns} {
+		for _, rr := range rrs {
+			if ns, ok := rr.(*dns.NS); ok {
+				host := dns.CanonicalName(ns.Ns)
+				nsmap[host] = struct{}{}
+			}
+			
+			// Also collect glue records
+			host, addr := rrHostAddr(rr)
+			if host != "" {
+				q.addGlue(host, addr)
+			}
+		}
+	}
+	
+	// Process Extra section for glue
+	for _, rr := range msg.Extra {
+		host, addr := rrHostAddr(rr)
+		if _, ok := nsmap[host]; ok {
+			q.needGlue(host)
+			q.addGlue(host, addr)
+		}
+	}
+	
+	// Build host address list
+	var hal []hostAddr
+	for host := range nsmap {
+		addrs := q.glue[host]
+		if len(addrs) == 0 {
+			hal = append(hal, hostAddr{host: host})
+		} else {
+			for _, addr := range addrs {
+				hal = append(hal, hostAddr{host: host, addr: addr})
+			}
+		}
+	}
+	
+	// Make the NS query order deterministic
+	slices.SortFunc(hal, compareHostAddr)
+	
+	return hal
+}
+
+func compareHostAddr(a, b hostAddr) int {
+	// Prefer addresses with IPs
+	if a.addr.IsValid() {
+		if b.addr.IsValid() {
+			return a.addr.Compare(b.addr)
+		}
+		return -1
+	}
+	if b.addr.IsValid() {
+		return 1
+	}
+	
+	// Sort by label count, then alphabetically
+	n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
+	if n == 0 {
+		n = strings.Compare(a.host, b.host)
+	}
+	return n
+}
+
+func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
+	switch v := rr.(type) {
+	case *dns.A:
+		if ip, ok := netip.AddrFromSlice(v.A); ok {
+			host = dns.CanonicalName(v.Hdr.Name)
+			addr = ip.Unmap()
+		}
+	case *dns.AAAA:
+		if ip, ok := netip.AddrFromSlice(v.AAAA); ok {
+			host = dns.CanonicalName(v.Hdr.Name)
+			addr = ip
+		}
+	}
+	return
+}
+
+// File: exchange.go
+
+package recursive
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"net/netip"
+	"strings"
+	"time"
+
+	"github.com/miekg/dns"
+)
+
+func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, qtype uint16) (*dns.Msg, error) {
+	// Try cache first
+	if q.cache != nil && !q.nomini {
+		if msg := q.cache.DnsGet(qname, qtype); msg != nil {
+			if !cacheExtra {
+				msg.Extra = nil
+			}
+			if q.dbg() {
+				q.logCachedAnswer(msg, qtype, qname)
+			}
+			return msg, nil
+		}
+	}
+	
+	useCookies := true
+	
+	// Try UDP first if enabled
+	if q.usingUDP() {
+		msg, err := q.exchangeUsing(ctx, "udp", useCookies, nsaddr, qname, qtype)
+		if msg != nil {
+			if msg.MsgHdr.Truncated {
+				if q.dbg() {
+					q.log("message truncated; retry using TCP\n")
+				}
+				msg = nil
+			} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
+				if q.dbg() {
+					q.log("got FORMERR, retry using TCP without cookies\n")
+				}
+				msg = nil
+				useCookies = false
+			} else {
+				return msg, err
+			}
+		}
+	}
+	
+	// Fall back to TCP if needed
+	if q.useable(nsaddr) {
+		return q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
+	}
+	
+	return nil, net.ErrClosed
+}
+
+func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, 
+	nsaddr netip.Addr, qname string, qtype uint16) (*dns.Msg, error) {
+	
+	q.steps++
+	if q.steps > maxSteps {
+		return nil, ErrMaxSteps
+	}
+	
+	if err := q.getUsable(ctx, protocol, nsaddr); err != nil {
+		return nil, err
+	}
+	
+	network := q.buildNetwork(protocol, nsaddr)
+	
+	if q.rateLimiter != nil {
+		<-q.rateLimiter
+	}
+	
+	if q.dbg() {
+		q.logSending(network, protocol, nsaddr, qtype, qname)
+	}
+	
+	// Set timeout if configured
+	if q.Timeout > 0 {
+		ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
+		defer cancel()
+		ctx = ctx2
+	}
+	
+	// Dial the server
+	nconn, err := q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, dnsPort).String())
+	if err != nil {
+		q.handleDialError(protocol, nsaddr, err)
+		return nil, err
+	}
+	
+	q.sent++
+	dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
+	defer dnsconn.Close()
+	
+	// Build and send the query
+	m := q.buildQuery(qname, qtype, useCookies, nsaddr)
+	
+	c := dns.Client{UDPSize: dns.DefaultMsgSize}
+	msg, rtt, err := c.ExchangeWithConnContext(ctx, m, dnsconn)
+	
+	// Process cookies in response
+	if useCookies && msg != nil {
+		if err := q.processCookies(msg, nsaddr); err != nil {
+			return nil, err
+		}
+	}
+	
+	// Handle network errors and log results
+	isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
+	ipv6disabled := isIpv6Err && q.maybeDisableIPv6(err)
+	udpDisabled := isUdpErr && q.maybeDisableUdp(err)
+	
+	if q.dbg() {
+		q.logResponse(msg, rtt, err, ipv6disabled, udpDisabled)
+	}
+	
+	return msg, err
+}
+
+func (q *query) buildNetwork(protocol string, nsaddr netip.Addr) string {
+	if nsaddr.Is4() {
+		return protocol + "4"
+	}
+	return protocol + "6"
+}
+
+func (q *query) buildQuery(qname string, qtype uint16, useCookies bool, nsaddr netip.Addr) *dns.Msg {
+	m := new(dns.Msg)
+	m.SetQuestion(qname, qtype)
+	
+	opt := new(dns.OPT)
+	opt.Hdr.Name = "."
+	opt.Hdr.Rrtype = dns.TypeOPT
+	opt.SetUDPSize(dns.DefaultMsgSize)
+	
+	if useCookies {
+		clicookie := q.getClientCookie()
+		srvcookie, hasSrvCookie := q.getServerCookie(nsaddr)
+		
+		if !hasSrvCookie || srvcookie != "" {
+			opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
+				Code:   dns.EDNS0COOKIE,
+				Cookie: clicookie + srvcookie,
+			})
+			
+			if q.dbg() {
+				fmt.Fprintf(q.logw, " COOKIE:c=%q s=%q", 
+					maskCookie(clicookie), maskCookie(srvcookie))
+			}
+		}
+	}
+	
+	m.Extra = append(m.Extra, opt)
+	return m
+}
+
+func (q *query) processCookies(msg *dns.Msg, nsaddr netip.Addr) error {
+	clicookie := q.getClientCookie()
+	opt := msg.IsEdns0()
+	if opt == nil {
+		return nil
+	}
+	
+	for _, rr := range opt.Option {
+		cookie, ok := rr.(*dns.EDNS0_COOKIE)
+		if !ok {
+			continue
+		}
+		
+		if !strings.HasPrefix(cookie.Cookie, clicookie) {
+			return ErrInvalidCookie
+		}
+		
+		newsrvcookie := strings.TrimPrefix(cookie.Cookie, clicookie)
+		q.setServerCookie(nsaddr, newsrvcookie)
+	}
+	
+	return nil
+}
+
+func (q *query) handleDialError(protocol string, nsaddr netip.Addr, err error) {
+	isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
+	q.maybeDisableIPv6(err)
+	q.maybeDisableUdp(err)
+	
+	if q.dbg() {
+		q.log("dial error: %v (ipv6=%v, udp=%v)\n", err, isIpv6Err, isUdpErr)
+	}
+}
+
+func (q *query) logCachedAnswer(msg *dns.Msg, qtype uint16, qname string) {
+	auth := ""
+	if msg.MsgHdr.Authoritative {
+		auth = " AUTH"
+	}
+	q.log("cached answer: %s %q => %s [%v+%v+%v A/N/E]%s\n",
+		DnsTypeToString(qtype), qname,
+		dns.RcodeToString[msg.Rcode],
+		len(msg.Answer), len(msg.Ns), len(msg.Extra),
+		auth)
+}
+
+func (q *query) logSending(network, protocol string, nsaddr netip.Addr, qtype uint16, qname string) {
+	var protostr string
+	var dash6str string
+	if protocol != "udp" {
+		protostr = " +" + protocol
+	}
+	if nsaddr.Is6() {
+		dash6str = " -6"
+	}
+	q.log("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, 
+		DnsTypeToString(qtype), qname)
+}
+
+func (q *query) logResponse(msg *dns.Msg, rtt time.Duration, err error, ipv6disabled, udpDisabled bool) {
+	if msg != nil {
+		fmt.Fprintf(q.logw, " => %s [%v+%v+%v A/N/E] (%v, %d bytes",
+			dns.RcodeToString[msg.Rcode],
+			len(msg.Answer), len(msg.Ns), len(msg.Extra),
+			rtt.Round(time.Millisecond), msg.Len())
+		
+		if msg.MsgHdr.Truncated {
+			fmt.Fprintf(q.logw, " TRNC")
+		}
+		if msg.MsgHdr.Authoritative {
+			fmt.Fprintf(q.logw, " AUTH")
+		}
+		
+		if opt := msg.IsEdns0(); opt != nil {
+			if er := uint16(opt.ExtendedRcode()); er != 0 {
+				fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
+			}
+		}
+		fmt.Fprintf(q.logw, ")")
+	}
+	
+	if err != nil {
+		fmt.Fprintf(q.logw, " error: %v", err)
+	}
+	if ipv6disabled {
+		fmt.Fprintf(q.logw, " (IPv6 disabled)")
+	}
+	if udpDisabled {
+		fmt.Fprintf(q.logw, " (UDP disabled)")
+	}
+	fmt.Fprintln(q.logw)
+}
+
+func maskCookie(s string) string {
+	if len(s) > 8 {
+		return s[:8] + "..."
+	}
+	return s
+}
+
+// File: interfaces.go
+
+package recursive
+
+import (
+	"context"
+	"net/netip"
+
+	"github.com/miekg/dns"
+)
+
+// Resolver performs recursive DNS resolution
+type Resolver interface {
+	DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error)
+}
+
+// Cacher provides DNS response caching
+type Cacher interface {
+	// DnsSet may make a copy of msg and set its dns.Msg.Zero to true and return it later with DnsGet.
+	DnsSet(msg *dns.Msg)
+
+	// DnsGet returns the cached dns.Msg for the given qname and qtype, or nil.
+	// Do not modify the returned msg. Make a copy of it if needed.
+	//
+	// dns.Msg.Zero must be set to true to indicate response is served from cache.
+	DnsGet(qname string, qtype uint16) *dns.Msg
+}
+
+// CachingResolver combines Resolver and Cacher interfaces
+type CachingResolver interface {
+	Resolver
+	Cacher
+}
+
+// File: cache.go
+
+package recursive
+
+import (
+	"context"
+	"net/netip"
+	"sync"
+	"sync/atomic"
+	"time"
+
+	"github.com/miekg/dns"
+)
+
+const (
+	DefaultMinTTL = 10 * time.Second // ten seconds
+	DefaultMaxTTL = 6 * time.Hour    // six hours
+	DefaultNXTTL  = time.Hour         // one hour
+	MaxQtype      = 260
+)
+
+var _ Cacher = (*Cache)(nil)
+var _ Resolver = (*Cache)(nil)
+
+// Cache provides DNS response caching with configurable TTL limits
+type Cache struct {
+	MinTTL time.Duration // always cache responses for at least this long
+	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
+	NXTTL  time.Duration // cache NXDOMAIN responses for this long
+	
+	count atomic.Uint64
+	hits  atomic.Uint64
+	cq    []*cacheQtype
+}
+
+// NewCache creates a new cache with default TTL settings
+func NewCache() *Cache {
+	cq := make([]*cacheQtype, MaxQtype+1)
+	for i := range cq {
+		cq[i] = newCacheQtype()
+	}
+	return &Cache{
+		MinTTL: DefaultMinTTL,
+		MaxTTL: DefaultMaxTTL,
+		NXTTL:  DefaultNXTTL,
+		cq:     cq,
+	}
+}
+
+// HitRatio returns the hit ratio as a percentage.
+func (cache *Cache) HitRatio() float64 {
+	if cache == nil {
+		return 0
+	}
+	
+	count := cache.count.Load()
+	if count == 0 {
+		return 0
+	}
+	
+	return float64(cache.hits.Load()*100) / float64(count)
+}
+
+// Entries returns the number of entries in the cache.
+func (cache *Cache) Entries() int {
+	if cache == nil {
+		return 0
+	}
+	
+	n := 0
+	for _, cq := range cache.cq {
+		n += cq.entries()
+	}
+	return n
+}
+
+// DnsSet stores a DNS message in the cache
+func (cache *Cache) DnsSet(msg *dns.Msg) {
+	if cache == nil || msg == nil || msg.Zero || len(msg.Question) != 1 {
+		return
+	}
+	
+	qtype := msg.Question[0].Qtype
+	if qtype > MaxQtype {
+		return
+	}
+	
+	msg = msg.Copy()
+	msg.Zero = true
+	
+	ttl := cache.calculateTTL(msg, qtype)
+	cache.cq[qtype].set(msg, ttl)
+}
+
+// DnsGet retrieves a DNS message from the cache
+func (cache *Cache) DnsGet(qname string, qtype uint16) *dns.Msg {
+	if cache == nil {
+		return nil
+	}
+	
+	cache.count.Add(1)
+	
+	if qtype > MaxQtype {
+		return nil
+	}
+	
+	msg := cache.cq[qtype].get(qname)
+	if msg != nil {
+		cache.hits.Add(1)
+	}
+	
+	return msg
+}
+
+// DnsResolve implements the Resolver interface for cache-only resolution
+func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+	msg := cache.DnsGet(qname, qtype)
+	return msg, netip.Addr{}, nil
+}
+
+// Clear removes all entries from the cache
+func (cache *Cache) Clear() {
+	if cache == nil {
+		return
+	}
+	
+	for _, cq := range cache.cq {
+		cq.clear()
+	}
+}
+
+// Clean removes expired entries from the cache
+func (cache *Cache) Clean() {
+	if cache == nil {
+		return
+	}
+	
+	now := time.Now()
+	for _, cq := range cache.cq {
+		cq.clean(now)
+	}
+}
+
+func (cache *Cache) calculateTTL(msg *dns.Msg, qtype uint16) time.Duration {
+	if msg.Rcode == dns.RcodeNameError {
+		return cache.NXTTL
+	}
+	
+	ttl := max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
+	
+	// Don't limit TTL for successful NS responses
+	if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+		ttl = min(cache.MaxTTL, ttl)
+	}
+	
+	return ttl
+}
+
+// cacheQtype manages cache entries for a specific query type
+type cacheQtype struct {
+	mu    sync.RWMutex
+	cache map[string]cacheValue
+}
+
+func newCacheQtype() *cacheQtype {
+	return &cacheQtype{
+		cache: make(map[string]cacheValue),
+	}
+}
+
+func (cq *cacheQtype) entries() int {
+	cq.mu.RLock()
+	n := len(cq.cache)
+	cq.mu.RUnlock()
+	return n
+}
+
+func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) {
+	qname := msg.Question[0].Name
+	expires := time.Now().Add(ttl)
+	
+	cq.mu.Lock()
+	cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
+	cq.mu.Unlock()
+}
+
+func (cq *cacheQtype) get(qname string) *dns.Msg {
+	cq.mu.RLock()
+	cv := cq.cache[qname]
+	cq.mu.RUnlock()
+	
+	if cv.Msg == nil {
+		return nil
+	}
+	
+	if time.Since(cv.expires) >= 0 {
+		// Entry has expired, remove it
+		cq.mu.Lock()
+		delete(cq.cache, qname)
+		cq.mu.Unlock()
+		return nil
+	}
+	
+	return cv.Msg
+}
+
+func (cq *cacheQtype) clear() {
+	cq.clean(time.Time{})
+}
+
+func (cq *cacheQtype) clean(now time.Time) {
+	cq.mu.Lock()
+	defer cq.mu.Unlock()
+	
+	for qname, cv := range cq.cache {
+		if now.IsZero() || now.After(cv.expires) {
+			delete(cq.cache, qname)
+		}
+	}
+}
+
+// cacheValue stores a cached DNS message with its expiration time
+type cacheValue struct {
+	*dns.Msg
+	expires time.Time
+}
+
+// File: netresolver.go
+
+package recursive
+
+import (
+	"context"
+	"net"
+	"net/netip"
+	"slices"
+
+	"github.com/miekg/dns"
+)
+
+// Standard Go net.Resolver function overrides
+
+// LookupIP looks up host and returns a slice of its IPv4 and IPv6 addresses.
+func (rc *Recursive) LookupIP(ctx context.Context, network, host string) ([]net.IP, error) {
+	seen := make(map[string]struct{})
+	var ips []net.IP
+	
+	add := func(list []net.IP) {
+		for _, ip := range list {
+			key := ip.String()
+			if _, ok := seen[key]; !ok {
+				seen[key] = struct{}{}
+				ips = append(ips, ip)
+			}
+		}
+	}
+	
+	if network == "ip" || network == "ip4" {
+		if list, err := rc.lookupNetIP(ctx, host, dns.TypeA); err == nil {
+			add(list)
+		}
+	}
+	
+	if network == "ip" || network == "ip6" {
+		if list, err := rc.lookupNetIP(ctx, host, dns.TypeAAAA); err == nil {
+			add(list)
+		}
+	}
+	
+	if len(ips) == 0 {
+		return nil, &net.DNSError{Err: "no such host", Name: host, IsNotFound: true}
+	}
+	
+	return ips, nil
+}
+
+// LookupHost looks up the given host and returns a slice of its addresses.
+func (rc *Recursive) LookupHost(ctx context.Context, host string) ([]string, error) {
+	ips, err := rc.LookupIP(ctx, "ip", host)
+	if err != nil {
+		return nil, err
+	}
+	
+	addrs := make([]string, len(ips))
+	for i, ip := range ips {
+		addrs[i] = ip.String()
+	}
+	
+	return addrs, nil
+}
+
+// LookupNetIP looks up host and returns a slice of its IP addresses.
+func (rc *Recursive) LookupNetIP(ctx context.Context, network, host string) ([]netip.Addr, error) {
+	ips, err := rc.LookupIP(ctx, network, host)
+	if err != nil {
+		return nil, err
+	}
+	
+	addrs := make([]netip.Addr, 0, len(ips))
+	for _, ip := range ips {
+		if addr, ok := netip.AddrFromSlice(ip); ok {
+			addrs = append(addrs, addr)
+		}
+	}
+	
+	slices.SortFunc(addrs, func(a, b netip.Addr) int { return a.Compare(b) })
+	return slices.Compact(addrs), nil
+}
+
+// LookupIPAddr looks up host and returns a slice of its net.IPAddr records.
+func (rc *Recursive) LookupIPAddr(ctx context.Context, host string) ([]net.IPAddr, error) {
+	ips, err := rc.LookupIP(ctx, "ip", host)
+	if err != nil {
+		return nil, err
+	}
+	
+	addrs := make([]net.IPAddr, len(ips))
+	for i, ip := range ips {
+		addrs[i] = net.IPAddr{IP: ip}
+	}
+	
+	return addrs, nil
+}
+
+// LookupNS looks up the NS records for the given domain name.
+func (rc *Recursive) LookupNS(ctx context.Context, name string) ([]*net.NS, error) {
+	msg, _, err := rc.dnsResolve(ctx, name, dns.TypeNS)
+	if err != nil {
+		return nil, err
+	}
+	
+	var nslist []*net.NS
+	for _, rr := range msg.Answer {
+		if ns, ok := rr.(*dns.NS); ok {
+			nslist = append(nslist, &net.NS{Host: ns.Ns})
+		}
+	}
+	
+	return nslist, nil
+}
+
+func (rc *Recursive) lookupNetIP(ctx context.Context, host string, qtype uint16) ([]net.IP, error) {
+	msg, _, err := rc.dnsResolve(ctx, host, qtype)
+	if err != nil {
+		return nil, err
+	}
+	
+	var ips []net.IP
+	for _, rr := range msg.Answer {
+		switch rr := rr.(type) {
+		case *dns.A:
+			ips = append(ips, rr.A)
+		case *dns.AAAA:
+			ips = append(ips, rr.AAAA)
+		}
+	}
+	
+	return ips, nil
+}
+
+// File: util.go
+
+package recursive
+
+import (
+	"math"
+	"net/netip"
+	"strconv"
+
+	"github.com/miekg/dns"
+)
+
+// DnsTypeToString converts a DNS type to its string representation
+func DnsTypeToString(qtype uint16) string {
+	if s, ok := dns.TypeToString[qtype]; ok {
+		return s
+	}
+	return strconv.Itoa(int(qtype))
+}
+
+// AddrFromRR extracts an IP address from a DNS resource record
+func AddrFromRR(rr dns.RR) netip.Addr {
+	switch v := rr.(type) {
+	case *dns.A:
+		if ip, ok := netip.AddrFromSlice(v.A); ok {
+			return ip.Unmap()
+		}
+	case *dns.AAAA:
+		if ip, ok := netip.AddrFromSlice(v.AAAA); ok {
+			return ip
+		}
+	}
+	return netip.Addr{}
+}
+
+// MinTTL returns the lowest resource record TTL in the message, or -1 if there are no records.
+func MinTTL(msg *dns.Msg) int {
+	minTTL := math.MaxInt
+	
+	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns, msg.Extra} {
+		for _, rr := range rrs {
+			// Skip OPT records as they don't have meaningful TTLs
+			if rr.Header().Rrtype == dns.TypeOPT {
+				continue
+			}
+			ttl := int(rr.Header().Ttl)
+			if ttl < minTTL {
+				minTTL = ttl
+			}
+		}
+	}
+	
+	if minTTL == math.MaxInt {
+		return -1
+	}
+	
+	return minTTL
+}
+
+// File: neterror.go
+
+package recursive
+
+import (
+	"time"
+)
+
+// netError wraps a network error with a timestamp
+type netError struct {
+	Err  error
+	When time.Time
+}
+
+func (ne netError) Error() string {
+	return ne.Err.Error()
+}
+
+func (ne netError) Unwrap() error {
+	return ne.Err
+}
+
+// File: timeroot.go
+
+package recursive
+
+import (
+	"context"
+	"net/netip"
+	"sync"
+	"time"
+
+	"golang.org/x/net/proxy"
+)
+
+// rootRtt stores round-trip time measurements for a root server
+type rootRtt struct {
+	addr netip.Addr
+	rtt  time.Duration
+}
+
+// timeRoot measures the RTT to a root server by making multiple connection attempts
+func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGroup, rt *rootRtt) {
+	defer wg.Done()
+	
+	const numProbes = 3
+	
+	network := "tcp4"
+	if rt.addr.Is6() {
+		network = "tcp6"
+	}
+	
+	rt.rtt = time.Hour // Default to very high if all probes fail
+	
+	var totalRtt time.Duration
+	successfulProbes := 0
+	
+	for i := 0; i < numProbes; i++ {
+		start := time.Now()
+		conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, dnsPort).String())
+		if err != nil {
+			continue
+		}
+		
+		totalRtt += time.Since(start)
+		successfulProbes++
+		_ = conn.Close()
+	}
+	
+	if successfulProbes > 0 {
+		rt.rtt = totalRtt / time.Duration(successfulProbes)
+	}
+}
+
+// File: dnsport.go
+
+package recursive
+
+// dnsPort is the standard DNS port (can be overridden for testing)
+var dnsPort uint16 = 53
+	}
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return (r.config.useIPv4 && addr.Is4()) || (r.config.useIPv6 && addr.Is6())
+}
+
+// File: cookies.go
+
+package recursive
+
+import (
+	"net/netip"
+	"sort"
+	"time"
+)
+
+// Cookie management methods
+
+func (r *Recursive) getClientCookie() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.cookies.clientCookie
+}
+
+func (r *Recursive) getServerCookie(addr netip.Addr) (string, bool) {
+	now := time.Now()
+	r.cleanupServerCookies(now)
+	
+	r.mu.RLock()
+	c, ok := r.cookies.serverCookies[addr]
+	r.mu.RUnlock()
+	
+	if ok && now.Sub(c.ts) < srvCookieTTL {
+		return c.value, true
+	}
+	return "", false
+}
+
+func (r *Recursive) setServerCookie(addr netip.Addr, val string) {
+	now := time.Now()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cleanupServerCookiesLocked(now)
+	r.cookies.serverCookies[addr] = srvCookie{value: val, ts: now}
+}
+
+func (r *Recursive) cleanupServerCookies(now time.Time) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.cleanupServerCookiesLocked(now)
+}
+
+func (r *Recursive) cleanupServerCookiesLocked(now time.Time) {
+	// Remove expired cookies
+	cutoff := now.Add(-srvCookieTTL)
+	for addr, c := range r.cookies.serverCookies {
+		if c.ts.Before(cutoff) {
+			delete(r.cookies.serverCookies, addr)
+		}
+	}
+	
+	// Limit total number of cookies
+	if len(r.cookies.serverCookies) <= maxSrvCookies {
+		return
+	}
+	
+	// Remove oldest cookies if we have too many
+	type addrCookie struct {
+		addr netip.Addr
+		ts   time.Time
+	}
+	
+	cookies := make([]addrCookie, 0, len(r.cookies.serverCookies))
+	for addr, c := range r.cookies.serverCookies {
+		cookies = append(cookies, addrCookie{addr: addr, ts: c.ts})
+	}
+	
+	sort.Slice(cookies, func(i, j int) bool { 
+		return cookies[i].ts.Before(cookies[j].ts) 
+	})
+	
+	for i := 0; len(r.cookies.serverCookies) > maxSrvCookies && i < len(cookies); i++ {
+		delete(r.cookies.serverCookies, cookies[i].addr)
+	}
+}
+
+// File: network_errors.go
+
+package recursive
+
+import (
+	"context"
+	"errors"
+	"net"
+	"net/netip"
+	"os"
+	"strings"
+	"syscall"
+	"time"
+)
+
+// Network error handling
+
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) {
+	if err == nil {
+		return false, false
+	}
+	
+	isIpv6err = nsaddr.Is6()
+	
+	// Check if this is a network error we should track
+	if !r.isTrackableNetError(err) {
+		return isIpv6err, false
+	}
+	
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	
+	switch protocol {
+	case "udp":
+		isUdpErr = true
+		r.netErrors.udpErrors[nsaddr] = netError{Err: err, When: time.Now()}
+	case "tcp":
+		r.netErrors.tcpErrors[nsaddr] = netError{Err: err, When: time.Now()}
+	}
+	
+	return isIpv6err, isUdpErr
+}
+
+func (r *Recursive) isTrackableNetError(err error) bool {
+	var ne net.Error
+	ok := errors.Is(err, io.EOF) || errors.As(err, &ne)
+	ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
+	ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+	
+	errstr := err.Error()
+	ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
+	
+	return ok
+}
+
+func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	
+	var errorMap map[netip.Addr]netError
+	switch protocol {
+	case "udp", "udp4", "udp6":
+		errorMap = r.netErrors.udpErrors
+	case "tcp", "tcp4", "tcp6":
+		errorMap = r.netErrors.tcpErrors
+	default:
+		return net.ErrClosed
+	}
+	
+	r.mu.RLock()
+	ne, hasNetError := errorMap[nsaddr]
+	canUse := (r.config.useIPv4 && nsaddr.Is4()) || (r.config.useIPv6 && nsaddr.Is6())
+	r.mu.RUnlock()
+	
+	if hasNetError {
+		if time.Since(ne.When) > time.Minute {
+			// Error is old, remove it
+			r.mu.Lock()
+			delete(errorMap, nsaddr)
+			r.mu.Unlock()
+			return nil
+		}
+		return ne
+	}
+	
+	if !canUse {
+		return net.ErrClosed
+	}
+	
+	return nil
+}
+
+func (r *Recursive) maybeDisableIPv6(err error) bool {
+	if err == nil {
+		return false
+	}
+	
+	if !r.isIPv6ConnectivityError(err) {
+		return false
+	}
+	
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	
+	if !r.config.useIPv6 {
+		return false
+	}
+	
+	r.config.useIPv6 = false
+	
+	// Remove IPv6 addresses from root servers
+	var newRoots []netip.Addr
+	for _, addr := range r.config.rootServers {
+		if addr.Is4() {
+			newRoots = append(newRoots, addr)
+		}
+	}
+	r.config.rootServers = newRoots
+	
+	return true
+}
+
+func (r *Recursive) isIPv6ConnectivityError(err error) bool {
+	errstr := err.Error()
+	return errors.Is(err, syscall.ENETUNREACH) || 
+		errors.Is(err, syscall.EHOSTUNREACH) ||
+		strings.Contains(errstr, "network is unreachable") || 
+		strings.Contains(errstr, "no route to host")
+}
+
+func (r *Recursive) maybeDisableUdp(err error) bool {
+	var ne net.Error
+	if !errors.As(err, &ne) || ne.Timeout() {
+		return false
+	}
+	
+	if !r.isUDPNotSupportedError(err) {
+		return false
+	}
+	
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	
+	disabled := r.config.useUDP
+	r.config.useUDP = false
+	return disabled
+}
+
+func (r *Recursive) isUDPNotSupportedError(err error) bool {
+	errstr := err.Error()
+	return errors.Is(err, syscall.ENOSYS) || 
+		errors.Is(err, syscall.EPROTONOSUPPORT) || 
+		strings.Contains(errstr, "network not implemented")
+}
+
+// File: query.go
+
+package recursive
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"maps"
+	"net"
+	"net/netip"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/miekg/dns"
+)
+
+const cacheExtra = true // set to false to debug glue lookups
+
+type query struct {
+	*Recursive
+	start   time.Time
+	cache   Cacher
+	logw    io.Writer
+	depth   int
+	nomini  bool // disable QNAME minimization
+	sent    int  // number of queries sent
+	steps   int  // number of resolution steps
+	glue    map[string][]netip.Addr
+	cnames  map[string]struct{}
+}
+
+type hostAddr struct {
+	host string
+	addr netip.Addr
+}
+
+func (ha hostAddr) String() string {
+	s := ha.host
+	if ha.addr.IsValid() {
+		s += " " + ha.addr.String()
+	}
+	return s
+}
+
+func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
+	if err = q.dive(); err != nil {
+		return nil, netip.Addr{}, err
+	}
+	defer q.surface()
+	
+	qname = dns.CanonicalName(qname)
+	msg, srv, err = q.resolveIterative(ctx, qname, qtype)
+	
+	if msg == nil {
+		// Manufacture a SERVFAIL if we got nothing
+		msg = new(dns.Msg)
+		msg.SetQuestion(qname, qtype)
+		msg.Rcode = dns.RcodeServerFailure
+	} else if err == nil {
+		// We got a message to return, disregard network errors
+		err = nil
+	}
+	
+	if q.dbg() {
+		q.log("ANSWER %s for %s %q with %d records\n",
+			dns.RcodeToString[msg.Rcode],
+			DnsTypeToString(qtype), qname,
+			len(msg.Answer))
+	}
+	
+	return msg, srv, err
+}
+
+func (q *query) resolveIterative(ctx context.Context, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+	nslist := q.getRootServers()
+	var msg *dns.Msg
+	var srv netip.Addr
+	var err error
+	var final bool
+	var idx int
+	var qlabel int
+	
+	for !final {
+		qlabel++
+		idx, final = dns.PrevLabel(qname, qlabel)
+		cqname := qname[idx:]
+		cqtype := dns.TypeNS
+		
+		if q.nomini {
+			cqname = qname
+			cqtype = qtype
+		}
+		if _, ok := q.glue[qname]; ok {
+			cqtype = qtype
+		}
+		
+		if q.dbg() {
+			q.logQuery(final, cqtype, cqname, nslist)
+		}
+		
+		var nsrcode int
+		var gotmsg *dns.Msg
+		
+		for _, ha := range nslist {
+			if !ha.addr.IsValid() {
+				q.resolveGlue(ctx, &ha)
+			}
+			
+			if !q.useable(ha.addr) {
+				continue
+			}
+			
+			gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype)
+			if err != nil {
+				continue
+			}
+			
+			handled, shouldContinue := q.handleResponse(ctx, gotmsg, ha, &msg, &srv, &nslist, &nsrcode, idx, qname, qtype)
+			if handled {
+				if shouldContinue {
+					break // Move to next label
+				}
+				return msg, srv, err // Return immediately
+			}
+		}
+		
+		if !q.handleNoResponse(gotmsg, &msg, nsrcode, qname, qtype, &err) {
+			break
+		}
+	}
+	
+	// Final resolution with the authoritative nameservers
+	if msg != nil {
+		msg, srv, err = q.resolveFinal(ctx, nslist, qname, qtype, msg)
+	}
+	
+	return msg, srv, err
+}
+
+func (q *query) resolveGlue(ctx context.Context, ha *hostAddr) {
+	if !q.needGlue(ha.host) {
+		return
+	}
+	
+	if q.dbg() {
+		q.log("GLUE lookup for NS %q\n", ha.host)
+	}
+	
+	for _, gluetype := range q.glueTypes() {
+		m, _, err := q.run(ctx, ha.host, gluetype)
+		if err != nil {
+			continue
+		}
+		
+		if m.Rcode == dns.RcodeSuccess {
+			for _, rr := range m.Answer {
+				if host, addr := rrHostAddr(rr); host == ha.host {
+					ha.addr = addr
+					q.addGlue(host, addr)
+				}
+			}
+		}
+	}
+}
+
+func (q *query) handleResponse(ctx context.Context, msg *dns.Msg, ha hostAddr, 
+	outMsg **dns.Msg, outSrv *netip.Addr, nsList *[]hostAddr, nsrcode *int,
+	idx int, qname string, qtype uint16) (handled, shouldContinue bool) {
+	
+	switch msg.Rcode {
+	case dns.RcodeSuccess:
+		if msg.Authoritative || (idx > 0 && (*nsrcode == dns.RcodeNameError || len(msg.Answer) > 0)) {
+			q.setCache(msg)
+		}
+		newlist := q.extractNS(msg)
+		if len(newlist) > 0 {
+			*outSrv = ha.addr
+			*outMsg = msg
+			*nsList = newlist
+			return true, true // Continue to next label
+		}
+		
+	case dns.RcodeServerFailure:
+		q.setCache(msg)
+		*outSrv = ha.addr
+		*outMsg = msg
+		return true, false // Return immediately
+		
+	case dns.RcodeRefused:
+		if !q.nomini {
+			if q.dbg() {
+				q.log("got REFUSED, retry without QNAME minimization\n")
+			}
+			q.nomini = true
+			*outMsg, *outSrv, _ = q.run(ctx, qname, qtype)
+			return true, false // Return immediately
+		}
+		fallthrough
+		
+	default:
+		q.setCache(msg)
+		*outSrv = ha.addr
+		*outMsg = msg
+		return true, false // Return immediately
+	}
+	
+	return false, false
+}
+
+func (q *query) handleNoResponse(gotmsg *dns.Msg, msg **dns.Msg, nsrcode int, 
+	qname string, qtype uint16, err *error) bool {
+	
+	if gotmsg == nil {
+		if q.dbg() {
+			q.log("no ANSWER for %s %q (%s)\n", 
+				DnsTypeToString(qtype), qname, dns.RcodeToString[nsrcode])
+		}
+		
+		if *msg != nil {
+			if qtype == dns.TypeNS {
+				if len((*msg).Answer) == 0 {
+					if len((*msg).Question) > 0 && (*msg).Question[0].Name == qname {
+						(*msg).Answer, (*msg).Ns = (*msg).Ns, (*msg).Answer
+					} else {
+						(*msg).Rcode = nsrcode
+					}
+				}
+			} else {
+				if nsrcode != dns.RcodeSuccess {
+					(*msg).SetQuestion(qname, qtype)
+					(*msg).Rcode = nsrcode
+				}
+			}
+		} else {
+			*err = errors.Join(*err, ErrNoResponse)
+		}
+		return false

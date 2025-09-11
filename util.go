@@ -8,6 +8,7 @@ import (
 	"github.com/miekg/dns"
 )
 
+// DnsTypeToString converts a DNS type to its string representation
 func DnsTypeToString(qtype uint16) string {
 	if s, ok := dns.TypeToString[qtype]; ok {
 		return s
@@ -15,6 +16,7 @@ func DnsTypeToString(qtype uint16) string {
 	return strconv.Itoa(int(qtype))
 }
 
+// AddrFromRR extracts an IP address from a DNS resource record
 func AddrFromRR(rr dns.RR) netip.Addr {
 	switch v := rr.(type) {
 	case *dns.A:
@@ -32,19 +34,23 @@ func AddrFromRR(rr dns.RR) netip.Addr {
 // MinTTL returns the lowest resource record TTL in the message, or -1 if there are no records.
 func MinTTL(msg *dns.Msg) int {
 	minTTL := math.MaxInt
-	for _, rr := range msg.Answer {
-		minTTL = min(minTTL, int(rr.Header().Ttl))
-	}
-	for _, rr := range msg.Ns {
-		minTTL = min(minTTL, int(rr.Header().Ttl))
-	}
-	for _, rr := range msg.Extra {
-		if rr.Header().Rrtype != dns.TypeOPT {
-			minTTL = min(minTTL, int(rr.Header().Ttl))
+
+	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns, msg.Extra} {
+		for _, rr := range rrs {
+			// Skip OPT records as they don't have meaningful TTLs
+			if rr.Header().Rrtype == dns.TypeOPT {
+				continue
+			}
+			ttl := int(rr.Header().Ttl)
+			if ttl < minTTL {
+				minTTL = ttl
+			}
 		}
 	}
+
 	if minTTL == math.MaxInt {
-		minTTL = -1
+		return -1
 	}
+
 	return minTTL
 }

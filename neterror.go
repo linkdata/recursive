@@ -1,7 +1,10 @@
 package recursive
 
-import "time"
+import (
+	"time"
+)
 
+// netError wraps a network error with a timestamp
 type netError struct {
 	Err  error
 	When time.Time
