@@ -6,15 +6,16 @@ import (
 	"net/netip"
 	"runtime"
 	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/linkdata/recursive/dnstest"
 	"github.com/miekg/dns"
 )
 
 func Test_Resolve1111(t *testing.T) {
-	DefaultCache = NewCache()
-
+	cache := NewCache()
 	resps := stubResponses1111()
 	dnstestResps := make(map[string]dnstest.Response)
 	addrSet := map[string]struct{}{}
@@ -79,9 +80,10 @@ func Test_Resolve1111(t *testing.T) {
 
 	roots := []netip.Addr{netip.MustParseAddr(addrs[0])}
 	rec := NewWithOptions(nil, NewCache(), roots, nil, nil)
-
-	ctx := context.Background()
-	retv, srvAddr, err := rec.DnsResolve(ctx, "one.one.one.one", dns.TypeA)
+	ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
+	defer cancel()
+	var logw strings.Builder
+	retv, srvAddr, err := rec.ResolveWithOptions(ctx, cache, &logw, "one.one.one.one", dns.TypeA)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,18 +111,17 @@ func Test_Resolve1111(t *testing.T) {
 		t.Error("expected Z to not be set")
 	}
 
-	DefaultCache.DnsSet(retv)
-	msg := DefaultCache.DnsGet("one.one.one.one.", dns.TypeA)
+	msg := cache.DnsGet("one.one.one.one.", dns.TypeA)
 	if msg == nil {
 		t.Fatal("expected cached message")
 	}
 	if !msg.Zero {
 		t.Error("expected Z to be set")
 	}
-	if entries := DefaultCache.Entries(); entries == 0 {
+	if entries := cache.Entries(); entries == 0 {
 		t.Error(entries)
 	}
-	if hitratio := DefaultCache.HitRatio(); hitratio == 0 {
+	if hitratio := cache.HitRatio(); hitratio == 0 {
 		t.Error("hit ratio is zero")
 	}
 }
