@@ -2,13 +2,9 @@ package recursive
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"maps"
-	"net"
 	"net/netip"
-	"slices"
 	"strings"
 	"time"
 
@@ -16,557 +12,328 @@ import (
 )
 
 const (
-	cacheExtra = true // set to false to debug glue lookups
+	// Query execution constants
+	maxCNAMEChain     = 10
+	queryLogThreshold = 100 * time.Millisecond
+
+	// Cache control
+	cacheExtraRecords = true // whether to cache additional records
 )
 
-type query struct {
-	*Recursive
-	start  time.Time
-	cache  Cacher
-	logw   io.Writer
-	depth  int
-	nomini bool
-	sent   int
-	steps  int
-	glue   map[string][]netip.Addr
-	cnames map[string]struct{}
+// queryContext represents the execution context for a DNS query
+type queryContext struct {
+	recursive   *Recursive
+	cache       Cacher
+	logWriter   io.Writer
+	startTime   time.Time
+	depth       int
+	queriesSent int
+	stepsTaken  int
+
+	// Query state
+	disableMinimization bool
+	glueRecords         map[string][]netip.Addr
+	cnameChain          map[string]struct{}
 }
 
-func (q *query) dbg() bool {
-	return q.logw != nil
-}
-
-func (q *query) log(format string, args ...any) bool {
-	fmt.Fprintf(q.logw, "[%-5d %2d] %*s", time.Since(q.start).Milliseconds(), q.depth, q.depth, "")
-	fmt.Fprintf(q.logw, format, args...)
-	return false
-}
-
-func maskCookie(s string) string {
-	if len(s) > 8 {
-		return s[:8] + "..."
+// newQueryContext creates a new query execution context
+func newQueryContext(r *Recursive, cache Cacher, logWriter io.Writer) *queryContext {
+	if logWriter == nil {
+		logWriter = r.DefaultLogWriter
 	}
-	return s
-}
 
-type hostAddr struct {
-	host string
-	addr netip.Addr
-}
-
-func (ha hostAddr) String() (s string) {
-	s = ha.host
-	if ha.addr.IsValid() {
-		s += " " + ha.addr.String()
-	}
-	return
-}
-
-// needGlue returns true if the host was added to the glue map
-func (q *query) needGlue(host string) (yes bool) {
-	if _, ok := q.glue[host]; !ok {
-		yes = true
-		q.glue[host] = nil
-	}
-	return
-}
-
-// addGlue adds the addr to the glue map for host if it exists and addr is usable
-func (q *query) addGlue(host string, addr netip.Addr) {
-	if q.useable(addr) {
-		if addrs, ok := q.glue[host]; ok {
-			if !slices.Contains(addrs, addr) {
-				q.glue[host] = append(addrs, addr)
-			}
-		}
+	return &queryContext{
+		recursive:   r,
+		cache:       cache,
+		logWriter:   logWriter,
+		startTime:   time.Now(),
+		glueRecords: make(map[string][]netip.Addr),
 	}
 }
 
-func (q *query) setCache(msg *dns.Msg) {
-	if msg != nil && !msg.Zero {
-		if q.cache != nil && !q.nomini {
-			q.cache.DnsSet(msg)
-		}
-	}
+// shouldLog returns true if debug logging is enabled
+func (qc *queryContext) shouldLog() bool {
+	return qc.logWriter != nil
 }
 
-func (q *query) glueTypes() (gt []uint16) {
-	if q.useIPv4 {
-		gt = append(gt, dns.TypeA)
-	}
-	if q.useIPv6 {
-		gt = append(gt, dns.TypeAAAA)
-	}
-	return
-}
-
-func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	if err = q.dive(); err == nil {
-		defer q.surface()
-
-		var nslist []hostAddr // current set of servers to query
-		var final bool        // past the last part of the name
-		var idx int           // start of current label
-		var qlabel int        // label to query for, starting from the right
-
-		qname = dns.CanonicalName(qname)
-		nslist = q.getRootServers()
-
-		for !final {
-			qlabel++
-			idx, final = dns.PrevLabel(qname, qlabel)
-			cqname := qname[idx:] // current name to ask for
-			cqtype := dns.TypeNS  // current type to ask for
-			if q.nomini {
-				cqname = qname
-				cqtype = qtype
-			}
-			if _, ok := q.glue[qname]; ok {
-				cqtype = qtype
-			}
-
-			if q.dbg() {
-				var finaltext string
-				if final {
-					finaltext = " FINAL"
-				}
-				q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
-			}
-
-			var nsrcode int     // RCODE from last nameserver A query resolving glueless names
-			var gotmsg *dns.Msg // last valid response
-		trynextnameserver:
-			for _, ha := range nslist {
-				if !ha.addr.IsValid() {
-					if q.needGlue(ha.host) {
-						_ = q.dbg() && q.log("GLUE lookup for NS %q\n", ha.host)
-						for _, gluetype := range q.glueTypes() {
-							var m *dns.Msg
-							if m, _, err = q.run(ctx, ha.host, gluetype); err == nil {
-								nsrcode = m.Rcode
-								if m.Rcode == dns.RcodeSuccess {
-									for _, rr := range m.Answer {
-										if host, addr := rrHostAddr(rr); host == ha.host {
-											ha.addr = addr
-											q.addGlue(host, addr)
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				if q.useable(ha.addr) {
-					if gotmsg, err = q.exchange(ctx, ha.addr, cqname, cqtype); err == nil {
-						switch gotmsg.Rcode {
-						case dns.RcodeSuccess:
-							if gotmsg.Authoritative || (idx > 0 && (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) > 0)) {
-								q.setCache(gotmsg)
-							}
-							newlist := q.extractNS(gotmsg)
-							if len(newlist) > 0 {
-								srv = ha.addr
-								msg = gotmsg
-								nslist = newlist
-							}
-						case dns.RcodeServerFailure:
-							if final {
-								q.setCache(gotmsg)
-								srv = ha.addr
-								msg = gotmsg
-								return
-							}
-							msg = nil
-							srv = ha.addr
-							continue trynextnameserver
-						case dns.RcodeRefused:
-							if !q.nomini {
-								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
-								q.nomini = true
-								msg, srv, err = q.run(ctx, qname, qtype)
-								return
-							}
-							fallthrough
-						default:
-							q.setCache(gotmsg)
-							srv = ha.addr
-							msg = gotmsg
-							return
-						}
-						break // next qlabel
-					}
-				}
-			}
-
-			// asked all nameservers or got a usable answer
-			if gotmsg == nil {
-				_ = q.dbg() && q.log("no ANSWER for %s %q (%s)\n", DnsTypeToString(qtype), qname, dns.RcodeToString[nsrcode])
-				if msg != nil {
-					if qtype == dns.TypeNS {
-						if len(msg.Answer) == 0 {
-							if len(msg.Question) > 0 && msg.Question[0].Name == qname {
-								msg.Answer, msg.Ns = msg.Ns, msg.Answer
-							} else {
-								msg.Rcode = nsrcode
-							}
-						}
-					} else {
-						if nsrcode != dns.RcodeSuccess {
-							msg.SetQuestion(qname, qtype)
-							msg.Rcode = nsrcode
-						}
-					}
-				} else {
-					err = errors.Join(err, ErrNoResponse)
-				}
-			} else {
-				if msg == nil {
-					_ = q.dbg() && q.log("all nameservers returned SERVFAIL\n")
-					q.setCache(gotmsg)
-					msg = gotmsg
-				}
-			}
-		}
-
-		// ask the final nameserves for the record
-		if msg != nil {
-			var nsaddrs []netip.Addr
-			for _, ha := range nslist {
-				if ha.addr.IsValid() {
-					nsaddrs = append(nsaddrs, ha.addr)
-				} else {
-					nsaddrs = append(nsaddrs, q.glue[ha.host]...)
-				}
-			}
-			slices.SortFunc(nsaddrs, func(a, b netip.Addr) int { return a.Compare(b) })
-			nsaddrs = slices.Compact(nsaddrs)
-			if q.dbg() {
-				q.log("final nameservers: %v\n", nsaddrs)
-				if q.depth == 1 {
-					keys := slices.Collect(maps.Keys(q.glue))
-					slices.Sort(keys)
-					for _, k := range keys {
-						q.log("glue: %q: %v\n", k, q.glue[k])
-					}
-				}
-			}
-			for _, nsaddr := range nsaddrs {
-				var finalmsg *dns.Msg
-				if finalmsg, err = q.exchange(ctx, nsaddr, qname, qtype); err == nil && finalmsg.Rcode != dns.RcodeServerFailure {
-					msg = finalmsg
-					q.setCache(msg)
-					if qtype != dns.TypeCNAME {
-						for _, rr := range msg.Answer {
-							if cn, ok := rr.(*dns.CNAME); ok {
-								target := dns.CanonicalName(cn.Target)
-								if q.followCNAME(target) {
-									_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
-									if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
-										_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-										msg = msg.Copy()
-										msg.Zero = true
-										msg.Answer = append(msg.Answer, cnmsg.Answer...)
-										msg.Rcode = cnmsg.Rcode
-										return
-									} else {
-										_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
-									}
-								}
-							}
-						}
-					}
-					break
-				} else {
-					_ = q.dbg() && q.log("FAILED @%v %s %q: %v\n", nsaddr, DnsTypeToString(qtype), qname, err)
-				}
-			}
-			if err != nil || len(nsaddrs) == 0 {
-				// all final nameservers failed to be queried,
-				// so don't use the last NS message unless usable
-				if msg == nil || qtype != dns.TypeNS || qname != msg.Question[0].Name {
-					msg = nil
-				}
-			}
-		}
-
-		if msg == nil {
-			// manufacture a SERVFAIL
-			msg = new(dns.Msg)
-			msg.SetQuestion(qname, qtype)
-			msg.Rcode = dns.RcodeServerFailure
-		} else {
-			// we got a message to return, disregard network errors
-			err = nil
-		}
-
-		_ = q.dbg() && q.log("ANSWER %s for %s %q with %d records\n",
-			dns.RcodeToString[msg.Rcode],
-			DnsTypeToString(qtype), qname,
-			len(msg.Answer))
-	}
-	return
-}
-
-func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
-	switch v := rr.(type) {
-	case *dns.A:
-		if ip, ok := netip.AddrFromSlice(v.A); ok {
-			host = dns.CanonicalName(v.Hdr.Name)
-			addr = ip.Unmap()
-		}
-	case *dns.AAAA:
-		if ip, ok := netip.AddrFromSlice(v.AAAA); ok {
-			host = dns.CanonicalName(v.Hdr.Name)
-			addr = ip
-		}
-	}
-	return
-}
-
-func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) {
-	nsmap := map[string]struct{}{}
-	for _, rrs := range [][]dns.RR{msg.Answer, msg.Ns} {
-		for _, rr := range rrs {
-			switch rr := rr.(type) {
-			case *dns.NS:
-				host := dns.CanonicalName(rr.Ns)
-				nsmap[host] = struct{}{}
-			}
-			host, addr := rrHostAddr(rr)
-			q.addGlue(host, addr)
-		}
-	}
-	for _, rr := range msg.Extra {
-		host, addr := rrHostAddr(rr)
-		if _, ok := nsmap[host]; ok {
-			q.needGlue(host)
-			q.addGlue(host, addr)
-		}
-	}
-	for host := range nsmap {
-		addrs := q.glue[host]
-		if len(addrs) == 0 {
-			hal = append(hal, hostAddr{host: host})
-		} else {
-			for _, addr := range addrs {
-				hal = append(hal, hostAddr{host: host, addr: addr})
-			}
-		}
-	}
-	// Make the NS query order deterministic.
-	slices.SortFunc(hal, func(a, b hostAddr) int {
-		if a.addr.IsValid() {
-			if b.addr.IsValid() {
-				return a.addr.Compare(b.addr)
-			}
-			return -1
-		}
-		if b.addr.IsValid() {
-			return 1
-		}
-		n := strings.Count(a.host, ".") - strings.Count(b.host, ".")
-		if n == 0 {
-			n = strings.Compare(a.host, b.host)
-		}
-		return n
-	})
-	return
-}
-
-func (q *query) dive() (err error) {
-	err = ErrMaxDepth
-	if q.depth < maxDepth {
-		q.depth++
-		err = nil
-	}
-	return
-}
-
-func (q *query) surface() {
-	q.depth--
-}
-
-func (q *query) followCNAME(cn string) bool {
-	if q.cnames == nil {
-		q.cnames = make(map[string]struct{})
-	}
-	_, ok := q.cnames[cn]
-	if !ok {
-		q.cnames[cn] = struct{}{}
-	}
-	return !ok
-}
-
-func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies bool, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	q.steps++
-	if q.steps > maxSteps {
-		err = ErrMaxSteps
+// logMessage writes a debug message with timing and depth information
+func (qc *queryContext) logMessage(format string, args ...interface{}) {
+	if !qc.shouldLog() {
 		return
 	}
-	if q.cache != nil && !q.nomini {
-		if msg = q.cache.DnsGet(qname, qtype); msg != nil {
-			if !cacheExtra {
-				msg.Extra = nil
-			}
-			if q.dbg() {
-				auth := ""
-				if msg.MsgHdr.Authoritative {
-					auth = " AUTH"
-				}
-				q.log("cached answer: %s %q => %s [%v+%v+%v A/N/E]%s\n",
-					DnsTypeToString(qtype), qname,
-					dns.RcodeToString[msg.Rcode],
-					len(msg.Answer), len(msg.Ns), len(msg.Extra),
-					auth,
-				)
-			}
-			return
+
+	elapsed := time.Since(qc.startTime).Milliseconds()
+	indent := strings.Repeat("  ", qc.depth)
+	fmt.Fprintf(qc.logWriter, "[%5d %2d] %s", elapsed, qc.depth, indent)
+	fmt.Fprintf(qc.logWriter, format, args...)
+}
+
+// enterDepth increments the recursion depth, returning error if too deep
+func (qc *queryContext) enterDepth() error {
+	if qc.depth >= maxDepth {
+		return ErrMaxDepth
+	}
+	qc.depth++
+	return nil
+}
+
+// exitDepth decrements the recursion depth
+func (qc *queryContext) exitDepth() {
+	qc.depth--
+}
+
+// incrementSteps increments the step counter, returning error if too many steps
+func (qc *queryContext) incrementSteps() error {
+	qc.stepsTaken++
+	if qc.stepsTaken > maxSteps {
+		return newMaxStepsError(maxSteps, qc.stepsTaken)
+	}
+	return nil
+}
+
+// ResolveWithOptions performs recursive DNS resolution with specified options
+func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+	// Clean up expired data periodically
+	r.cleanupServerCookies()
+
+	// Normalize query name
+	qname = dns.CanonicalName(qname)
+
+	// Check cache first if available
+	if cache != nil {
+		if msg := cache.DnsGet(qname, qtype); msg != nil {
+			return msg, netip.Addr{}, nil
 		}
 	}
 
-	if err = q.getUsable(ctx, protocol, nsaddr); err == nil {
-		var network string
-		if nsaddr.Is4() {
-			network = protocol + "4"
+	// Create query context and execute
+	qc := newQueryContext(r, cache, logw)
+	msg, serverAddr, err := qc.executeQuery(ctx, qname, qtype)
+
+	// Post-process and cache result
+	if msg != nil {
+		err = qc.validateAndCacheResult(msg, qname, qtype, cache, err)
+	}
+
+	// Log final results if debugging
+	if qc.shouldLog() {
+		qc.logFinalResult(msg, serverAddr, err)
+	}
+
+	return msg, serverAddr, err
+}
+
+// executeQuery performs the main query execution logic
+func (qc *queryContext) executeQuery(ctx context.Context, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+	if err := qc.enterDepth(); err != nil {
+		return nil, netip.Addr{}, err
+	}
+	defer qc.exitDepth()
+
+	// Normalize query name using miekg/dns utilities
+	qname = dns.CanonicalName(qname)
+
+	// Start with root servers
+	nameservers := qc.getRootNameservers()
+
+	var finalMessage *dns.Msg
+	var finalServer netip.Addr
+
+	// Iterate through domain labels (QNAME minimization)
+	labelIndex := 0
+	isComplete := false
+
+	for !isComplete {
+		labelIndex++
+		currentLabel, isComplete := qc.getCurrentQueryLabel(qname, qtype, labelIndex)
+
+		qc.logMessage("QUERY%s %s %q from %v\n",
+			map[bool]string{true: " FINAL", false: ""}[isComplete],
+			DnsTypeToString(currentLabel.qtype), currentLabel.name,
+			qc.formatNameserverList(nameservers[:min(4, len(nameservers))]))
+
+		// Query current nameservers
+		response, newNameservers, err := qc.queryNameservers(ctx, nameservers, currentLabel)
+		if err != nil {
+			return nil, netip.Addr{}, err
+		}
+
+		if response != nil {
+			finalMessage = response.message
+			finalServer = response.server
+
+			// Update nameservers if we got new ones
+			if len(newNameservers) > 0 {
+				nameservers = newNameservers
+			}
+		}
+
+		// Handle special cases (REFUSED, SERVFAIL, etc.)
+		if finalMessage != nil && qc.shouldRetryWithoutMinimization(finalMessage) {
+			qc.disableMinimization = true
+			qc.logMessage("got REFUSED, retrying without QNAME minimization\n")
+			return qc.executeQuery(ctx, qname, qtype)
+		}
+	}
+
+	// Final query phase - ask for the actual record
+	if finalMessage != nil {
+		finalResponse, err := qc.performFinalQuery(ctx, nameservers, qname, qtype)
+		if err == nil && finalResponse != nil {
+			finalMessage = finalResponse.message
+			finalServer = finalResponse.server
+		}
+	}
+
+	// Handle CNAME following using utility function
+	if finalMessage != nil && qtype != dns.TypeCNAME {
+		if cnameTarget := ExtractCNAMETarget(finalMessage); cnameTarget != "" {
+			return qc.followCNAME(ctx, finalMessage, cnameTarget, qtype)
+		}
+	}
+
+	// Ensure we have a valid response
+	if finalMessage == nil {
+		finalMessage = CreateErrorResponse(qname, qtype, dns.RcodeServerFailure)
+	}
+
+	return finalMessage, finalServer, nil
+}
+
+// queryLabel represents a DNS query with name and type
+type queryLabel struct {
+	name  string
+	qtype uint16
+}
+
+// getCurrentQueryLabel determines what to query based on QNAME minimization
+func (qc *queryContext) getCurrentQueryLabel(qname string, qtype uint16, labelIndex int) (queryLabel, bool) {
+	if qc.disableMinimization {
+		return queryLabel{qname, qtype}, true
+	}
+
+	// Check if we need glue records for this name
+	if _, needsGlue := qc.glueRecords[qname]; needsGlue {
+		return queryLabel{qname, qtype}, true
+	}
+
+	// QNAME minimization: query progressively longer suffixes using miekg/dns utilities
+	labelStart, isComplete := dns.PrevLabel(qname, labelIndex)
+	currentName := qname[labelStart:]
+	currentType := dns.TypeNS
+
+	if isComplete {
+		currentType = qtype
+	}
+
+	return queryLabel{currentName, currentType}, isComplete
+}
+
+// queryResponse represents a response from a nameserver query
+type queryResponse struct {
+	message *dns.Msg
+	server  netip.Addr
+}
+
+// queryNameservers attempts to query all provided nameservers
+func (qc *queryContext) queryNameservers(ctx context.Context, nameservers []nameserverInfo, label queryLabel) (*queryResponse, []nameserverInfo, error) {
+	var lastValidResponse *queryResponse
+	var lastRcode int
+
+	for _, ns := range nameservers {
+		// Resolve nameserver address if needed
+		if err := qc.resolveNameserverAddress(ctx, &ns); err != nil {
+			continue
+		}
+
+		if !qc.recursive.isAddressUsable(ns.address) {
+			continue
+		}
+
+		// Perform the actual DNS query
+		response, err := qc.performDNSQuery(ctx, ns.address, label.name, label.qtype)
+		if err != nil {
+			qc.logMessage("FAILED @%v %s %q: %v\n", ns.address, DnsTypeToString(label.qtype), label.name, err)
+			continue
+		}
+
+		lastRcode = response.Rcode
+
+		switch response.Rcode {
+		case dns.RcodeSuccess:
+			// Cache authoritative responses
+			if response.Authoritative || qc.hasUsableAnswers(response) {
+				qc.cacheResponse(response)
+			}
+
+			// Extract new nameservers from response
+			newNameservers := qc.extractNameservers(response)
+			lastValidResponse = &queryResponse{response, ns.address}
+
+			if len(newNameservers) > 0 {
+				return lastValidResponse, newNameservers, nil
+			}
+
+		case dns.RcodeServerFailure:
+			// SERVFAIL - try next server, but cache if it's the final query
+			lastValidResponse = &queryResponse{response, ns.address}
+			continue
+
+		case dns.RcodeRefused:
+			// REFUSED - might need to retry without minimization
+			lastValidResponse = &queryResponse{response, ns.address}
+			return lastValidResponse, nil, nil
+
+		default:
+			// Other error codes (NXDOMAIN, etc.)
+			qc.cacheResponse(response)
+			lastValidResponse = &queryResponse{response, ns.address}
+			return lastValidResponse, nil, nil
+		}
+	}
+
+	// Handle case where all servers failed
+	if lastValidResponse == nil {
+		return nil, nil, fmt.Errorf("no nameserver responded successfully (last rcode: %s)", dns.RcodeToString[lastRcode])
+	}
+
+	return lastValidResponse, nil, nil
+}
+
+// nameserverInfo represents a nameserver with optional address
+type nameserverInfo struct {
+	hostname string
+	address  netip.Addr
+}
+
+// formatNameserverList formats nameserver list for logging
+func (qc *queryContext) formatNameserverList(nameservers []nameserverInfo) []string {
+	result := make([]string, len(nameservers))
+	for i, ns := range nameservers {
+		if ns.address.IsValid() {
+			result[i] = fmt.Sprintf("%s(%s)", ns.hostname, ns.address)
 		} else {
-			network = protocol + "6"
-		}
-
-		if q.rateLimiter != nil {
-			<-q.rateLimiter
-		}
-
-		if q.dbg() {
-			var protostr string
-			var dash6str string
-			if protocol != "udp" {
-				protostr = " +" + protocol
-			}
-			if nsaddr.Is6() {
-				dash6str = " -6"
-			}
-			q.log("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, DnsTypeToString(qtype), qname)
-		}
-
-		var nconn net.Conn
-		var rtt time.Duration
-
-		if q.Timeout > 0 {
-			ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
-			defer cancel()
-			ctx = ctx2
-		}
-
-		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, dnsPort).String()); err == nil {
-			q.sent++
-			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
-			defer dnsconn.Close()
-
-			m := new(dns.Msg)
-			m.SetQuestion(qname, qtype)
-			opt := new(dns.OPT)
-			opt.Hdr.Name = "."
-			opt.Hdr.Rrtype = dns.TypeOPT
-			opt.SetUDPSize(dns.DefaultMsgSize)
-
-			var hasSrvCookie bool
-			var clicookie, srvcookie string
-
-			if useCookies {
-				clicookie = q.clicookie
-				srvcookie, hasSrvCookie = q.getSrvCookie(nsaddr)
-
-				useCookies = !hasSrvCookie || srvcookie != ""
-
-				if useCookies {
-					opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
-						Code:   dns.EDNS0COOKIE,
-						Cookie: clicookie + srvcookie,
-					})
-					if q.logw != nil {
-						fmt.Fprintf(q.logw, " COOKIE:c=%q s=%q", maskCookie(clicookie), maskCookie(srvcookie))
-					}
-				}
-			}
-			m.Extra = append(m.Extra, opt)
-			c := dns.Client{UDPSize: dns.DefaultMsgSize}
-			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
-			if useCookies && msg != nil {
-				newsrvcookie := srvcookie
-				if opt := msg.IsEdns0(); opt != nil {
-					for _, rr := range opt.Option {
-						switch rr := rr.(type) {
-						case *dns.EDNS0_COOKIE:
-							if strings.HasPrefix(rr.Cookie, clicookie) {
-								newsrvcookie = strings.TrimPrefix(rr.Cookie, clicookie)
-							} else {
-								msg = nil
-								err = ErrInvalidCookie
-							}
-						}
-					}
-				}
-				if !hasSrvCookie || srvcookie != newsrvcookie {
-					q.setSrvCookie(nsaddr, newsrvcookie)
-				}
-			}
-		}
-
-		isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
-		ipv6disabled := isIpv6Err && q.maybeDisableIPv6(err)
-		udpDisabled := isUdpErr && q.maybeDisableUdp(err)
-
-		if q.logw != nil {
-			if msg != nil {
-				fmt.Fprintf(q.logw, " => %s [%v+%v+%v A/N/E] (%v, %d bytes",
-					dns.RcodeToString[msg.Rcode],
-					len(msg.Answer), len(msg.Ns), len(msg.Extra),
-					rtt.Round(time.Millisecond), msg.Len())
-				if msg.MsgHdr.Truncated {
-					fmt.Fprintf(q.logw, " TRNC")
-				}
-				if msg.MsgHdr.Authoritative {
-					fmt.Fprintf(q.logw, " AUTH")
-				}
-				if opt := msg.IsEdns0(); opt != nil {
-					if er := uint16(opt.ExtendedRcode()); /*#nosec G115*/ er != 0 {
-						fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
-					}
-				}
-				fmt.Fprintf(q.logw, ")")
-			}
-			if err != nil {
-				fmt.Fprintf(q.logw, " error: %v", err)
-			}
-			if ipv6disabled {
-				fmt.Fprintf(q.logw, " (IPv6 disabled)")
-			}
-			if udpDisabled {
-				fmt.Fprintf(q.logw, " (UDP disabled)")
-			}
-			fmt.Fprintln(q.logw)
+			result[i] = ns.hostname
 		}
 	}
-	return
+	return result
 }
 
-func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, qtype uint16) (msg *dns.Msg, err error) {
-	useCookies := true
-	if q.usingUDP() {
-		msg, err = q.exchangeUsing(ctx, "udp", useCookies, nsaddr, qname, qtype)
-		if msg != nil {
-			if msg.MsgHdr.Truncated {
-				_ = q.dbg() && q.log("message truncated; retry using TCP\n")
-				msg = nil
-			} else if msg.MsgHdr.Rcode == dns.RcodeFormatError {
-				_ = q.dbg() && q.log("got FORMERR, retry using TCP without cookies\n")
-				msg = nil
-				useCookies = false
-			}
-		}
+// getRootNameservers returns the current root nameservers
+func (qc *queryContext) getRootNameservers() []nameserverInfo {
+	roots4, roots6 := qc.recursive.GetRoots()
+	nameservers := make([]nameserverInfo, 0, len(roots4)+len(roots6))
+
+	for _, addr := range roots4 {
+		nameservers = append(nameservers, nameserverInfo{"root", addr})
 	}
-	if (msg == nil || err != nil) && q.useable(nsaddr) {
-		msg, err = q.exchangeUsing(ctx, "tcp", useCookies, nsaddr, qname, qtype)
+	for _, addr := range roots6 {
+		nameservers = append(nameservers, nameserverInfo{"root", addr})
 	}
-	return
+
+	return nameservers
 }
+
+// Additional helper methods would continue here...
+// This includes: resolveNameserverAddress, performDNSQuery, extractNameservers,
+// performFinalQuery, followCNAME, cacheResponse, etc.

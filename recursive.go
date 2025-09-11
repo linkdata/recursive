@@ -3,125 +3,84 @@ package recursive
 import (
 	"context"
 	crand "crypto/rand"
-	"errors"
 	"fmt"
 	"io"
 	rand "math/rand/v2"
 	"net"
 	"net/netip"
-	"os"
 	"sort"
-	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/miekg/dns"
 	"golang.org/x/net/proxy"
 )
 
-/*
-	Good tests:
-	NS	google.tw.cn.
-	NS	bankgirot.nu.
-	NS	skandia.com.ci.
-	A	m.hkirc.net.hk.
-	A	www.microsoft.com.
-	A   console.aws.amazon.com.
-	A   *.en.se.
-	A	teli.se.
-	A	telia.biz.mv.
-	A	telia.per.la.
-	NS	seb.inf.ua
-	A	seb.org.tw
-	NS	wetrgijrotigj.bet.ar
-	A	h6xyrckrof16xv31.xn--kprw13d
-	MX	3sj82qujmol2npax.us.kg
-	A	9ghuun5oshdr6hvi.prd.mg
-	NS	5xqy3o9qafuvdqtv.mil.sy
-	A	eoh.be
-	NS	tella.net.ms
-*/
-
-//go:generate go run ./cmd/genhints roothints.gen.go
-
 const (
 	maxDepth = 32   // maximum recursion depth
 	maxSteps = 1000 // max number of steps to allow in resolving
-)
 
-var (
-	// ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
-	ErrInvalidCookie = errors.New("invalid cookie")
-	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
-	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
-	// ErrMaxSteps is returned when resolving exceeds the step limit.
-	ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
-	// ErrNoResponse is returned when no authoritative server could be successfully queried.
-	// It is equivalent to SERVFAIL.
-	ErrNoResponse = errors.New("no authoritative response")
-	// ErrQuestionMismatch is returned when the DNS response is not for what was queried.
-	ErrQuestionMismatch = errors.New("question mismatch")
-	DefaultCache        = NewCache()
-	DefaultTimeout      = time.Second * 5
-)
-
-var _ Resolver = (*Recursive)(nil) // ensure we implement interface
-
-const (
+	// Cookie management constants
 	maxSrvCookies = 8192
 	srvCookieTTL  = 24 * time.Hour
+
+	// Connection and timeout defaults
+	DefaultTimeout = 5 * time.Second
 )
 
-type srvCookie struct {
-	value string
-	ts    time.Time
+// serverCookie represents a DNS server cookie with timestamp
+type serverCookie struct {
+	value     string
+	timestamp time.Time
 }
 
+// isExpired checks if the cookie has expired
+func (sc *serverCookie) isExpired() bool {
+	return time.Since(sc.timestamp) > srvCookieTTL
+}
+
+// Recursive implements a recursive DNS resolver with QNAME minimization and caching
 type Recursive struct {
-	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
-	Cacher                              // (read-only) Cacher passed to NewWithOptions
-	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
-	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
-	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
-	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
-	mu                  sync.RWMutex    // protects following
-	useUDP              bool
-	useIPv4             bool
-	useIPv6             bool
-	rootServers         []netip.Addr
-	clicookie           string
-	srvcookies          map[netip.Addr]srvCookie
-	udperrs             map[netip.Addr]netError
-	tcperrs             map[netip.Addr]netError
-	dnsResolve          func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
+	// Configuration (read-only after creation)
+	proxy.ContextDialer               // Network dialer for connections
+	Cacher                            // Default cache implementation
+	*net.Resolver                     // Standard library resolver using our dialer
+	Timeout             time.Duration // Individual query timeout
+	DefaultLogWriter    io.Writer     // Default debug log writer
+
+	// Rate limiting
+	rateLimiter <-chan struct{}
+
+	// Mutable state (protected by mutex)
+	mu                sync.RWMutex
+	config            *resolverConfig
+	networkErrors     *networkErrorManager
+	clientCookie      string
+	serverCookies     map[netip.Addr]*serverCookie
+	lastCookieCleanup time.Time
+
+	// Function override for testing
+	dnsResolve func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
 }
 
-func makeCookie() string {
-	b := make([]byte, 8)
-	if _, err := crand.Read(b); err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%x", b)
+// resolverConfig holds the current resolver configuration
+type resolverConfig struct {
+	useUDP      bool
+	useIPv4     bool
+	useIPv6     bool
+	rootServers []netip.Addr
 }
 
-func shuffleAddrs(a []netip.Addr) {
-	rand.Shuffle(len(a), func(i, j int) {
-		a[i], a[j] = a[j], a[i]
-	})
-}
+// Global default cache instance
+var DefaultCache = NewCache()
 
-// NewWithOptions returns a new Recursive resolver using the given ContextDialer and
-// using the given Cacher as it's default cache. It does not call OrderRoots.
-//
-// Passing nil for dialer will use a net.Dialer.
-// Passing nil for cache means it won't use any cache by default.
-// Passing nil for the roots will use the default set of roots.
-// Passing nil for the rateLimiter means no rate limiting
+// NewWithOptions creates a new Recursive resolver with specified options
 func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr, rateLimiter <-chan struct{}) *Recursive {
 	if dialer == nil {
 		dialer = &net.Dialer{}
 	}
+
+	// Use default roots if none provided
 	if roots4 == nil {
 		roots4 = Roots4
 	}
@@ -129,23 +88,8 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		roots6 = Roots6
 	}
 
-	var root4, root6 []netip.Addr
-	if len(roots4) > 0 {
-		root4 = append(root4, roots4...)
-		shuffleAddrs(root4)
-	}
-	if len(roots6) > 0 {
-		root6 = append(root6, roots6...)
-		shuffleAddrs(root6)
-	}
-
-	roots := make([]netip.Addr, 0, len(root4)+len(root6))
-	n := min(len(root4), len(root6))
-	for i := 0; i < n; i++ {
-		roots = append(roots, root4[i], root6[i])
-	}
-	roots = append(roots, root4[n:]...)
-	roots = append(roots, root6[n:]...)
+	// Prepare root server lists with randomization
+	rootServers := prepareRootServers(roots4, roots6)
 
 	r := &Recursive{
 		ContextDialer: dialer,
@@ -154,342 +98,356 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 			PreferGo: true,
 			Dial:     dialer.DialContext,
 		},
-		Timeout:     DefaultTimeout,
-		rateLimiter: rateLimiter,
-		useUDP:      true,
-		useIPv4:     len(root4) > 0,
-		useIPv6:     len(root6) > 0,
-		rootServers: roots,
-		clicookie:   makeCookie(),
-		srvcookies:  make(map[netip.Addr]srvCookie),
-		udperrs:     make(map[netip.Addr]netError),
-		tcperrs:     make(map[netip.Addr]netError),
+		Timeout:           DefaultTimeout,
+		rateLimiter:       rateLimiter,
+		networkErrors:     newNetworkErrorManager(),
+		clientCookie:      generateClientCookie(),
+		serverCookies:     make(map[netip.Addr]*serverCookie),
+		lastCookieCleanup: time.Now(),
+		config: &resolverConfig{
+			useUDP:      true,
+			useIPv4:     len(roots4) > 0,
+			useIPv6:     len(roots6) > 0,
+			rootServers: rootServers,
+		},
 	}
+
+	// Set up default resolver function
 	r.dnsResolve = r.DnsResolve
+
 	return r
 }
 
-// New returns a new Recursive resolver using the given ContextDialer and
-// has DefaultCache as it's cache.
-//
-// It calls OrderRoots before returning.
+// New creates a new Recursive resolver with default cache and calls OrderRoots
 func New(dialer proxy.ContextDialer) *Recursive {
 	r := NewWithOptions(dialer, DefaultCache, nil, nil, nil)
 	r.OrderRoots(context.Background())
 	return r
 }
 
-// ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
+// prepareRootServers combines and randomizes IPv4 and IPv6 root servers
+func prepareRootServers(roots4, roots6 []netip.Addr) []netip.Addr {
+	// Copy and shuffle each list
+	var shuffled4, shuffled6 []netip.Addr
+	if len(roots4) > 0 {
+		shuffled4 = make([]netip.Addr, len(roots4))
+		copy(shuffled4, roots4)
+		shuffleAddresses(shuffled4)
+	}
+	if len(roots6) > 0 {
+		shuffled6 = make([]netip.Addr, len(roots6))
+		copy(shuffled6, roots6)
+		shuffleAddresses(shuffled6)
+	}
+
+	// Interleave IPv4 and IPv6 addresses for better balance
+	rootServers := make([]netip.Addr, 0, len(shuffled4)+len(shuffled6))
+	maxLen := max(len(shuffled4), len(shuffled6))
+
+	for i := 0; i < maxLen; i++ {
+		if i < len(shuffled4) {
+			rootServers = append(rootServers, shuffled4[i])
+		}
+		if i < len(shuffled6) {
+			rootServers = append(rootServers, shuffled6[i])
+		}
+	}
+
+	return rootServers
+}
+
+// shuffleAddresses randomizes the order of addresses
+func shuffleAddresses(addresses []netip.Addr) {
+	rand.Shuffle(len(addresses), func(i, j int) {
+		addresses[i], addresses[j] = addresses[j], addresses[i]
+	})
+}
+
+// generateClientCookie creates a new random DNS client cookie
+func generateClientCookie() string {
+	cookieBytes := make([]byte, 8)
+	if _, err := crand.Read(cookieBytes); err != nil {
+		// Fallback to time-based cookie if random fails
+		now := time.Now().UnixNano()
+		for i := 0; i < 8; i++ {
+			cookieBytes[i] = byte(now >> (i * 8))
+		}
+	}
+	return fmt.Sprintf("%x", cookieBytes)
+}
+
+// ResetCookies generates a new client cookie and clears server cookies
 func (r *Recursive) ResetCookies() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.clicookie = makeCookie()
-	clear(r.srvcookies)
+
+	r.clientCookie = generateClientCookie()
+	r.serverCookies = make(map[netip.Addr]*serverCookie)
+	r.lastCookieCleanup = time.Now()
 }
 
-func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) {
-	cutoff := now.Add(-srvCookieTTL)
-	for addr, c := range r.srvcookies {
-		if c.ts.Before(cutoff) {
-			delete(r.srvcookies, addr)
+// OrderRoots sorts root servers by latency and removes unresponsive ones
+func (r *Recursive) OrderRoots(ctx context.Context) {
+	// Set deadline if not already set
+	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
+		newCtx, cancel := context.WithTimeout(ctx, DefaultTimeout)
+		defer cancel()
+		ctx = newCtx
+	}
+
+	r.mu.Lock()
+	currentRoots := make([]netip.Addr, len(r.config.rootServers))
+	copy(currentRoots, r.config.rootServers)
+	r.mu.Unlock()
+
+	// Test all root servers concurrently
+	rootLatencies := r.testRootServers(ctx, currentRoots)
+
+	// Sort by latency and filter working servers
+	sort.Slice(rootLatencies, func(i, j int) bool {
+		return rootLatencies[i].latency < rootLatencies[j].latency
+	})
+
+	// Update configuration with working servers
+	r.updateRootConfiguration(rootLatencies)
+}
+
+// testRootServers tests all root servers concurrently and returns their latencies
+func (r *Recursive) testRootServers(ctx context.Context, roots []netip.Addr) []*rootLatency {
+	var wg sync.WaitGroup
+	results := make([]*rootLatency, len(roots))
+
+	for i, addr := range roots {
+		results[i] = &rootLatency{address: addr, latency: time.Hour} // Default to high latency
+		wg.Add(1)
+
+		go func(idx int, addr netip.Addr) {
+			defer wg.Done()
+			results[idx].latency = r.measureServerLatency(ctx, addr)
+		}(i, addr)
+	}
+
+	wg.Wait()
+	return results
+}
+
+// rootLatency represents a root server with its measured latency
+type rootLatency struct {
+	address netip.Addr
+	latency time.Duration
+}
+
+// measureServerLatency measures the connection latency to a server
+func (r *Recursive) measureServerLatency(ctx context.Context, addr netip.Addr) time.Duration {
+	const numProbes = 3
+
+	network := "tcp4"
+	if addr.Is6() {
+		network = "tcp6"
+	}
+
+	target := netip.AddrPortFrom(addr, dnsPort).String()
+	var totalLatency time.Duration
+
+	for i := 0; i < numProbes; i++ {
+		start := time.Now()
+		conn, err := r.DialContext(ctx, network, target)
+		if err != nil {
+			return time.Hour // Mark as unreachable
 		}
+		totalLatency += time.Since(start)
+		_ = conn.Close()
 	}
-	if len(r.srvcookies) <= maxSrvCookies {
-		return
-	}
-	type ac struct {
-		addr netip.Addr
-		ts   time.Time
-	}
-	l := make([]ac, 0, len(r.srvcookies))
-	for addr, c := range r.srvcookies {
-		l = append(l, ac{addr: addr, ts: c.ts})
-	}
-	sort.Slice(l, func(i, j int) bool { return l[i].ts.Before(l[j].ts) })
-	for i := 0; len(r.srvcookies) > maxSrvCookies && i < len(l); i++ {
-		delete(r.srvcookies, l[i].addr)
-	}
+
+	return totalLatency / numProbes
 }
 
-func (r *Recursive) cleanupSrvCookies(now time.Time) {
+// updateRootConfiguration updates the root server configuration
+func (r *Recursive) updateRootConfiguration(latencies []*rootLatency) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.cleanupSrvCookiesLocked(now)
+
+	workingRoots := make([]netip.Addr, 0)
+	hasIPv4 := false
+	hasIPv6 := false
+
+	for _, rl := range latencies {
+		if rl.latency < time.Minute { // Only use responsive servers
+			workingRoots = append(workingRoots, rl.address)
+			if rl.address.Is4() {
+				hasIPv4 = true
+			} else if rl.address.Is6() {
+				hasIPv6 = true
+			}
+		}
+	}
+
+	if len(workingRoots) > 0 {
+		r.config.rootServers = workingRoots
+		r.config.useIPv4 = hasIPv4
+		r.config.useIPv6 = hasIPv6
+	}
 }
 
-func (r *Recursive) getSrvCookie(addr netip.Addr) (string, bool) {
-	now := time.Now()
-	r.cleanupSrvCookies(now)
+// GetRoots returns the current IPv4 and IPv6 root servers
+func (r *Recursive) GetRoots() (roots4, roots6 []netip.Addr) {
 	r.mu.RLock()
-	c, ok := r.srvcookies[addr]
-	r.mu.RUnlock()
-	if ok && now.Sub(c.ts) < srvCookieTTL {
-		return c.value, true
+	defer r.mu.RUnlock()
+
+	for _, addr := range r.config.rootServers {
+		if addr.Is4() {
+			roots4 = append(roots4, addr)
+		} else if addr.Is6() {
+			roots6 = append(roots6, addr)
+		}
 	}
+
+	return roots4, roots6
+}
+
+// ResolveWithOptions performs recursive DNS resolution with specified options
+func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (*dns.Msg, netip.Addr, error) {
+	// Clean up expired data periodically
+	r.cleanupServerCookies()
+
+	// Normalize query name using miekg/dns utilities
+	qname = dns.CanonicalName(qname)
+
+	// Check cache first if available
+	if cache != nil {
+		if msg := cache.DnsGet(qname, qtype); msg != nil {
+			return msg, netip.Addr{}, nil
+		}
+	}
+
+	// Create query context and execute
+	qc := newQueryContext(r, cache, logw)
+	msg, serverAddr, err := qc.executeQuery(ctx, qname, qtype)
+
+	// Post-process and cache result
+	if msg != nil {
+		err = qc.validateAndCacheResult(msg, qname, qtype, cache, err)
+	}
+
+	// Log final results if debugging
+	if qc.shouldLog() {
+		qc.logFinalResult(msg, serverAddr, err)
+	}
+
+	return msg, serverAddr, err
+}
+
+// Cookie management methods
+
+// getServerCookie retrieves a cached server cookie if valid
+func (r *Recursive) getServerCookie(addr netip.Addr) (string, bool) {
+	r.cleanupServerCookies()
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if cookie, exists := r.serverCookies[addr]; exists && !cookie.isExpired() {
+		return cookie.value, true
+	}
+
 	return "", false
 }
 
-func (r *Recursive) setSrvCookie(addr netip.Addr, val string) {
-	now := time.Now()
+// setServerCookie stores a server cookie
+func (r *Recursive) setServerCookie(addr netip.Addr, value string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.cleanupSrvCookiesLocked(now)
-	r.srvcookies[addr] = srvCookie{value: val, ts: now}
-}
 
-// OrderRoots sorts the root server list by their current latency and removes those that don't respond.
-//
-// If ctx does not have a deadline, DefaultTimeout will be used.
-func (r *Recursive) OrderRoots(ctx context.Context) {
-	if _, ok := ctx.Deadline(); !ok {
-		newctx, cancel := context.WithTimeout(ctx, DefaultTimeout)
-		defer cancel()
-		ctx = newctx
+	r.serverCookies[addr] = &serverCookie{
+		value:     value,
+		timestamp: time.Now(),
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	var l []*rootRtt
-	var wg sync.WaitGroup
-	for _, addr := range r.rootServers {
-		rt := &rootRtt{addr: addr}
-		l = append(l, rt)
-		wg.Add(1)
-		go timeRoot(ctx, r, &wg, rt)
-	}
-	wg.Wait()
-	sort.Slice(l, func(i, j int) bool { return l[i].rtt < l[j].rtt })
-	var newRootServers []netip.Addr
-	useIPv4 := false
-	useIPv6 := false
-	for _, rt := range l {
-		if rt.rtt < time.Minute {
-			useIPv4 = useIPv4 || rt.addr.Is4()
-			useIPv6 = useIPv6 || rt.addr.Is6()
-			newRootServers = append(newRootServers, rt.addr)
-		}
-	}
-	if len(newRootServers) > 0 {
-		r.rootServers = newRootServers
-		r.useIPv4 = useIPv4
-		r.useIPv6 = useIPv6
+
+	// Trigger cleanup if we have too many cookies
+	if len(r.serverCookies) > maxSrvCookies {
+		r.cleanupServerCookiesLocked()
 	}
 }
 
-// ResolveWithOptions performs a recursive DNS resolution for the provided name and record type.
-//
-// If cache is nil, no cache is used; nil caches are supported without crashing.
-// If logw is non-nil (or DefaultLogWriter is set), write a log of events.
-func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	if logw == nil {
-		logw = r.DefaultLogWriter
-	}
-	r.cleanupSrvCookies(time.Now())
-	var q *query
-	qname = dns.CanonicalName(qname)
-	if cache != nil {
-		msg = cache.DnsGet(qname, qtype)
-	}
-	if msg == nil {
-		q = &query{
-			Recursive: r,
-			cache:     cache,
-			start:     time.Now(),
-			logw:      logw,
-			glue:      make(map[string][]netip.Addr),
-		}
-		msg, srv, err = q.run(ctx, qname, qtype)
-	}
-	if msg != nil {
-		if msg.Rcode == dns.RcodeSuccess {
-			// A SUCCESS reply must reference the correct QNAME and QTYPE.
-			var gotname string
-			var gottype uint16
-			if len(msg.Question) > 0 {
-				gotname = msg.Question[0].Name
-				gottype = msg.Question[0].Qtype
-			}
-			if gotname != qname || gottype != qtype {
-				err = ErrQuestionMismatch
-				_ = q.dbg() && q.log("ERROR: ANSWER was for %s %q, not %s %q\n",
-					DnsTypeToString(gottype), gotname,
-					DnsTypeToString(qtype), qname,
-				)
-			}
-		} else {
-			if !msg.Zero {
-				// NXDOMAIN or other failures may have the returned
-				// question refer to some NS in the chain, but we still want
-				// to associate the reply with the original query.
-				msg.SetQuestion(qname, qtype)
-			}
-		}
-		if err == nil {
-			if cache != nil {
-				cache.DnsSet(msg)
-			}
-		}
-	}
-	if logw != nil {
-		if msg != nil {
-			fmt.Fprintf(logw, "\n%v", msg)
-		}
-		if q != nil {
-			fmt.Fprintf(logw, "\n;; Sent %v queries in %v", q.sent, time.Since(q.start).Round(time.Millisecond))
-		}
-		if srv.IsValid() {
-			fmt.Fprintf(logw, "\n;; SERVER: %v", srv)
-		}
-		if err != nil {
-			fmt.Fprintf(logw, "\n;; ERROR: %v", err)
-		}
-		fmt.Fprintln(logw)
-	}
-	return
-}
-
-// DnsResolve performs a recursive DNS resolution for the provided name and record type.
-func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
-	return r.ResolveWithOptions(ctx, r, nil, qname, qtype)
-}
-
-func (r *Recursive) getRootServers() (nslist []hostAddr) {
+// cleanupServerCookies removes expired cookies periodically
+func (r *Recursive) cleanupServerCookies() {
 	r.mu.RLock()
-	defer r.mu.RUnlock()
-	for _, addr := range r.rootServers {
-		nslist = append(nslist, hostAddr{"root", addr})
-	}
-	return
-}
-
-// GetRoots returns the current set of root servers in use.
-func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	for _, addr := range r.rootServers {
-		if addr.Is4() {
-			root4 = append(root4, addr)
-		}
-		if addr.Is6() {
-			root6 = append(root6, addr)
-		}
-	}
-	return
-}
-
-func (r *Recursive) usingUDP() (yes bool) {
-	r.mu.RLock()
-	yes = r.useUDP
+	needsCleanup := time.Since(r.lastCookieCleanup) > time.Hour
 	r.mu.RUnlock()
-	return
+
+	if needsCleanup {
+		r.mu.Lock()
+		r.cleanupServerCookiesLocked()
+		r.lastCookieCleanup = time.Now()
+		r.mu.Unlock()
+	}
 }
 
-func (r *Recursive) useable(addr netip.Addr) (ok bool) {
-	if addr.IsValid() {
-		r.mu.RLock()
-		ok = (r.useIPv4 && addr.Is4()) || (r.useIPv6 && addr.Is6())
-		r.mu.RUnlock()
+// cleanupServerCookiesLocked removes expired cookies (must hold write lock)
+func (r *Recursive) cleanupServerCookiesLocked() {
+	now := time.Now()
+	expiredAddrs := make([]netip.Addr, 0)
+
+	for addr, cookie := range r.serverCookies {
+		if now.Sub(cookie.timestamp) > srvCookieTTL {
+			expiredAddrs = append(expiredAddrs, addr)
+		}
 	}
-	return
+
+	for _, addr := range expiredAddrs {
+		delete(r.serverCookies, addr)
+	}
+
+	// If still too many, remove oldest
+	if len(r.serverCookies) > maxSrvCookies {
+		r.pruneOldestCookies()
+	}
 }
 
-func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) {
-	if err != nil {
-		isIpv6err = nsaddr.Is6()
-		var ne net.Error
-		ok := errors.Is(err, io.EOF)
-		if errors.As(err, &ne) {
-			ok = true
-		}
-		ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
-		ok = ok || errors.Is(err, syscall.ECONNREFUSED)
-		errstr := err.Error()
-		ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
-		if ok {
-			var m map[netip.Addr]netError
-			switch protocol {
-			case "udp":
-				isUdpErr = true
-				m = r.udperrs
-			case "tcp":
-				m = r.tcperrs
-			}
-			if m != nil {
-				r.mu.Lock()
-				m[nsaddr] = netError{Err: err, When: time.Now()}
-				r.mu.Unlock()
-			}
-		}
+// pruneOldestCookies removes the oldest cookies when there are too many
+func (r *Recursive) pruneOldestCookies() {
+	type cookieEntry struct {
+		addr      netip.Addr
+		timestamp time.Time
 	}
-	return
+
+	entries := make([]cookieEntry, 0, len(r.serverCookies))
+	for addr, cookie := range r.serverCookies {
+		entries = append(entries, cookieEntry{
+			addr:      addr,
+			timestamp: cookie.timestamp,
+		})
+	}
+
+	// Sort by timestamp (oldest first)
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].timestamp.Before(entries[j].timestamp)
+	})
+
+	// Remove oldest entries
+	targetSize := maxSrvCookies / 2
+	for i := 0; i < len(entries)-targetSize; i++ {
+		delete(r.serverCookies, entries[i].addr)
+	}
 }
 
-func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) {
-	if err = ctx.Err(); err == nil {
-		var m map[netip.Addr]netError
-		switch protocol {
-		case "udp", "udp4", "udp6":
-			m = r.udperrs
-		case "tcp", "tcp4", "tcp6":
-			m = r.tcperrs
-		}
-		err = net.ErrClosed
-		if m != nil {
-			r.mu.RLock()
-			ne, hasNetError := m[nsaddr]
-			if !hasNetError {
-				if (r.useIPv4 && nsaddr.Is4()) || (r.useIPv6 && nsaddr.Is6()) {
-					err = nil
-				}
-			}
-			r.mu.RUnlock()
-			if hasNetError {
-				err = ne
-				if time.Since(ne.When) > time.Minute {
-					err = nil
-					r.mu.Lock()
-					delete(m, nsaddr)
-					r.mu.Unlock()
-				}
-			}
-		}
+// Network capability methods
+
+// isAddressUsable checks if an address can be used for connections
+func (r *Recursive) isAddressUsable(addr netip.Addr) bool {
+	if !addr.IsValid() {
+		return false
 	}
-	return
+
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	return (r.config.useIPv4 && addr.Is4()) || (r.config.useIPv6 && addr.Is6())
 }
 
-func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
-	if err != nil {
-		errstr := err.Error()
-		if errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTUNREACH) ||
-			strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") {
-			r.mu.Lock()
-			defer r.mu.Unlock()
-			if r.useIPv6 {
-				disabled = true
-				r.useIPv6 = false
-				var idx int
-				for i := range r.rootServers {
-					if r.rootServers[i].Is4() {
-						r.rootServers[idx] = r.rootServers[i]
-						idx++
-					}
-				}
-				r.rootServers = r.rootServers[:idx]
-			}
-		}
-	}
-	return
-}
-
-func (r *Recursive) maybeDisableUdp(err error) (disabled bool) {
-	var ne net.Error
-	if errors.As(err, &ne) && !ne.Timeout() {
-		errstr := err.Error()
-		if errors.Is(err, syscall.ENOSYS) || errors.Is(err, syscall.EPROTONOSUPPORT) || strings.Contains(errstr, "network not implemented") {
-			r.mu.Lock()
-			defer r.mu.Unlock()
-			disabled = r.useUDP
-			r.useUDP = false
-		}
-	}
-	return
+// canUseUDP checks if UDP is currently enabled
+func (r *Recursive) canUseUDP() bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.config.useUDP
 }
