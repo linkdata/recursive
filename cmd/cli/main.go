@@ -86,20 +86,23 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-
+			fmt.Printf("; <<>> recursive <<>> %s %s\n", recursive.DnsTypeToString(qtype), qname)
 			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
 			if retv, _, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
 				if !*debug {
 					fmt.Println(retv)
 				}
 			} else {
-				fmt.Printf("%s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
+				fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
 			}
 			cancel()
 		}
 	}
 
 	fmt.Printf(";; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
+	if *debug {
+		fmt.Println("; ----------------------------------------------------------------------")
+	}
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)
