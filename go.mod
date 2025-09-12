@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/linkdata/dnstest v0.0.0-20250912074453-1d516f2ea934
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect

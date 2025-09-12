@@ -1,5 +1,7 @@
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/linkdata/dnstest v0.0.0-20250912074453-1d516f2ea934 h1:hwZWGUhFHLpwsFU+vZwESNqbSX+CKfIC6+ZQbQVhupE=
+github.com/linkdata/dnstest v0.0.0-20250912074453-1d516f2ea934/go.mod h1:+bqN0JzILtD+DsAZ6R0O1jGOCOvXp7+s8HzjDF0/8ok=
 github.com/linkdata/rate v1.14.1 h1:iHgmK06qwNKIe9wh25aB207pjbziCt/07Hm7nS2b3Ro=
 github.com/linkdata/rate v1.14.1/go.mod h1:GcdHS1A2j7CF1fhRQTAWo0jri8rZzImGyzl4i1pUZm4=
 github.com/miekg/dns v1.1.68 h1:jsSRkNozw7G/mnmXULynzMNIsgY2dHC8LO6U6Ij2JEA=

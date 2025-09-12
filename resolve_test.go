@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/linkdata/recursive/dnstest"
+	"github.com/linkdata/dnstest"
 	"github.com/miekg/dns"
 )
 
