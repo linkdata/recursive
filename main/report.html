@@ -63,9 +63,9 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (77.5%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (79.4%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (95.4%)</option>
+				<option value="file5">github.com/linkdata/recursive/recursive.go (96.3%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
@@ -588,7 +588,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                                 return
                                                         }</span>
                                                         <span class="cov0" title="0">fallthrough</span>
-                                                default:<span class="cov8" title="1">
+                                                default:<span class="cov0" title="0">
                                                         q.setCache(gotmsg)
                                                         srv = ha.addr
                                                         msg = gotmsg
@@ -600,7 +600,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                         }
 
                         // asked all nameservers or got a usable answer
-                        <span class="cov8" title="1">if gotmsg == nil </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if gotmsg == nil </span><span class="cov8" title="1">{
                                 _ = q.dbg() &amp;&amp; q.log("no ANSWER for %s %q (%s)\n", DnsTypeToString(qtype), qname, dns.RcodeToString[nsrcode])
                                 if msg != nil </span><span class="cov0" title="0">{
                                         if qtype == dns.TypeNS </span><span class="cov0" title="0">{
@@ -617,7 +617,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                         msg.Rcode = nsrcode
                                                 }</span>
                                         }
-                                } else<span class="cov0" title="0"> {
+                                } else<span class="cov8" title="1"> {
                                         err = errors.Join(err, ErrNoResponse)
                                 }</span>
                         } else<span class="cov8" title="1"> {
@@ -676,7 +676,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                         }
                 }
 
-                <span class="cov8" title="1">if msg == nil </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if msg == nil </span><span class="cov8" title="1">{
                         // manufacture a SERVFAIL
                         msg = new(dns.Msg)
                         msg.SetQuestion(qname, qtype)
@@ -854,10 +854,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                 <span class="cov8" title="1">if q.dbg() </span><span class="cov8" title="1">{
                         var protostr string
                         var dash6str string
-                        if protocol != "udp" </span><span class="cov0" title="0">{
+                        if protocol != "udp" </span><span class="cov8" title="1">{
                                 protostr = " +" + protocol
                         }</span>
-                        <span class="cov8" title="1">if nsaddr.Is6() </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if nsaddr.Is6() </span><span class="cov8" title="1">{
                                 dash6str = " -6"
                         }</span>
                         <span class="cov8" title="1">q.log("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, DnsTypeToString(qtype), qname)</span>
@@ -950,10 +950,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                                 }
                                 <span class="cov8" title="1">fmt.Fprintf(q.logw, ")")</span>
                         }
-                        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
                                 fmt.Fprintf(q.logw, " error: %v", err)
                         }</span>
-                        <span class="cov8" title="1">if ipv6disabled </span><span class="cov0" title="0">{
+                        <span class="cov8" title="1">if ipv6disabled </span><span class="cov8" title="1">{
                                 fmt.Fprintf(q.logw, " (IPv6 disabled)")
                         }</span>
                         <span class="cov8" title="1">if udpDisabled </span><span class="cov0" title="0">{
@@ -1408,7 +1408,7 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
                                 }</span>
                         }
                         <span class="cov8" title="1">r.mu.RUnlock()
-                        if hasNetError </span><span class="cov0" title="0">{
+                        if hasNetError </span><span class="cov8" title="1">{
                                 err = ne
                                 if time.Since(ne.When) &gt; time.Minute </span><span class="cov0" title="0">{
                                         err = nil
