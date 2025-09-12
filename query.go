@@ -100,14 +100,17 @@ func (q *query) glueTypes() (gt []uint16) {
 	return
 }
 
+// run performs a recursive resolution for the given name and type.
 func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	if err = q.dive(); err == nil {
 		defer q.surface()
 
-		var nslist []hostAddr // current set of servers to query
-		var final bool        // past the last part of the name
-		var idx int           // start of current label
-		var qlabel int        // label to query for, starting from the right
+		var (
+			nslist []hostAddr // current set of servers to query
+			final  bool       // past the last part of the name
+			idx    int        // start of current label
+			qlabel int        // label to query for, starting from the right
+		)
 
 		qname = dns.CanonicalName(qname)
 		nslist = q.getRootServers()
@@ -126,16 +129,18 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			}
 
 			if q.dbg() {
-				var finaltext string
+				finalText := ""
 				if final {
-					finaltext = " FINAL"
+					finalText = " FINAL"
 				}
-				q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
+				q.log("QUERY%s %s %q from %v\n", finalText, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])
 			}
 
-			var nsrcode int     // RCODE from last nameserver A query resolving glueless names
-			var gotmsg *dns.Msg // last valid response
-		trynextnameserver:
+			var (
+				nsrcode int      // RCODE from last nameserver A query resolving glueless names
+				gotmsg  *dns.Msg // last valid response
+			)
+
 			for _, ha := range nslist {
 				if !ha.addr.IsValid() {
 					if q.needGlue(ha.host) {
@@ -164,23 +169,9 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 								q.setCache(gotmsg)
 							}
 							if q.nomini && qtype != dns.TypeCNAME {
-								for _, rr := range gotmsg.Answer {
-									if cn, ok := rr.(*dns.CNAME); ok {
-										target := dns.CanonicalName(cn.Target)
-										if q.followCNAME(target) {
-											_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
-											if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
-												_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-												msg = gotmsg.Copy()
-												msg.Zero = true
-												msg.Answer = append(msg.Answer, cnmsg.Answer...)
-												msg.Rcode = cnmsg.Rcode
-												return
-											} else {
-												_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
-											}
-										}
-									}
+								if m, handled := q.handleCNAME(ctx, gotmsg, qname, qtype); handled {
+									msg = m
+									return
 								}
 							}
 							newlist := q.extractNS(gotmsg)
@@ -198,7 +189,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							}
 							msg = nil
 							srv = ha.addr
-							continue trynextnameserver
+							continue
 						case dns.RcodeRefused:
 							if !q.nomini {
 								_ = q.dbg() && q.log("got REFUSED, retry without QNAME minimization\n")
@@ -276,23 +267,9 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 					msg = finalmsg
 					q.setCache(msg)
 					if qtype != dns.TypeCNAME {
-						for _, rr := range msg.Answer {
-							if cn, ok := rr.(*dns.CNAME); ok {
-								target := dns.CanonicalName(cn.Target)
-								if q.followCNAME(target) {
-									_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
-									if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil {
-										_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-										msg = msg.Copy()
-										msg.Zero = true
-										msg.Answer = append(msg.Answer, cnmsg.Answer...)
-										msg.Rcode = cnmsg.Rcode
-										return
-									} else {
-										_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, cnerr)
-									}
-								}
-							}
+						if m, handled := q.handleCNAME(ctx, msg, qname, qtype); handled {
+							msg = m
+							return
 						}
 					}
 					break
@@ -325,6 +302,34 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 			len(msg.Answer))
 	}
 	return
+}
+
+// handleCNAME follows a CNAME in msg if present. It returns the updated
+// message and a boolean indicating whether a CNAME was followed and the caller
+// should return immediately.
+func (q *query) handleCNAME(ctx context.Context, base *dns.Msg, qname string, qtype uint16) (*dns.Msg, bool) {
+	for _, rr := range base.Answer {
+		cn, ok := rr.(*dns.CNAME)
+		if !ok {
+			continue
+		}
+		target := dns.CanonicalName(cn.Target)
+		if !q.followCNAME(target) {
+			continue
+		}
+		_ = q.dbg() && q.log("CNAME QUERY %q => %q\n", qname, target)
+		if cnmsg, _, err := q.run(ctx, target, qtype); err == nil {
+			_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+			msg := base.Copy()
+			msg.Zero = true
+			msg.Answer = append(msg.Answer, cnmsg.Answer...)
+			msg.Rcode = cnmsg.Rcode
+			return msg, true
+		} else {
+			_ = q.dbg() && q.log("CNAME ERROR %q: %v\n", target, err)
+		}
+	}
+	return base, false
 }
 
 func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) {
