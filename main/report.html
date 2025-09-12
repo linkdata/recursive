@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (79.1%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (79.2%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (96.3%)</option>
 				
@@ -774,7 +774,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -961,6 +961,9 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         }</span>
                         <span class="cov8" title="1">fmt.Fprintln(q.logw)</span>
                 }
+                <span class="cov8" title="1">if q.RecordFn != nil </span><span class="cov0" title="0">{
+                        q.RecordFn(q.Recursive, nsaddr, qtype, qname, msg, err)
+                }</span>
         }
         <span class="cov8" title="1">return</span>
 }
@@ -1046,23 +1049,25 @@ type srvCookie struct {
 }
 
 type Recursive struct {
-        proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
-        Cacher                              // (read-only) Cacher passed to NewWithOptions
-        *net.Resolver                       // (read-only) net.Resolver using our ContextDialer
-        DNSPort             uint16          // port used for DNS queries
-        Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
-        rateLimiter         &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
-        DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
-        mu                  sync.RWMutex    // protects following
-        useUDP              bool
-        useIPv4             bool
-        useIPv6             bool
-        rootServers         []netip.Addr
-        clicookie           string
-        srvcookies          map[netip.Addr]srvCookie
-        udperrs             map[netip.Addr]netError
-        tcperrs             map[netip.Addr]netError
-        dnsResolve          func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
+        proxy.ContextDialer               // (read-only) ContextDialer passed to NewWithOptions
+        Cacher                            // (read-only) Cacher passed to NewWithOptions
+        *net.Resolver                     // (read-only) net.Resolver using our ContextDialer
+        DNSPort             uint16        // (read-only) port used for DNS queries
+        DefaultLogWriter    io.Writer     // (read-only) if not nil, write debug logs here unless overridden
+        Timeout             time.Duration // dialing timeout, zero to disable
+        // if not nil, call after each DNS exchange (m may be nil)
+        RecordFn    func(rec *Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error)
+        rateLimiter &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
+        mu          sync.RWMutex    // protects following
+        useUDP      bool
+        useIPv4     bool
+        useIPv6     bool
+        rootServers []netip.Addr
+        clicookie   string
+        srvcookies  map[netip.Addr]srvCookie
+        udperrs     map[netip.Addr]netError
+        tcperrs     map[netip.Addr]netError
+        dnsResolve  func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
 }
 
 func makeCookie() string <span class="cov8" title="1">{
