@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (75.8%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (77.5%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (95.4%)</option>
 				
@@ -490,14 +490,17 @@ func (q *query) glueTypes() (gt []uint16) <span class="cov8" title="1">{
         <span class="cov8" title="1">return</span>
 }
 
+// run performs a recursive resolution for the given name and type.
 func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
         if err = q.dive(); err == nil </span><span class="cov8" title="1">{
                 defer q.surface()
 
-                var nslist []hostAddr // current set of servers to query
-                var final bool        // past the last part of the name
-                var idx int           // start of current label
-                var qlabel int        // label to query for, starting from the right
+                var (
+                        nslist []hostAddr // current set of servers to query
+                        final  bool       // past the last part of the name
+                        idx    int        // start of current label
+                        qlabel int        // label to query for, starting from the right
+                )
 
                 qname = dns.CanonicalName(qname)
                 nslist = q.getRootServers()
@@ -516,16 +519,18 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                         }</span>
 
                         <span class="cov8" title="1">if q.dbg() </span><span class="cov8" title="1">{
-                                var finaltext string
+                                finalText := ""
                                 if final </span><span class="cov8" title="1">{
-                                        finaltext = " FINAL"
+                                        finalText = " FINAL"
                                 }</span>
-                                <span class="cov8" title="1">q.log("QUERY%s %s %q from %v\n", finaltext, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])</span>
+                                <span class="cov8" title="1">q.log("QUERY%s %s %q from %v\n", finalText, DnsTypeToString(cqtype), cqname, nslist[:min(4, len(nslist))])</span>
                         }
 
-                        <span class="cov8" title="1">var nsrcode int     // RCODE from last nameserver A query resolving glueless names
-                        var gotmsg *dns.Msg // last valid response
-                trynextnameserver:
+                        <span class="cov8" title="1">var (
+                                nsrcode int      // RCODE from last nameserver A query resolving glueless names
+                                gotmsg  *dns.Msg // last valid response
+                        )
+
                         for _, ha := range nslist </span><span class="cov8" title="1">{
                                 if !ha.addr.IsValid() </span><span class="cov8" title="1">{
                                         if q.needGlue(ha.host) </span><span class="cov8" title="1">{
@@ -554,24 +559,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                                 q.setCache(gotmsg)
                                                         }</span>
                                                         <span class="cov8" title="1">if q.nomini &amp;&amp; qtype != dns.TypeCNAME </span><span class="cov0" title="0">{
-                                                                for _, rr := range gotmsg.Answer </span><span class="cov0" title="0">{
-                                                                        if cn, ok := rr.(*dns.CNAME); ok </span><span class="cov0" title="0">{
-                                                                                target := dns.CanonicalName(cn.Target)
-                                                                                if q.followCNAME(target) </span><span class="cov0" title="0">{
-                                                                                        _ = q.dbg() &amp;&amp; q.log("CNAME QUERY %q =&gt; %q\n", qname, target)
-                                                                                        if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil </span><span class="cov0" title="0">{
-                                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-                                                                                                msg = gotmsg.Copy()
-                                                                                                msg.Zero = true
-                                                                                                msg.Answer = append(msg.Answer, cnmsg.Answer...)
-                                                                                                msg.Rcode = cnmsg.Rcode
-                                                                                                return
-                                                                                        }</span> else<span class="cov0" title="0"> {
-                                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ERROR %q: %v\n", target, cnerr)
-                                                                                        }</span>
-                                                                                }
-                                                                        }
-                                                                }
+                                                                if m, handled := q.handleCNAME(ctx, gotmsg, qname, qtype); handled </span><span class="cov0" title="0">{
+                                                                        msg = m
+                                                                        return
+                                                                }</span>
                                                         }
                                                         <span class="cov8" title="1">newlist := q.extractNS(gotmsg)
                                                         if len(newlist) &gt; 0 </span><span class="cov8" title="1">{
@@ -588,7 +579,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                         }</span>
                                                         <span class="cov8" title="1">msg = nil
                                                         srv = ha.addr
-                                                        continue trynextnameserver</span>
+                                                        continue</span>
                                                 case dns.RcodeRefused:<span class="cov0" title="0">
                                                         if !q.nomini </span><span class="cov0" title="0">{
                                                                 _ = q.dbg() &amp;&amp; q.log("got REFUSED, retry without QNAME minimization\n")
@@ -666,24 +657,10 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                         msg = finalmsg
                                         q.setCache(msg)
                                         if qtype != dns.TypeCNAME </span><span class="cov8" title="1">{
-                                                for _, rr := range msg.Answer </span><span class="cov8" title="1">{
-                                                        if cn, ok := rr.(*dns.CNAME); ok </span><span class="cov0" title="0">{
-                                                                target := dns.CanonicalName(cn.Target)
-                                                                if q.followCNAME(target) </span><span class="cov0" title="0">{
-                                                                        _ = q.dbg() &amp;&amp; q.log("CNAME QUERY %q =&gt; %q\n", qname, target)
-                                                                        if cnmsg, _, cnerr := q.run(ctx, target, qtype); cnerr == nil </span><span class="cov0" title="0">{
-                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
-                                                                                msg = msg.Copy()
-                                                                                msg.Zero = true
-                                                                                msg.Answer = append(msg.Answer, cnmsg.Answer...)
-                                                                                msg.Rcode = cnmsg.Rcode
-                                                                                return
-                                                                        }</span> else<span class="cov0" title="0"> {
-                                                                                _ = q.dbg() &amp;&amp; q.log("CNAME ERROR %q: %v\n", target, cnerr)
-                                                                        }</span>
-                                                                }
-                                                        }
-                                                }
+                                                if m, handled := q.handleCNAME(ctx, msg, qname, qtype); handled </span><span class="cov0" title="0">{
+                                                        msg = m
+                                                        return
+                                                }</span>
                                         }
                                         <span class="cov8" title="1">break</span>
                                 } else<span class="cov0" title="0"> {
@@ -715,6 +692,34 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                         len(msg.Answer))</span>
         }
         <span class="cov8" title="1">return</span>
+}
+
+// handleCNAME follows a CNAME in msg if present. It returns the updated
+// message and a boolean indicating whether a CNAME was followed and the caller
+// should return immediately.
+func (q *query) handleCNAME(ctx context.Context, base *dns.Msg, qname string, qtype uint16) (*dns.Msg, bool) <span class="cov8" title="1">{
+        for _, rr := range base.Answer </span><span class="cov8" title="1">{
+                cn, ok := rr.(*dns.CNAME)
+                if !ok </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">target := dns.CanonicalName(cn.Target)
+                if !q.followCNAME(target) </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">_ = q.dbg() &amp;&amp; q.log("CNAME QUERY %q =&gt; %q\n", qname, target)
+                if cnmsg, _, err := q.run(ctx, target, qtype); err == nil </span><span class="cov0" title="0">{
+                        _ = q.dbg() &amp;&amp; q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
+                        msg := base.Copy()
+                        msg.Zero = true
+                        msg.Answer = append(msg.Answer, cnmsg.Answer...)
+                        msg.Rcode = cnmsg.Rcode
+                        return msg, true
+                }</span> else<span class="cov0" title="0"> {
+                        _ = q.dbg() &amp;&amp; q.log("CNAME ERROR %q: %v\n", target, err)
+                }</span>
+        }
+        <span class="cov8" title="1">return base, false</span>
 }
 
 func rrHostAddr(rr dns.RR) (host string, addr netip.Addr) <span class="cov8" title="1">{
