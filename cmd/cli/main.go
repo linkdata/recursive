@@ -27,7 +27,8 @@ var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
-var debug = flag.Bool("debug", false, "print debug output")
+var flagDebug = flag.Bool("debug", false, "print debug output")
+var flagRecord = flag.Bool("record", false, "write a record of all queries made")
 
 func main() {
 	flag.Parse()
@@ -76,8 +77,20 @@ func main() {
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	rec.OrderRoots(ctx)
 
+	if *flagRecord {
+		rec.RecordFn = func(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
+			fmt.Println("; ----------------------------------------------------------------------")
+			fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
+			if m != nil {
+				fmt.Println(m)
+			} else {
+				fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
+			}
+		}
+	}
+
 	var dbgout io.Writer
-	if *debug {
+	if *flagDebug {
 		dbgout = os.Stderr
 	}
 
@@ -86,22 +99,22 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			fmt.Printf("; <<>> recursive <<>> %s %s\n", recursive.DnsTypeToString(qtype), qname)
 			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
-			if retv, _, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
-				if !*debug {
+			if retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
+				if !*flagDebug && !*flagRecord {
+					fmt.Println("; ----------------------------------------------------------------------")
+					fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", srv, recursive.DnsTypeToString(qtype), qname)
 					fmt.Println(retv)
 				}
 			} else {
-				fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
+				fmt.Printf("; @%s %s %s: %v\n", srv, recursive.DnsTypeToString(qtype), qname, err)
 			}
 			cancel()
 		}
 	}
 
-	fmt.Printf(";; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
-	if *debug {
-		fmt.Println("; ----------------------------------------------------------------------")
+	if !*flagRecord {
+		fmt.Printf(";; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
 	}
 
 	if *flagMemprofile != "" {

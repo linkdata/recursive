@@ -571,6 +571,9 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
 			}
 			fmt.Fprintln(q.logw)
 		}
+		if q.RecordFn != nil {
+			q.RecordFn(q.Recursive, nsaddr, qtype, qname, msg, err)
+		}
 	}
 	return
 }

@@ -57,23 +57,25 @@ type srvCookie struct {
 }
 
 type Recursive struct {
-	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
-	Cacher                              // (read-only) Cacher passed to NewWithOptions
-	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
-	DNSPort             uint16          // port used for DNS queries
-	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
-	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
-	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
-	mu                  sync.RWMutex    // protects following
-	useUDP              bool
-	useIPv4             bool
-	useIPv6             bool
-	rootServers         []netip.Addr
-	clicookie           string
-	srvcookies          map[netip.Addr]srvCookie
-	udperrs             map[netip.Addr]netError
-	tcperrs             map[netip.Addr]netError
-	dnsResolve          func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
+	proxy.ContextDialer               // (read-only) ContextDialer passed to NewWithOptions
+	Cacher                            // (read-only) Cacher passed to NewWithOptions
+	*net.Resolver                     // (read-only) net.Resolver using our ContextDialer
+	DNSPort             uint16        // (read-only) port used for DNS queries
+	DefaultLogWriter    io.Writer     // (read-only) if not nil, write debug logs here unless overridden
+	Timeout             time.Duration // dialing timeout, zero to disable
+	// if not nil, call after each DNS exchange (m may be nil)
+	RecordFn    func(rec *Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error)
+	rateLimiter <-chan struct{} // (read-only) rate limited passed to NewWithOptions
+	mu          sync.RWMutex    // protects following
+	useUDP      bool
+	useIPv4     bool
+	useIPv6     bool
+	rootServers []netip.Addr
+	clicookie   string
+	srvcookies  map[netip.Addr]srvCookie
+	udperrs     map[netip.Addr]netError
+	tcperrs     map[netip.Addr]netError
+	dnsResolve  func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
 }
 
 func makeCookie() string {
