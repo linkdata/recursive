@@ -872,7 +872,7 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         ctx = ctx2
                 }</span>
 
-                <span class="cov8" title="1">if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, dnsPort).String()); err == nil </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov8" title="1">{
                         q.sent++
                         dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
                         defer dnsconn.Close()
@@ -1027,9 +1027,10 @@ var (
         // It is equivalent to SERVFAIL.
         ErrNoResponse = errors.New("no authoritative response")
         // ErrQuestionMismatch is returned when the DNS response is not for what was queried.
-        ErrQuestionMismatch = errors.New("question mismatch")
-        DefaultCache        = NewCache()
-        DefaultTimeout      = time.Second * 5
+        ErrQuestionMismatch        = errors.New("question mismatch")
+        DefaultCache               = NewCache()
+        DefaultTimeout             = time.Second * 5
+        DefaultDNSPort      uint16 = 53
 )
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
@@ -1048,6 +1049,7 @@ type Recursive struct {
         proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
         Cacher                              // (read-only) Cacher passed to NewWithOptions
         *net.Resolver                       // (read-only) net.Resolver using our ContextDialer
+        DNSPort             uint16          // port used for DNS queries
         Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
         rateLimiter         &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
         DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
@@ -1120,6 +1122,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
                         PreferGo: true,
                         Dial:     dialer.DialContext,
                 },
+                DNSPort:     DefaultDNSPort,
                 Timeout:     DefaultTimeout,
                 rateLimiter: rateLimiter,
                 useUDP:      true,
@@ -1468,8 +1471,6 @@ import (
         "net/netip"
         "sync"
         "time"
-
-        "golang.org/x/net/proxy"
 )
 
 type rootRtt struct {
@@ -1477,7 +1478,7 @@ type rootRtt struct {
         rtt  time.Duration
 }
 
-func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGroup, rt *rootRtt) <span class="cov8" title="1">{
+func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt) <span class="cov8" title="1">{
         defer wg.Done()
         const numProbes = 3
         network := "tcp4"
@@ -1488,7 +1489,7 @@ func timeRoot(ctx context.Context, dialer proxy.ContextDialer, wg *sync.WaitGrou
         var rtt time.Duration
         for i := 0; i &lt; numProbes; i++ </span><span class="cov8" title="1">{
                 now := time.Now()
-                conn, err := dialer.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, dnsPort).String())
+                conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, r.DNSPort).String())
                 if err != nil </span><span class="cov8" title="1">{
                         return
                 }</span>
