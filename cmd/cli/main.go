@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -29,6 +30,7 @@ var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
 var flagDebug = flag.Bool("debug", false, "print debug output")
 var flagRecord = flag.Bool("record", false, "write a record of all queries made")
+var flagRecordJson = flag.Bool("recordjson", false, "write a record of all queries made as JSON objects")
 
 func main() {
 	flag.Parse()
@@ -77,14 +79,34 @@ func main() {
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	rec.OrderRoots(ctx)
 
+	if *flagRecordJson {
+		*flagRecord = true
+	}
+
+	type jsonRecord struct {
+		Server string
+		Msg    *dns.Msg `json:",omitempty"`
+		Err    error    `json:",omitempty"`
+	}
+
+	var jsonRecords []jsonRecord
+
 	if *flagRecord {
 		rec.RecordFn = func(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
-			fmt.Println("; ----------------------------------------------------------------------")
-			fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
-			if m != nil {
-				fmt.Println(m)
+			if *flagRecordJson {
+				jsonRecords = append(jsonRecords, jsonRecord{
+					Server: nsaddr.String(),
+					Msg:    m,
+					Err:    err,
+				})
 			} else {
-				fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
+				fmt.Println("; ----------------------------------------------------------------------")
+				fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
+				if m != nil {
+					fmt.Println(m)
+				} else {
+					fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
+				}
 			}
 		}
 	}
@@ -110,6 +132,11 @@ func main() {
 				fmt.Printf("; @%s %s %s: %v\n", srv, recursive.DnsTypeToString(qtype), qname, err)
 			}
 			cancel()
+		}
+		if *flagRecordJson {
+			if b, e := json.MarshalIndent(jsonRecords, "", "  "); e == nil {
+				fmt.Println(string(b))
+			}
 		}
 	}
 
