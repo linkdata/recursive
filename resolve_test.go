@@ -61,9 +61,6 @@ func Test_Resolve1111(t *testing.T) {
 	if err != nil {
 		t.Fatalf("parse port: %v", err)
 	}
-	oldPort := dnsPort
-	dnsPort = uint16(p)
-	defer func() { dnsPort = oldPort }()
 
 	for _, ip := range addrs[1:] {
 		srv, err := dnstest.NewServer(net.JoinHostPort(ip, portStr), dnstestResps)
@@ -80,6 +77,7 @@ func Test_Resolve1111(t *testing.T) {
 
 	roots := []netip.Addr{netip.MustParseAddr(addrs[0])}
 	rec := NewWithOptions(nil, NewCache(), roots, nil, nil)
+	rec.DNSPort = uint16(p)
 	ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
 	defer cancel()
 	var logw strings.Builder

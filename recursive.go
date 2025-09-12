@@ -38,9 +38,10 @@ var (
 	// It is equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")
 	// ErrQuestionMismatch is returned when the DNS response is not for what was queried.
-	ErrQuestionMismatch = errors.New("question mismatch")
-	DefaultCache        = NewCache()
-	DefaultTimeout      = time.Second * 5
+	ErrQuestionMismatch        = errors.New("question mismatch")
+	DefaultCache               = NewCache()
+	DefaultTimeout             = time.Second * 5
+	DefaultDNSPort      uint16 = 53
 )
 
 var _ Resolver = (*Recursive)(nil) // ensure we implement interface
@@ -59,6 +60,7 @@ type Recursive struct {
 	proxy.ContextDialer                 // (read-only) ContextDialer passed to NewWithOptions
 	Cacher                              // (read-only) Cacher passed to NewWithOptions
 	*net.Resolver                       // (read-only) net.Resolver using our ContextDialer
+	DNSPort             uint16          // port used for DNS queries
 	Timeout             time.Duration   // (read-only) dialing timeout, zero to disable
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	DefaultLogWriter    io.Writer       // if not nil, write debug logs here unless overridden
@@ -131,6 +133,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 			PreferGo: true,
 			Dial:     dialer.DialContext,
 		},
+		DNSPort:     DefaultDNSPort,
 		Timeout:     DefaultTimeout,
 		rateLimiter: rateLimiter,
 		useUDP:      true,

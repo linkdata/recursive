@@ -46,9 +46,9 @@ func TestNewCallsOrderRoots(t *testing.T) {
 	fail := netip.MustParseAddr("192.0.2.3")
 
 	d := &fakeDialer{delays: map[string]time.Duration{
-		netip.AddrPortFrom(fast, dnsPort).String(): 5 * time.Millisecond,
-		netip.AddrPortFrom(slow, dnsPort).String(): 25 * time.Millisecond,
-		netip.AddrPortFrom(fail, dnsPort).String(): -1,
+		netip.AddrPortFrom(fast, DefaultDNSPort).String(): 5 * time.Millisecond,
+		netip.AddrPortFrom(slow, DefaultDNSPort).String(): 25 * time.Millisecond,
+		netip.AddrPortFrom(fail, DefaultDNSPort).String(): -1,
 	}}
 
 	old4, old6 := Roots4, Roots6
@@ -74,10 +74,10 @@ func TestOrderRoots(t *testing.T) {
 	fail6 := netip.MustParseAddr("2001:db8::2")
 
 	d := &fakeDialer{delays: map[string]time.Duration{
-		netip.AddrPortFrom(fast4, dnsPort).String(): 5 * time.Millisecond,
-		netip.AddrPortFrom(fast6, dnsPort).String(): 15 * time.Millisecond,
-		netip.AddrPortFrom(fail4, dnsPort).String(): -1,
-		netip.AddrPortFrom(fail6, dnsPort).String(): -1,
+		netip.AddrPortFrom(fast4, DefaultDNSPort).String(): 5 * time.Millisecond,
+		netip.AddrPortFrom(fast6, DefaultDNSPort).String(): 15 * time.Millisecond,
+		netip.AddrPortFrom(fail4, DefaultDNSPort).String(): -1,
+		netip.AddrPortFrom(fail6, DefaultDNSPort).String(): -1,
 	}}
 
 	r := NewWithOptions(d, nil, []netip.Addr{fast4, fail4}, []netip.Addr{fast6, fail6}, nil)
