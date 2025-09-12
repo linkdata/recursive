@@ -30,11 +30,8 @@ func TestResolveWithOptionsErrQuestionMismatch(t *testing.T) {
 	t.Cleanup(func() { _ = srv.Shutdown() })
 
 	port := udpConn.LocalAddr().(*net.UDPAddr).Port
-	oldPort := dnsPort
-	dnsPort = uint16(port)
-	defer func() { dnsPort = oldPort }()
-
 	r := NewWithOptions(nil, nil, []netip.Addr{netip.MustParseAddr("127.0.0.1")}, nil, nil)
+	r.DNSPort = uint16(port)
 	_, _, err = r.ResolveWithOptions(context.Background(), nil, nil, "example.org.", dns.TypeA)
 	if !errors.Is(err, ErrQuestionMismatch) {
 		t.Fatalf("err = %v; want ErrQuestionMismatch", err)
