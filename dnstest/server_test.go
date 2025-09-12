@@ -15,7 +15,7 @@ func TestServer(t *testing.T) {
 	}
 	respMsg := &dns.Msg{Answer: []dns.RR{rr}}
 
-	srv, err := NewServer("127.0.0.1:0", map[string]Response{
+	srv, err := NewServer("127.0.0.1:0", map[string]*Response{
 		Key("example.org.", dns.TypeA):      {Msg: respMsg},
 		Key("nxdomain.example.", dns.TypeA): {Rcode: dns.RcodeNameError},
 		Key("bad.example.", dns.TypeA):      {Raw: []byte{0, 1, 2, 3}},
@@ -62,7 +62,7 @@ func TestServer(t *testing.T) {
 		t.Fatalf("expected error for bad response")
 	}
 
-	c.ReadTimeout = 100 * time.Millisecond
+	c.ReadTimeout = time.Millisecond
 	req.SetQuestion("timeout.example.", dns.TypeA)
 	_, _, err = c.Exchange(req, srv.Addr)
 	if err == nil || !strings.Contains(strings.ToLower(err.Error()), "timeout") {

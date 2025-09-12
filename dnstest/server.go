@@ -32,7 +32,7 @@ type Server struct {
 	// Addr is the address the server is listening on.
 	Addr string
 
-	responses map[string]Response
+	responses map[string]*Response
 	udp       *dns.Server
 	tcp       *dns.Server
 }
@@ -40,7 +40,7 @@ type Server struct {
 // NewServer starts a new DNS server on addr serving the provided responses.
 // The same address and port are used for both UDP and TCP. If the port in addr
 // is "0" an available port will be chosen automatically.
-func NewServer(addr string, responses map[string]Response) (*Server, error) {
+func NewServer(addr string, responses map[string]*Response) (*Server, error) {
 	udpAddr, err := net.ResolveUDPAddr("udp", addr)
 	if err != nil {
 		return nil, err

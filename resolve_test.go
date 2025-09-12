@@ -17,11 +17,11 @@ import (
 func Test_Resolve1111(t *testing.T) {
 	cache := NewCache()
 	resps := stubResponses1111()
-	dnstestResps := make(map[string]dnstest.Response)
+	dnstestResps := make(map[string]*dnstest.Response)
 	addrSet := map[string]struct{}{}
 
 	for k, m := range resps {
-		dnstestResps[dnstest.Key(k.name, k.qtype)] = dnstest.Response{Msg: m}
+		dnstestResps[dnstest.Key(k.name, k.qtype)] = &dnstest.Response{Msg: m}
 		collect := func(rrs []dns.RR) {
 			for _, rr := range rrs {
 				if a, ok := rr.(*dns.A); ok {
