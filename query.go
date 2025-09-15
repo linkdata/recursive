@@ -321,7 +321,6 @@ func (q *query) handleCNAME(ctx context.Context, base *dns.Msg, qname string, qt
 		if cnmsg, _, err := q.run(ctx, target, qtype); err == nil {
 			_ = q.dbg() && q.log("CNAME ANSWER %s %q with %v records\n", dns.RcodeToString[cnmsg.Rcode], target, len(cnmsg.Answer))
 			msg := base.Copy()
-			msg.Zero = true
 			msg.Answer = append(msg.Answer, cnmsg.Answer...)
 			msg.Rcode = cnmsg.Rcode
 			return msg, true
