@@ -34,6 +34,7 @@ var flagDebug = flag.Bool("debug", false, "print debug output")
 var flagRecord = flag.Bool("record", false, "write a record of all queries made")
 
 func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
+	fmt.Println(";;; ----------------------------------------------------------------------")
 	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
 	if m != nil {
 		fmt.Println(m)
