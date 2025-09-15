@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"io"
@@ -29,6 +32,28 @@ var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
 var flagDebug = flag.Bool("debug", false, "print debug output")
 var flagRecord = flag.Bool("record", false, "write a record of all queries made")
+
+func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
+	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
+	if m != nil {
+		fmt.Println(m)
+		if b, e := m.Pack(); e == nil {
+			var buf bytes.Buffer
+			gw := gzip.NewWriter(&buf)
+			if _, e = gw.Write(b); e == nil {
+				if gw.Close() == nil {
+					fmt.Printf(";; GZIPRAW: %s\n", base64.StdEncoding.EncodeToString(buf.Bytes()))
+				}
+			}
+		}
+	}
+	if nsaddr.IsValid() {
+		fmt.Printf(";; SERVER: %s\n", nsaddr)
+	}
+	if err != nil {
+		fmt.Printf(";; ERROR: %v\n", err)
+	}
+}
 
 func main() {
 	flag.Parse()
@@ -78,14 +103,7 @@ func main() {
 	rec.OrderRoots(ctx)
 
 	if *flagRecord {
-		rec.RecordFn = func(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
-			fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
-			if m != nil {
-				fmt.Printf("%s\n;; SERVER: %s\n", m, nsaddr)
-			} else {
-				fmt.Printf("; %s %s: %v\n", recursive.DnsTypeToString(qtype), qname, err)
-			}
-		}
+		rec.RecordFn = recordFn
 	}
 
 	var dbgout io.Writer
@@ -99,21 +117,16 @@ func main() {
 		}
 		for _, qname := range qnames {
 			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
-			if retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype); err == nil {
-				if !*flagDebug && !*flagRecord {
-					fmt.Println("; ----------------------------------------------------------------------")
-					fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", srv, recursive.DnsTypeToString(qtype), qname)
-					fmt.Println(retv)
-				}
-			} else {
-				fmt.Printf("; @%s %s %s: %v\n", srv, recursive.DnsTypeToString(qtype), qname, err)
+			retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype)
+			if !*flagDebug && !*flagRecord {
+				recordFn(rec, srv, qtype, qname, retv, err)
 			}
 			cancel()
 		}
 	}
 
 	if !*flagRecord {
-		fmt.Printf(";; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
+		fmt.Printf(";;; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
 	}
 
 	if *flagMemprofile != "" {
