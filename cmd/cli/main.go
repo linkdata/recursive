@@ -43,7 +43,7 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 			gw := gzip.NewWriter(&buf)
 			if _, e = gw.Write(b); e == nil {
 				if gw.Close() == nil {
-					fmt.Printf(";; GZIPRAW: %s\n", base64.StdEncoding.EncodeToString(buf.Bytes()))
+					fmt.Printf(";; GZPACK: %s\n", base64.StdEncoding.EncodeToString(buf.Bytes()))
 				}
 			}
 		}
