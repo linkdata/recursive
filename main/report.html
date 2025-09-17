@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (79.4%)</option>
+				<option value="file4">github.com/linkdata/recursive/query.go (80.1%)</option>
 				
 				<option value="file5">github.com/linkdata/recursive/recursive.go (96.3%)</option>
 				
@@ -773,7 +773,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -908,10 +908,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
                                 newsrvcookie := srvcookie
                                 if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
-                                        for _, rr := range opt.Option </span><span class="cov0" title="0">{
+                                        for _, rr := range opt.Option </span><span class="cov8" title="1">{
                                                 switch rr := rr.(type) </span>{
-                                                case *dns.EDNS0_COOKIE:<span class="cov0" title="0">
-                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov0" title="0">{
+                                                case *dns.EDNS0_COOKIE:<span class="cov8" title="1">
+                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov8" title="1">{
                                                                 newsrvcookie = strings.TrimPrefix(rr.Cookie, clicookie)
                                                         }</span> else<span class="cov0" title="0"> {
                                                                 msg = nil
