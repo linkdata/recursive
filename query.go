@@ -42,13 +42,6 @@ func (q *query) log(format string, args ...any) bool {
 	return false
 }
 
-func maskCookie(s string) string {
-	if len(s) > 8 {
-		return s[:8] + "..."
-	}
-	return s
-}
-
 type hostAddr struct {
 	host string
 	addr netip.Addr

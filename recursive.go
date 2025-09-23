@@ -2,7 +2,6 @@ package recursive
 
 import (
 	"context"
-	crand "crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -76,14 +75,6 @@ type Recursive struct {
 	udperrs     map[netip.Addr]netError
 	tcperrs     map[netip.Addr]netError
 	dnsResolve  func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
-}
-
-func makeCookie() string {
-	b := make([]byte, 8)
-	if _, err := crand.Read(b); err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%x", b)
 }
 
 func shuffleAddrs(a []netip.Addr) {
