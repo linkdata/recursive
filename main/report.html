@@ -59,17 +59,19 @@
 				
 				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (100.0%)</option>
 				
-				<option value="file2">github.com/linkdata/recursive/neterror.go (100.0%)</option>
+				<option value="file2">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
 				
-				<option value="file3">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
+				<option value="file3">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/query.go (80.1%)</option>
+				<option value="file4">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/recursive.go (96.3%)</option>
+				<option value="file5">github.com/linkdata/recursive/query.go (79.4%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				<option value="file6">github.com/linkdata/recursive/recursive.go (96.3%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/util.go (100.0%)</option>
+				<option value="file7">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				
+				<option value="file8">github.com/linkdata/recursive/util.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -261,6 +263,156 @@ func (cq *cacheQtype) clean(now time.Time) <span class="cov8" title="1">{
 		
 		<pre class="file" id="file2" style="display: none">package recursive
 
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net"
+        "os"
+)
+
+// ExtendedRcode represents a DNS Extended Error code as defined in RFC 8914.
+type ExtendedRcode uint16
+
+const (
+        ExtendedRcodeOther                      ExtendedRcode = 0
+        ExtendedRcodeUnsupportedDNSKEYAlgorithm ExtendedRcode = 1
+        ExtendedRcodeUnsupportedDSDigestType    ExtendedRcode = 2
+        ExtendedRcodeStaleAnswer                ExtendedRcode = 3
+        ExtendedRcodeForgedAnswer               ExtendedRcode = 4
+        ExtendedRcodeDNSSECIndeterminate        ExtendedRcode = 5
+        ExtendedRcodeDNSSECBogus                ExtendedRcode = 6
+        ExtendedRcodeSignatureExpired           ExtendedRcode = 7
+        ExtendedRcodeSignatureNotYetValid       ExtendedRcode = 8
+        ExtendedRcodeDNSKEYMissing              ExtendedRcode = 9
+        ExtendedRcodeRRSIGsMissing              ExtendedRcode = 10
+        ExtendedRcodeNoZoneKeyBitSet            ExtendedRcode = 11
+        ExtendedRcodeNSECMissing                ExtendedRcode = 12
+        ExtendedRcodeCachedError                ExtendedRcode = 13
+        ExtendedRcodeNotReady                   ExtendedRcode = 14
+        ExtendedRcodeBlocked                    ExtendedRcode = 15
+        ExtendedRcodeCensored                   ExtendedRcode = 16
+        ExtendedRcodeFiltered                   ExtendedRcode = 17
+        ExtendedRcodeProhibited                 ExtendedRcode = 18
+        ExtendedRcodeStaleNXDomainAnswer        ExtendedRcode = 19
+        ExtendedRcodeNotAuthoritative           ExtendedRcode = 20
+        ExtendedRcodeNotSupported               ExtendedRcode = 21
+        ExtendedRcodeNoReachableAuthority       ExtendedRcode = 22
+        ExtendedRcodeNetworkError               ExtendedRcode = 23
+        ExtendedRcodeInvalidData                ExtendedRcode = 24
+)
+
+type extendedRcodeError ExtendedRcode
+
+func (e extendedRcodeError) Error() string <span class="cov8" title="1">{
+        return fmt.Sprintf("extended rcode %v", uint16(e))
+}</span>
+
+func (e extendedRcodeError) Is(err error) bool <span class="cov8" title="1">{
+        return err == ErrExtendedRcode
+}</span>
+
+var ErrExtendedRcode = extendedRcodeError(0)
+
+var rcodesToErrors = map[ExtendedRcode]error{
+        ExtendedRcodeOther:                io.EOF,
+        ExtendedRcodeNotReady:             io.ErrNoProgress,
+        ExtendedRcodeProhibited:           os.ErrPermission,
+        ExtendedRcodeNoReachableAuthority: os.ErrDeadlineExceeded,
+        ExtendedRcodeNetworkError:         net.ErrClosed,
+        ExtendedRcodeInvalidData:          os.ErrInvalid,
+}
+
+// ExtendedRcodeFromError attempts to map a Go error to a DNS Extended Rcode.
+// The function understands well-known errors from the os, io, and net packages
+// (including their wrapper types) and returns ExtendedRcodeOther if no mapping is known.
+func ExtendedRcodeFromError(err error) (rcode ExtendedRcode) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov8" title="1">{
+                if rcodeErr, ok := err.(extendedRcodeError); ok </span><span class="cov8" title="1">{
+                        return ExtendedRcode(rcodeErr)
+                }</span>
+
+                <span class="cov8" title="1">for code, sample := range rcodesToErrors </span><span class="cov8" title="1">{
+                        if errors.Is(err, sample) </span><span class="cov8" title="1">{
+                                return code
+                        }</span>
+                }
+
+                <span class="cov8" title="1">if errors.Is(err, os.ErrNotExist) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeNoReachableAuthority
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, os.ErrExist) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeNoReachableAuthority
+                }</span>
+
+                <span class="cov8" title="1">if errors.Is(err, io.ErrShortBuffer) || errors.Is(err, io.ErrShortWrite) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, io.ErrClosedPipe) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeNetworkError
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, io.ErrUnexpectedEOF) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+
+                <span class="cov8" title="1">var unknownNet net.UnknownNetworkError
+                if errors.As(err, &amp;unknownNet) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeNetworkError
+                }</span>
+                <span class="cov8" title="1">var addrErr *net.AddrError
+                if errors.As(err, &amp;addrErr) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var invalidAddr net.InvalidAddrError
+                if errors.As(err, &amp;invalidAddr) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var parseErr *net.ParseError
+                if errors.As(err, &amp;parseErr) </span><span class="cov8" title="1">{
+                        return ExtendedRcodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var dnsErr *net.DNSError
+                if errors.As(err, &amp;dnsErr) </span><span class="cov8" title="1">{
+                        switch </span>{
+                        case dnsErr.IsTimeout, dnsErr.IsNotFound:<span class="cov8" title="1">
+                                return ExtendedRcodeNoReachableAuthority</span>
+                        case dnsErr.IsTemporary:<span class="cov8" title="1">
+                                return ExtendedRcodeNotReady</span>
+                        default:<span class="cov8" title="1">
+                                return ExtendedRcodeNetworkError</span>
+                        }
+                }
+
+                <span class="cov8" title="1">var netErr net.Error
+                if errors.As(err, &amp;netErr) </span><span class="cov8" title="1">{
+                        switch </span>{
+                        case netErr.Timeout():<span class="cov8" title="1">
+                                return ExtendedRcodeNoReachableAuthority</span>
+                        default:<span class="cov8" title="1">
+                                return ExtendedRcodeNetworkError</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+// ErrorFromExtendedRcode returns the canonical Go error for the provided
+// Extended Rcode. It returns ErrExtendedRcode if there is no known mapping.
+func ErrorFromExtendedRcode(code ExtendedRcode) (err error) <span class="cov8" title="1">{
+        var ok bool
+        if err, ok = rcodesToErrors[code]; !ok </span><span class="cov8" title="1">{
+                err = extendedRcodeError(code)
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package recursive
+
 import "time"
 
 type netError struct {
@@ -277,7 +429,7 @@ func (ne netError) Unwrap() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package recursive
+		<pre class="file" id="file4" style="display: none">package recursive
 
 import (
         "context"
@@ -388,7 +540,7 @@ func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.N
 // func (std *Recursive) LookupTXT(ctx context.Context, name string) ([]string, error)
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package recursive
+		<pre class="file" id="file5" style="display: none">package recursive
 
 import (
         "context"
@@ -773,7 +925,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -908,10 +1060,10 @@ func (q *query) exchangeUsing(ctx context.Context, protocol string, useCookies b
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
                                 newsrvcookie := srvcookie
                                 if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
-                                        for _, rr := range opt.Option </span><span class="cov8" title="1">{
+                                        for _, rr := range opt.Option </span><span class="cov0" title="0">{
                                                 switch rr := rr.(type) </span>{
-                                                case *dns.EDNS0_COOKIE:<span class="cov8" title="1">
-                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov8" title="1">{
+                                                case *dns.EDNS0_COOKIE:<span class="cov0" title="0">
+                                                        if strings.HasPrefix(rr.Cookie, clicookie) </span><span class="cov0" title="0">{
                                                                 newsrvcookie = strings.TrimPrefix(rr.Cookie, clicookie)
                                                         }</span> else<span class="cov0" title="0"> {
                                                                 msg = nil
@@ -989,7 +1141,7 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 }
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package recursive
+		<pre class="file" id="file6" style="display: none">package recursive
 
 import (
         "context"
@@ -1468,7 +1620,7 @@ func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov8
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package recursive
+		<pre class="file" id="file7" style="display: none">package recursive
 
 import (
         "context"
@@ -1504,7 +1656,7 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file8" style="display: none">package recursive
 
 import (
         "math"
