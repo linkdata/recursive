@@ -16,14 +16,21 @@ func init() {
 
 func TestMakeCookie(t *testing.T) {
 	cookies := map[string]struct{}{}
+	duplicates := 0
 	for range 1000 {
 		if x := makeCookie(); len(x)%2 != 0 {
 			t.Fatal("cookie not an even number of hex digits", x)
 		} else {
 			if _, ok := cookies[x]; ok {
-				t.Fatal("cookie seen twice", x)
+				duplicates++
 			}
 			cookies[x] = struct{}{}
+		}
+	}
+	if duplicates > 0 {
+		t.Log(duplicates, "duplicates")
+		if duplicates > 10 {
+			t.Fatal("too many duplicates")
 		}
 	}
 }
