@@ -1,6 +1,3 @@
-//go:build network
-// +build network
-
 package recursive_test
 
 import (
