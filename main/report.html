@@ -59,19 +59,21 @@
 				
 				<option value="file1">github.com/linkdata/recursive/cacheqtype.go (100.0%)</option>
 				
-				<option value="file2">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
+				<option value="file2">github.com/linkdata/recursive/cookie.go (100.0%)</option>
 				
-				<option value="file3">github.com/linkdata/recursive/neterror.go (100.0%)</option>
+				<option value="file3">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
+				<option value="file4">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/query.go (79.1%)</option>
+				<option value="file5">github.com/linkdata/recursive/netresolver.go (100.0%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/recursive.go (96.3%)</option>
+				<option value="file6">github.com/linkdata/recursive/query.go (79.2%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				<option value="file7">github.com/linkdata/recursive/recursive.go (96.7%)</option>
 				
-				<option value="file8">github.com/linkdata/recursive/util.go (100.0%)</option>
+				<option value="file8">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				
+				<option value="file9">github.com/linkdata/recursive/util.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -264,6 +266,35 @@ func (cq *cacheQtype) clean(now time.Time) <span class="cov8" title="1">{
 		<pre class="file" id="file2" style="display: none">package recursive
 
 import (
+        crand "crypto/rand"
+        "encoding/binary"
+        "fmt"
+        rand "math/rand/v2"
+)
+
+var crandRead func(b []byte) (n int, err error) = crand.Read
+
+func makeCookie() string <span class="cov8" title="1">{
+        var b [8]byte
+        n, _ := crandRead(b[:])
+        x := binary.LittleEndian.Uint64(b[:])
+        if n &lt; len(b) </span><span class="cov8" title="1">{
+                x ^= rand.Uint64() // #nosec G404
+        }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("%016x", x)</span>
+}
+
+func maskCookie(s string) string <span class="cov8" title="1">{
+        if len(s) &gt; 8 </span><span class="cov8" title="1">{
+                return s[:8] + "..."
+        }</span>
+        <span class="cov8" title="1">return s</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package recursive
+
+import (
         "context"
         "errors"
         "fmt"
@@ -386,7 +417,7 @@ func ErrorFromExtendedErrorCode(code uint16) (err error) <span class="cov8" titl
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package recursive
+		<pre class="file" id="file4" style="display: none">package recursive
 
 import "time"
 
@@ -404,7 +435,7 @@ func (ne netError) Unwrap() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package recursive
+		<pre class="file" id="file5" style="display: none">package recursive
 
 import (
         "context"
@@ -515,7 +546,7 @@ func (rc *Recursive) LookupNS(ctx context.Context, name string) (nslist []*net.N
 // func (std *Recursive) LookupTXT(ctx context.Context, name string) ([]string, error)
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package recursive
+		<pre class="file" id="file6" style="display: none">package recursive
 
 import (
         "context"
@@ -558,13 +589,6 @@ func (q *query) log(format string, args ...any) bool <span class="cov8" title="1
         fmt.Fprintf(q.logw, format, args...)
         return false
 }</span>
-
-func maskCookie(s string) string <span class="cov8" title="1">{
-        if len(s) &gt; 8 </span><span class="cov8" title="1">{
-                return s[:8] + "..."
-        }</span>
-        <span class="cov8" title="1">return s</span>
-}
 
 type hostAddr struct {
         host string
@@ -900,7 +924,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov0" title="0">return -1</span>
+                        <span class="cov8" title="1">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
@@ -1116,11 +1140,10 @@ func (q *query) exchange(ctx context.Context, nsaddr netip.Addr, qname string, q
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package recursive
+		<pre class="file" id="file7" style="display: none">package recursive
 
 import (
         "context"
-        crand "crypto/rand"
         "errors"
         "fmt"
         "io"
@@ -1194,14 +1217,6 @@ type Recursive struct {
         udperrs     map[netip.Addr]netError
         tcperrs     map[netip.Addr]netError
         dnsResolve  func(context.Context, string, uint16) (*dns.Msg, netip.Addr, error)
-}
-
-func makeCookie() string <span class="cov8" title="1">{
-        b := make([]byte, 8)
-        if _, err := crand.Read(b); err != nil </span><span class="cov0" title="0">{
-                panic(err)</span>
-        }
-        <span class="cov8" title="1">return fmt.Sprintf("%x", b)</span>
 }
 
 func shuffleAddrs(a []netip.Addr) <span class="cov8" title="1">{
@@ -1595,7 +1610,7 @@ func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov8
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file8" style="display: none">package recursive
 
 import (
         "context"
@@ -1631,7 +1646,7 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package recursive
+		<pre class="file" id="file9" style="display: none">package recursive
 
 import (
         "math"
