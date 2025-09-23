@@ -36,6 +36,20 @@ var flagRecord = flag.Bool("record", false, "write a record of all queries made"
 func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
 	fmt.Println(";;; ----------------------------------------------------------------------")
 	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
+	if m == nil && err != nil {
+		m = new(dns.Msg)
+		m.SetQuestion(qname, qtype)
+		m.Rcode = dns.RcodeServerFailure
+		opt := new(dns.OPT)
+		opt.Hdr.Name = "."
+		opt.Hdr.Rrtype = dns.TypeOPT
+		opt.SetExtendedRcode(recursive.ExtendedErrorCodeFromError(err))
+		opt.Option = append(opt.Option, &dns.EDNS0_EDE{
+			InfoCode:  recursive.ExtendedErrorCodeFromError(err),
+			ExtraText: err.Error(),
+		})
+		m.Extra = append(m.Extra, opt)
+	}
 	if m != nil {
 		fmt.Println(m)
 		if b, e := m.Pack(); e == nil {
@@ -50,9 +64,6 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 	}
 	if nsaddr.IsValid() {
 		fmt.Printf(";; SERVER: %s\n", nsaddr)
-	}
-	if err != nil {
-		fmt.Printf(";; ERROR: %v\n", err)
 	}
 }
 
