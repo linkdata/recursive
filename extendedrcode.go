@@ -7,67 +7,41 @@ import (
 	"io"
 	"net"
 	"os"
+
+	"github.com/miekg/dns"
 )
 
 // ExtendedRcode represents a DNS Extended Error code as defined in RFC 8914.
-type ExtendedRcode uint16
 
-const (
-	ExtendedRcodeOther                      ExtendedRcode = 0
-	ExtendedRcodeUnsupportedDNSKEYAlgorithm ExtendedRcode = 1
-	ExtendedRcodeUnsupportedDSDigestType    ExtendedRcode = 2
-	ExtendedRcodeStaleAnswer                ExtendedRcode = 3
-	ExtendedRcodeForgedAnswer               ExtendedRcode = 4
-	ExtendedRcodeDNSSECIndeterminate        ExtendedRcode = 5
-	ExtendedRcodeDNSSECBogus                ExtendedRcode = 6
-	ExtendedRcodeSignatureExpired           ExtendedRcode = 7
-	ExtendedRcodeSignatureNotYetValid       ExtendedRcode = 8
-	ExtendedRcodeDNSKEYMissing              ExtendedRcode = 9
-	ExtendedRcodeRRSIGsMissing              ExtendedRcode = 10
-	ExtendedRcodeNoZoneKeyBitSet            ExtendedRcode = 11
-	ExtendedRcodeNSECMissing                ExtendedRcode = 12
-	ExtendedRcodeCachedError                ExtendedRcode = 13
-	ExtendedRcodeNotReady                   ExtendedRcode = 14
-	ExtendedRcodeBlocked                    ExtendedRcode = 15
-	ExtendedRcodeCensored                   ExtendedRcode = 16
-	ExtendedRcodeFiltered                   ExtendedRcode = 17
-	ExtendedRcodeProhibited                 ExtendedRcode = 18
-	ExtendedRcodeStaleNXDomainAnswer        ExtendedRcode = 19
-	ExtendedRcodeNotAuthoritative           ExtendedRcode = 20
-	ExtendedRcodeNotSupported               ExtendedRcode = 21
-	ExtendedRcodeNoReachableAuthority       ExtendedRcode = 22
-	ExtendedRcodeNetworkError               ExtendedRcode = 23
-	ExtendedRcodeInvalidData                ExtendedRcode = 24
-)
+type extendedErrorCodeError uint16
 
-type extendedRcodeError ExtendedRcode
-
-func (e extendedRcodeError) Error() string {
+func (e extendedErrorCodeError) Error() string {
 	return fmt.Sprintf("extended rcode %v", uint16(e))
 }
 
-func (e extendedRcodeError) Is(err error) bool {
-	return err == ErrExtendedRcode
+func (e extendedErrorCodeError) Is(err error) bool {
+	return err == ErrExtendedErrorCode
 }
 
-var ErrExtendedRcode = extendedRcodeError(0)
+var ErrExtendedErrorCode = extendedErrorCodeError(0)
 
-var rcodesToErrors = map[ExtendedRcode]error{
-	ExtendedRcodeOther:                io.EOF,
-	ExtendedRcodeNotReady:             io.ErrNoProgress,
-	ExtendedRcodeProhibited:           os.ErrPermission,
-	ExtendedRcodeNoReachableAuthority: os.ErrDeadlineExceeded,
-	ExtendedRcodeNetworkError:         net.ErrClosed,
-	ExtendedRcodeInvalidData:          os.ErrInvalid,
+var rcodesToErrors = map[uint16]error{
+	dns.ExtendedErrorCodeOther:                io.EOF,
+	dns.ExtendedErrorCodeNotReady:             io.ErrNoProgress,
+	dns.ExtendedErrorCodeProhibited:           os.ErrPermission,
+	dns.ExtendedErrorCodeNoReachableAuthority: os.ErrDeadlineExceeded,
+	dns.ExtendedErrorCodeNetworkError:         net.ErrClosed,
+	dns.ExtendedErrorCodeInvalidData:          os.ErrInvalid,
 }
 
-// ExtendedRcodeFromError attempts to map a Go error to a DNS Extended Rcode.
+// ExtendedErrorCodeFromError attempts to map a Go error to a DNS Extended Rcode.
 // The function understands well-known errors from the os, io, and net packages
-// (including their wrapper types) and returns ExtendedRcodeOther if no mapping is known.
-func ExtendedRcodeFromError(err error) (rcode ExtendedRcode) {
+// (including their wrapper types) and returns dns.ExtendedErrorCodeOther if no mapping is known.
+func ExtendedErrorCodeFromError(err error) (rcode uint16) {
+	rcode = dns.ExtendedErrorCodeOther
 	if err != nil {
-		if rcodeErr, ok := err.(extendedRcodeError); ok {
-			return ExtendedRcode(rcodeErr)
+		if rcodeErr, ok := err.(extendedErrorCodeError); ok {
+			return uint16(rcodeErr)
 		}
 
 		for code, sample := range rcodesToErrors {
@@ -77,50 +51,51 @@ func ExtendedRcodeFromError(err error) (rcode ExtendedRcode) {
 		}
 
 		if errors.Is(err, os.ErrNotExist) {
-			return ExtendedRcodeNoReachableAuthority
+			return dns.ExtendedErrorCodeNoReachableAuthority
 		}
 		if errors.Is(err, os.ErrExist) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
-		if errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded) {
-			return ExtendedRcodeNoReachableAuthority
+		if errors.Is(err, os.ErrDeadlineExceeded) ||
+			errors.Is(err, context.DeadlineExceeded) {
+			return dns.ExtendedErrorCodeNoReachableAuthority
 		}
 
 		if errors.Is(err, io.ErrShortBuffer) || errors.Is(err, io.ErrShortWrite) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
 		if errors.Is(err, io.ErrClosedPipe) {
-			return ExtendedRcodeNetworkError
+			return dns.ExtendedErrorCodeNetworkError
 		}
 		if errors.Is(err, io.ErrUnexpectedEOF) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
 
 		var unknownNet net.UnknownNetworkError
 		if errors.As(err, &unknownNet) {
-			return ExtendedRcodeNetworkError
+			return dns.ExtendedErrorCodeNetworkError
 		}
 		var addrErr *net.AddrError
 		if errors.As(err, &addrErr) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
 		var invalidAddr net.InvalidAddrError
 		if errors.As(err, &invalidAddr) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
 		var parseErr *net.ParseError
 		if errors.As(err, &parseErr) {
-			return ExtendedRcodeInvalidData
+			return dns.ExtendedErrorCodeInvalidData
 		}
 		var dnsErr *net.DNSError
 		if errors.As(err, &dnsErr) {
 			switch {
 			case dnsErr.IsTimeout, dnsErr.IsNotFound:
-				return ExtendedRcodeNoReachableAuthority
+				return dns.ExtendedErrorCodeNoReachableAuthority
 			case dnsErr.IsTemporary:
-				return ExtendedRcodeNotReady
+				return dns.ExtendedErrorCodeNotReady
 			default:
-				return ExtendedRcodeNetworkError
+				return dns.ExtendedErrorCodeNetworkError
 			}
 		}
 
@@ -128,21 +103,21 @@ func ExtendedRcodeFromError(err error) (rcode ExtendedRcode) {
 		if errors.As(err, &netErr) {
 			switch {
 			case netErr.Timeout():
-				return ExtendedRcodeNoReachableAuthority
+				return dns.ExtendedErrorCodeNoReachableAuthority
 			default:
-				return ExtendedRcodeNetworkError
+				return dns.ExtendedErrorCodeNetworkError
 			}
 		}
 	}
 	return
 }
 
-// ErrorFromExtendedRcode returns the canonical Go error for the provided
-// Extended Rcode. It returns ErrExtendedRcode if there is no known mapping.
-func ErrorFromExtendedRcode(code ExtendedRcode) (err error) {
+// ErrorFromExtendedErrorCode returns the canonical Go error for the provided
+// Extended Error Code. It returns ErrExtendedErrorCode if there is no known mapping.
+func ErrorFromExtendedErrorCode(code uint16) (err error) {
 	var ok bool
 	if err, ok = rcodesToErrors[code]; !ok {
-		err = extendedRcodeError(code)
+		err = extendedErrorCodeError(code)
 	}
 	return
 }
