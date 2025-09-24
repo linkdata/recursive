@@ -49,6 +49,7 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 			ExtraText: err.Error(),
 		})
 		m.Extra = append(m.Extra, opt)
+		err = nil
 	}
 	if m != nil {
 		fmt.Println(m)
@@ -60,6 +61,9 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 					fmt.Printf(";; GZPACK: %s\n", base64.StdEncoding.EncodeToString(buf.Bytes()))
 				}
 			}
+		}
+		if err != nil {
+			fmt.Printf(";; ERROR: %v\n", err)
 		}
 	}
 	if nsaddr.IsValid() {

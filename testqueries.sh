@@ -19,3 +19,4 @@ $1 $2 $3 $4 $5 A 9ghuun5oshdr6hvi.prd.mg >  A_9ghuun5oshdr6hvi.prd.mg.txt
 $1 $2 $3 $4 $5 NS 5xqy3o9qafuvdqtv.mil.sy >  NS_5xqy3o9qafuvdqtv.mil.sy.txt
 $1 $2 $3 $4 $5 A eoh.be >  A_eoh.be.txt
 $1 $2 $3 $4 $5 NS tella.net.ms >  NS_tella.net.ms.txt
+$1 $2 $3 $4 $5 TXT qnamemintest.internet.nl > TXT_qnamemintest.internet.nl.txt

@@ -161,7 +161,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
 							if gotmsg.Authoritative || (idx > 0 && (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) > 0)) {
 								q.setCache(gotmsg)
 							}
-							if q.nomini && qtype != dns.TypeCNAME {
+							if qtype != dns.TypeCNAME {
 								if m, handled := q.handleCNAME(ctx, gotmsg, qname, qtype); handled {
 									msg = m
 									return
