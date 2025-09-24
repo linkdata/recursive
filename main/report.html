@@ -709,7 +709,7 @@ func (q *query) run(ctx context.Context, qname string, qtype uint16) (msg *dns.M
                                                         if gotmsg.Authoritative || (idx &gt; 0 &amp;&amp; (nsrcode == dns.RcodeNameError || len(gotmsg.Answer) &gt; 0)) </span><span class="cov8" title="1">{
                                                                 q.setCache(gotmsg)
                                                         }</span>
-                                                        <span class="cov8" title="1">if q.nomini &amp;&amp; qtype != dns.TypeCNAME </span><span class="cov0" title="0">{
+                                                        <span class="cov8" title="1">if qtype != dns.TypeCNAME </span><span class="cov8" title="1">{
                                                                 if m, handled := q.handleCNAME(ctx, gotmsg, qname, qtype); handled </span><span class="cov0" title="0">{
                                                                         msg = m
                                                                         return
@@ -924,7 +924,7 @@ func (q *query) extractNS(msg *dns.Msg) (hal []hostAddr) <span class="cov8" titl
                         if b.addr.IsValid() </span><span class="cov8" title="1">{
                                 return a.addr.Compare(b.addr)
                         }</span>
-                        <span class="cov8" title="1">return -1</span>
+                        <span class="cov0" title="0">return -1</span>
                 }
                 <span class="cov8" title="1">if b.addr.IsValid() </span><span class="cov8" title="1">{
                         return 1
