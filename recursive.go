@@ -29,10 +29,11 @@ const (
 )
 
 type Recursive struct {
-	proxy.ContextDialer // context dialer to use
-	Cacher              // cache to use for DnsResolve
-	Timeout             time.Duration
-	DNSPort             uint16
+	proxy.ContextDialer                 // context dialer to use
+	Cacher                              // cache to use for DnsResolve
+	Timeout             time.Duration   // default is DefaultTimeout
+	DNSPort             uint16          // default is DefaultDNSPort
+	Deterministic       bool            // if true, always query nameservers in the same order
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	mu                  sync.RWMutex    // protects following
 	useIPv4             bool

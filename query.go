@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net"
 	"net/netip"
 	"slices"
@@ -61,7 +62,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 		}
 
 		if len(nsAddrs) > 0 {
-			servers = sortAddrs(nsAddrs)
+			servers = q.sortAddrs(nsAddrs)
 		}
 
 		if zone == qname {
@@ -486,8 +487,12 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 	return
 }
 
-func sortAddrs(in []netip.Addr) []netip.Addr {
-	sort.Slice(in, func(i, j int) bool { return in[i].Compare(in[j]) < 0 })
+func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr {
+	if r.Deterministic {
+		sort.Slice(in, func(i, j int) bool { return in[i].Compare(in[j]) < 0 })
+	} else {
+		rand.Shuffle(len(in), func(i, j int) { in[i], in[j] = in[j], in[i] })
+	}
 	return in
 }
 
