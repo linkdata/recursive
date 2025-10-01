@@ -1,0 +1,131 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A seb.org.tw
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 31830
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510623	IN	NS	g.root-servers.net.
+.			510623	IN	NS	h.root-servers.net.
+.			510623	IN	NS	i.root-servers.net.
+.			510623	IN	NS	j.root-servers.net.
+.			510623	IN	NS	k.root-servers.net.
+.			510623	IN	NS	l.root-servers.net.
+.			510623	IN	NS	m.root-servers.net.
+.			510623	IN	NS	a.root-servers.net.
+.			510623	IN	NS	b.root-servers.net.
+.			510623	IN	NS	c.root-servers.net.
+.			510623	IN	NS	d.root-servers.net.
+.			510623	IN	NS	e.root-servers.net.
+.			510623	IN	NS	f.root-servers.net.
+.			510623	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510623	IN	A	198.41.0.4
+a.root-servers.net.	510623	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510623	IN	A	170.247.170.2
+b.root-servers.net.	510623	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510623	IN	A	192.33.4.12
+c.root-servers.net.	510623	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510623	IN	A	199.7.91.13
+d.root-servers.net.	510623	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510623	IN	A	192.203.230.10
+e.root-servers.net.	510623	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510623	IN	A	192.5.5.241
+f.root-servers.net.	510623	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510623	IN	A	192.112.36.4
+g.root-servers.net.	510623	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510623	IN	A	198.97.190.53
+h.root-servers.net.	510623	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510623	IN	A	192.36.148.17
+i.root-servers.net.	510623	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510623	IN	A	192.58.128.30
+j.root-servers.net.	510623	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510623	IN	A	193.0.14.129
+k.root-servers.net.	510623	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510623	IN	A	199.7.83.42
+l.root-servers.net.	510623	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510623	IN	A	202.12.27.33
+m.root-servers.net.	510623	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45872
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 11, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;seb.org.tw.			IN	A
+
+;; AUTHORITY SECTION:
+tw.			172800	IN	NS	a.dns.tw.
+tw.			172800	IN	NS	b.dns.tw.
+tw.			172800	IN	NS	c.dns.tw.
+tw.			172800	IN	NS	d.dns.tw.
+tw.			172800	IN	NS	e.dns.tw.
+tw.			172800	IN	NS	f.dns.tw.
+tw.			172800	IN	NS	g.dns.tw.
+tw.			172800	IN	NS	h.dns.tw.
+tw.			172800	IN	NS	anytld.apnic.net.
+tw.			86400	IN	DS	51277 8 2 462DA9AF501D2B1EEF6725522DB5972F8CD2490B51D92088FF1E3D2D E0EC7BCD
+tw.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . GvLZk149tMjJqVOOmJNpshuNM29xYE2hiQjA1DIv5UUgQ2+OyR2weJB2 G0lUZ0bsW+a3lkS5AGpn/cZtdzAXiIaeqPfOaWROvVYyxEguANn+rywi CyWGl1e5kIqdZayqNc0YfFtnb0jP4VisIaPKti0ToCPtodBP2BCQ5YmS /fDhZgUFf5MK23Y5jviKSik7D/meS8t33/HsHm3jYrOY9B1/dXjpZtJh p5jHyABcomzsD5NILYrrhweYHwfEYAkNetvi+diupBDljJFD8zkEXUl2 5nVPlIRAdCY1l1X6iKVRDMCJYyInXxcMfpBIQLMPl2dTdIOOiqn5qEre 6UdJGw==
+
+;; ADDITIONAL SECTION:
+a.dns.tw.		172800	IN	A	203.73.24.25
+b.dns.tw.		172800	IN	A	210.201.138.58
+c.dns.tw.		172800	IN	A	203.66.87.201
+d.dns.tw.		172800	IN	A	60.199.165.186
+e.dns.tw.		172800	IN	A	211.20.231.11
+f.dns.tw.		172800	IN	A	40.65.125.222
+g.dns.tw.		172800	IN	A	34.141.111.176
+h.dns.tw.		172800	IN	A	204.61.216.119
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+a.dns.tw.		172800	IN	AAAA	2001:45b1:0:5::25
+b.dns.tw.		172800	IN	AAAA	2404:0:10a0::58
+c.dns.tw.		172800	IN	AAAA	2001:b020:0:77::1
+d.dns.tw.		172800	IN	AAAA	2001:4541:9010:7::186
+e.dns.tw.		172800	IN	AAAA	2001:b000:1e0:c000::11
+h.dns.tw.		172800	IN	AAAA	2001:500:14:6119:ad::1
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+
+;; Query time: 23 msec
+;; SERVER: 192.58.128.30#53(j.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 876
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 58290
+;; flags: qr aa; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 3490d92eea504e280100000068ca9238389e77f2eb75bf8e (good)
+;; QUESTION SECTION:
+;seb.org.tw.			IN	A
+
+;; AUTHORITY SECTION:
+org.tw.			900	IN	SOA	a.twnic.net.tw. snw.twnic.net.tw. 1999635494 6600 900 604800 900
+org.tw.			900	IN	RRSIG	SOA 8 2 900 20251017090009 20250917090009 47538 org.tw. QEBY9dQoiA2CbIohyZWqIZTBFfz0zKLVdYB6yZv6OGenI7VCHky+WOzj 07klEpZ2MQkw9ucUlm+Hn4aQ90GZhaNFQgPMeRdK+AIb0+e6oR94BiVW FMesLGpk1BJrclYAd3kuJSDJya3nQCuRl0jWxbvA9TaCThfAmuSz9M3q QdY=
+DPSQGK14S1VA6L53HQQK8T5Q7K4II8R1.org.tw. 900 IN	NSEC3 1 1 0 - DUO8R7CVDSGMUR9OAR325E31C8LJ7HPH NS SOA RRSIG DNSKEY NSEC3PARAM
+DPSQGK14S1VA6L53HQQK8T5Q7K4II8R1.org.tw. 900 IN	RRSIG NSEC3 8 3 900 20251017090009 20250917090009 47538 org.tw. Wr7jOIAV+qRgwCfSRSvgQWNgCpAeEsIzO9XT4LyvwWAb+ZO+8MYBnHTo VyPFC4N0rs//7TFWhCIBerFqS4GnUhf4KzN4KjbKkBU2W2+AsO3Zw/cs niWIMxz+gLWnBodOPBKIg41wBXAY7ZFSCpcFuctkd03i0UcAjW3ei1FF OVg=
+GDDR5505A7BD1OC9CUJ6IMD9SOL95EPA.org.tw. 900 IN	NSEC3 1 1 0 - GHBTNBCJ158EEH28CBIJU3E3NKH0KS7B NS DS RRSIG
+GDDR5505A7BD1OC9CUJ6IMD9SOL95EPA.org.tw. 900 IN	RRSIG NSEC3 8 3 900 20251017090009 20250917090009 47538 org.tw. utb4nat8fR1se1Dy+rKRe9iredWP0HX0NHWxgwQi/Gnqh7qcC5wHNWVj 1bWn7PUSvmiY7Uq3yA3r+yue0nnm87mgmhSpWWfivpHkKPr4byy9/Tf2 ATADvYaLaOJdA+OfNI0IaRLh8KespiwRP3x9ondzVrhouoiDjiBbEJp6 NZ4=
+MM1IIBSGE8N12VB33I7A794CLN04DP8K.org.tw. 900 IN	NSEC3 1 1 0 - N13JK504R4MT3KSM4N65DCAB9BMKLC8O NS DS RRSIG
+MM1IIBSGE8N12VB33I7A794CLN04DP8K.org.tw. 900 IN	RRSIG NSEC3 8 3 900 20251017090009 20250917090009 47538 org.tw. xJl0bn0DDA4C+zIa55s1bfOKAJBo3q+z8FDhjsJ6CYUmd7UPMPdxcDeu tw6VpD9UvxfSh/g4kgZxGXiIEu1D684OjjJns5Vm2SeZJ7LqN41u1265 hdiTmuJ5YHJ0LH3XeJS5roginFSJseNOd9jJLu7QP0tHUrxLqL3L9HDq iqk=
+
+;; Query time: 319 msec
+;; SERVER: 203.73.24.25#53(a.dns.tw) (UDP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 1023
+

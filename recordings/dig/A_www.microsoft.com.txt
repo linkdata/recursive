@@ -1,0 +1,738 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A www.microsoft.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 722
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12188
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: dab3ed16ecb1049e0100000068ca92091cb3973a701385be (good)
+;; QUESTION SECTION:
+;www.microsoft.com.		IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; Query time: 31 msec
+;; SERVER: 192.33.4.12#53(c.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1208
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 5650
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;www.microsoft.com.		IN	A
+
+;; AUTHORITY SECTION:
+microsoft.com.		172800	IN	NS	ns1-39.azure-dns.com.
+microsoft.com.		172800	IN	NS	ns2-39.azure-dns.net.
+microsoft.com.		172800	IN	NS	ns3-39.azure-dns.org.
+microsoft.com.		172800	IN	NS	ns4-39.azure-dns.info.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+TCQ78V56RPB9M9CO6K6FI9UOGRT276QB.com. 900 IN NSEC3 1 1 0 - TCQ7N3GJ5PB7TB5T6GGVCKCR42QSAE2Q NS DS RRSIG
+TCQ78V56RPB9M9CO6K6FI9UOGRT276QB.com. 900 IN RRSIG NSEC3 13 2 900 20250924014211 20250917003211 20545 com. mwqDpDe24VGX9IlkIbhjdPqWMnHjsleYdT453tfuLsb1T25WL3UOzJpb nNWRuHJA6FP3q3kd67rvOKd2fxVPwA==
+
+;; ADDITIONAL SECTION:
+ns1-39.azure-dns.com.	172800	IN	A	150.171.10.39
+
+;; Query time: 24 msec
+;; SERVER: 192.31.80.30#53(d.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 553
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 62867
+;; flags: qr aa ad; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;www.microsoft.com.		IN	A
+
+;; ANSWER SECTION:
+www.microsoft.com.	3600	IN	CNAME	www.microsoft.com-c-3.edgekey.net.
+
+;; Query time: 16 msec
+;; SERVER: 150.171.10.39#53(ns1-39.azure-dns.com) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 93
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A www.microsoft.com-c-3.edgekey.net.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 24352
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 8643
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1450
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net. IN	A
+
+;; AUTHORITY SECTION:
+net.			172800	IN	NS	a.gtld-servers.net.
+net.			172800	IN	NS	b.gtld-servers.net.
+net.			172800	IN	NS	c.gtld-servers.net.
+net.			172800	IN	NS	d.gtld-servers.net.
+net.			172800	IN	NS	e.gtld-servers.net.
+net.			172800	IN	NS	f.gtld-servers.net.
+net.			172800	IN	NS	g.gtld-servers.net.
+net.			172800	IN	NS	h.gtld-servers.net.
+net.			172800	IN	NS	i.gtld-servers.net.
+net.			172800	IN	NS	j.gtld-servers.net.
+net.			172800	IN	NS	k.gtld-servers.net.
+net.			172800	IN	NS	l.gtld-servers.net.
+net.			172800	IN	NS	m.gtld-servers.net.
+net.			86400	IN	DS	37331 13 2 2F0BEC2D6F79DFBD1D08FD21A3AF92D0E39A4B9EF1E3F4111FFF2824 90DA453B
+net.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . gkcmP0ktOnY1fwWcZE5jPyq5+8ZHs8VkMDwjyMYkMunFU74o9ZJX6nSy EJVNpbI/AEEO4AwI3nfoFKlxH00tY1m2/ydzA9hyyfmIKdmdFKyy5vOv 2l26XQsCfL4I4JdKrk210WU0cX9JzXGC3aIUHtLpN8W+/8Y3YgtXIRQO B54X1tOUEJuOXMD1+DzfvNg/U4dg2ia+9MZ6MEDoE7nyFndht2o40CNA yKYE2Mpo9xogwVElAl/1jJH3UGKhq7kvxex1JUDe8mKSvg2P7jSqLLmR 07sX1j9XCGCgW/yEogv+lujSzrKIKl8znt2ubyGZ3KglHjuExxIZBjcj QzwaYw==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 22 msec
+;; SERVER: 199.7.91.13#53(d.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1190
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17033
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net. IN	A
+
+;; AUTHORITY SECTION:
+edgekey.net.		172800	IN	NS	a6-65.akam.net.
+edgekey.net.		172800	IN	NS	a12-65.akam.net.
+edgekey.net.		172800	IN	NS	a7-64.akam.net.
+edgekey.net.		172800	IN	NS	a16-65.akam.net.
+edgekey.net.		172800	IN	NS	a18-65.akam.net.
+edgekey.net.		172800	IN	NS	a1-66.akam.net.
+edgekey.net.		172800	IN	NS	a28-65.akam.net.
+edgekey.net.		172800	IN	NS	a10-66.akam.net.
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN NSEC3 1 1 0 - A1RTLNPGULOGN7B9A62SHJE1U3TTP8DR NS SOA RRSIG DNSKEY NSEC3PARAM
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN RRSIG NSEC3 13 2 900 20250924030712 20250917015712 33296 net. uU8KXmcvp5aX2M9nQQXhJvHaWRwjnn+xJFHAJNGwFbVH9Htypdmp56bH xOdH1NoS43nFoL4uRIGnLZmjX59uDQ==
+2A09L90J5OP53DJ5M5O1FL8J39GHPRTI.net. 900 IN NSEC3 1 1 0 - 2A0DD0DPD52R82HIIVI678UQLMKQU1NF NS DS RRSIG
+2A09L90J5OP53DJ5M5O1FL8J39GHPRTI.net. 900 IN RRSIG NSEC3 13 2 900 20250922030659 20250915015659 33296 net. sxgjaOnIeZc2EXaLE2f+Xc8Ay317x6NdQ4OF3SgQtM7jEVaBomW9hXW/ ndz4+KWeBoHhINGJZkAWUO+svdTszQ==
+
+;; ADDITIONAL SECTION:
+a6-65.akam.net.		172800	IN	A	23.211.133.65
+a6-65.akam.net.		172800	IN	AAAA	2600:1401:1::41
+a12-65.akam.net.	172800	IN	A	184.26.160.65
+a12-65.akam.net.	172800	IN	AAAA	2600:1480:f000::41
+a7-64.akam.net.		172800	IN	A	23.61.199.64
+a7-64.akam.net.		172800	IN	AAAA	2600:1406:32::40
+a16-65.akam.net.	172800	IN	A	23.211.132.65
+a16-65.akam.net.	172800	IN	AAAA	2600:1406:1b::41
+a18-65.akam.net.	172800	IN	AAAA	2600:1480:4800::41
+a18-65.akam.net.	172800	IN	A	95.101.36.65
+a1-66.akam.net.		172800	IN	A	193.108.91.66
+a1-66.akam.net.		172800	IN	AAAA	2600:1401:2::42
+a28-65.akam.net.	172800	IN	AAAA	2600:1480:d800::41
+a28-65.akam.net.	172800	IN	A	95.100.173.65
+a10-66.akam.net.	172800	IN	AAAA	2600:1480:d000::42
+a10-66.akam.net.	172800	IN	A	96.7.50.66
+
+;; Query time: 21 msec
+;; SERVER: 192.26.92.30#53(c.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 941
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 3290
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net. IN	A
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net. 900 IN CNAME	www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+
+;; Query time: 2 msec
+;; SERVER: 95.101.36.65#53(a18-65.akam.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 129
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61685
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27925
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net. IN A
+
+;; AUTHORITY SECTION:
+net.			172800	IN	NS	a.gtld-servers.net.
+net.			172800	IN	NS	b.gtld-servers.net.
+net.			172800	IN	NS	c.gtld-servers.net.
+net.			172800	IN	NS	d.gtld-servers.net.
+net.			172800	IN	NS	e.gtld-servers.net.
+net.			172800	IN	NS	f.gtld-servers.net.
+net.			172800	IN	NS	g.gtld-servers.net.
+net.			172800	IN	NS	h.gtld-servers.net.
+net.			172800	IN	NS	i.gtld-servers.net.
+net.			172800	IN	NS	j.gtld-servers.net.
+net.			172800	IN	NS	k.gtld-servers.net.
+net.			172800	IN	NS	l.gtld-servers.net.
+net.			172800	IN	NS	m.gtld-servers.net.
+net.			86400	IN	DS	37331 13 2 2F0BEC2D6F79DFBD1D08FD21A3AF92D0E39A4B9EF1E3F4111FFF2824 90DA453B
+net.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . gkcmP0ktOnY1fwWcZE5jPyq5+8ZHs8VkMDwjyMYkMunFU74o9ZJX6nSy EJVNpbI/AEEO4AwI3nfoFKlxH00tY1m2/ydzA9hyyfmIKdmdFKyy5vOv 2l26XQsCfL4I4JdKrk210WU0cX9JzXGC3aIUHtLpN8W+/8Y3YgtXIRQO B54X1tOUEJuOXMD1+DzfvNg/U4dg2ia+9MZ6MEDoE7nyFndht2o40CNA yKYE2Mpo9xogwVElAl/1jJH3UGKhq7kvxex1JUDe8mKSvg2P7jSqLLmR 07sX1j9XCGCgW/yEogv+lujSzrKIKl8znt2ubyGZ3KglHjuExxIZBjcj QzwaYw==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 2 msec
+;; SERVER: 192.5.5.241#53(f.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1213
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 13590
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net. IN A
+
+;; AUTHORITY SECTION:
+akadns.net.		172800	IN	NS	a3-129.akadns.net.
+akadns.net.		172800	IN	NS	a1-128.akadns.net.
+akadns.net.		172800	IN	NS	a28-129.akagtm.org.
+akadns.net.		172800	IN	NS	a18-128.akagtm.org.
+akadns.net.		172800	IN	NS	a46-129.akadns.net.
+akadns.net.		172800	IN	NS	a44-131.akadns.net.
+akadns.net.		172800	IN	NS	a42-130.akagtm.org.
+akadns.net.		172800	IN	NS	a7-130.akagtm.org.
+akadns.net.		172800	IN	NS	a8-130.akadns.net.
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN NSEC3 1 1 0 - A1RTLNPGULOGN7B9A62SHJE1U3TTP8DR NS SOA RRSIG DNSKEY NSEC3PARAM
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN RRSIG NSEC3 13 2 900 20250924030712 20250917015712 33296 net. uU8KXmcvp5aX2M9nQQXhJvHaWRwjnn+xJFHAJNGwFbVH9Htypdmp56bH xOdH1NoS43nFoL4uRIGnLZmjX59uDQ==
+O7VM23M4S7RVLAH68RVI8D0F1UQBK4GF.net. 900 IN NSEC3 1 1 0 - O7VOPA298LCI0ISUHUPL1G86T99HDQJI NS DS RRSIG
+O7VM23M4S7RVLAH68RVI8D0F1UQBK4GF.net. 900 IN RRSIG NSEC3 13 2 900 20250921031221 20250914020221 33296 net. G03MV599suIAUDrvLBp7feH/2ukxkRFKbpwd30salwVTvSc9/0+5jPWG Rj3bHPh36cIjC5X5s652WhuQloVENA==
+
+;; ADDITIONAL SECTION:
+a3-129.akadns.net.	172800	IN	AAAA	2600:1408:1c::81
+a3-129.akadns.net.	172800	IN	A	96.7.49.129
+a1-128.akadns.net.	172800	IN	A	193.108.88.128
+a1-128.akadns.net.	172800	IN	AAAA	2600:1403:11::80
+a46-129.akadns.net.	172800	IN	A	23.61.245.129
+a46-129.akadns.net.	172800	IN	AAAA	2600:1480:400::81
+a44-131.akadns.net.	172800	IN	A	2.17.46.131
+a44-131.akadns.net.	172800	IN	AAAA	2600:1480:c00::83
+a8-130.akadns.net.	172800	IN	A	2.16.40.130
+a8-130.akadns.net.	172800	IN	AAAA	2600:1403:a::82
+
+;; Query time: 24 msec
+;; SERVER: 192.31.80.30#53(d.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 866
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21151
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net. IN A
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net. 900 IN CNAME e13678.dscb.akamaiedge.net.
+
+;; Query time: 2 msec
+;; SERVER: 95.101.36.128#53(a18-128.akagtm.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 122
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A e13678.dscb.akamaiedge.net.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61660
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17271
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: d53a7c19e7f3b1250100000068ca92091b41865af42857ab (good)
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	A
+
+;; AUTHORITY SECTION:
+net.			172800	IN	NS	a.gtld-servers.net.
+net.			172800	IN	NS	l.gtld-servers.net.
+net.			172800	IN	NS	i.gtld-servers.net.
+net.			172800	IN	NS	d.gtld-servers.net.
+net.			172800	IN	NS	b.gtld-servers.net.
+net.			172800	IN	NS	h.gtld-servers.net.
+net.			172800	IN	NS	k.gtld-servers.net.
+net.			172800	IN	NS	e.gtld-servers.net.
+net.			172800	IN	NS	c.gtld-servers.net.
+net.			172800	IN	NS	f.gtld-servers.net.
+net.			172800	IN	NS	j.gtld-servers.net.
+net.			172800	IN	NS	g.gtld-servers.net.
+net.			172800	IN	NS	m.gtld-servers.net.
+net.			86400	IN	DS	37331 13 2 2F0BEC2D6F79DFBD1D08FD21A3AF92D0E39A4B9EF1E3F4111FFF2824 90DA453B
+net.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . gkcmP0ktOnY1fwWcZE5jPyq5+8ZHs8VkMDwjyMYkMunFU74o9ZJX6nSy EJVNpbI/AEEO4AwI3nfoFKlxH00tY1m2/ydzA9hyyfmIKdmdFKyy5vOv 2l26XQsCfL4I4JdKrk210WU0cX9JzXGC3aIUHtLpN8W+/8Y3YgtXIRQO B54X1tOUEJuOXMD1+DzfvNg/U4dg2ia+9MZ6MEDoE7nyFndht2o40CNA yKYE2Mpo9xogwVElAl/1jJH3UGKhq7kvxex1JUDe8mKSvg2P7jSqLLmR 07sX1j9XCGCgW/yEogv+lujSzrKIKl8znt2ubyGZ3KglHjuExxIZBjcj QzwaYw==
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; Query time: 24 msec
+;; SERVER: 192.33.4.12#53(c.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1217
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 26285
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	A
+
+;; AUTHORITY SECTION:
+akamaiedge.net.		172800	IN	NS	la1.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	la3.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	lar2.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	ns3-194.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	a12-192.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	a28-192.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	a6-192.akamaiedge.net.
+akamaiedge.net.		172800	IN	NS	a1-192.akamaiedge.net.
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN NSEC3 1 1 0 - A1RTLNPGULOGN7B9A62SHJE1U3TTP8DR NS SOA RRSIG DNSKEY NSEC3PARAM
+A1RT98BS5QGC9NFI51S9HCI47ULJG6JH.net. 900 IN RRSIG NSEC3 13 2 900 20250924030712 20250917015712 33296 net. uU8KXmcvp5aX2M9nQQXhJvHaWRwjnn+xJFHAJNGwFbVH9Htypdmp56bH xOdH1NoS43nFoL4uRIGnLZmjX59uDQ==
+GCRQED795V343AT1SHAJVTRUH2TP3NQV.net. 900 IN NSEC3 1 1 0 - GCRTLVURJ6LELQBDJ72R6HLM15KTTVSI NS DS RRSIG
+GCRQED795V343AT1SHAJVTRUH2TP3NQV.net. 900 IN RRSIG NSEC3 13 2 900 20250923025910 20250916014910 33296 net. j0qr9j/jwG34I380rR6m0NcwVPmMZPCtUeXNBgzaHt52kXW8+5zuRwhd l6ghy7BnjFz3Hr6FfEKkESa02/pYjA==
+
+;; ADDITIONAL SECTION:
+la1.akamaiedge.net.	172800	IN	A	184.26.161.192
+la3.akamaiedge.net.	172800	IN	A	95.101.36.192
+lar2.akamaiedge.net.	172800	IN	A	2.16.40.192
+ns3-194.akamaiedge.net.	172800	IN	A	23.61.199.194
+ns3-194.akamaiedge.net.	172800	IN	AAAA	2600:1406:32::c2
+a12-192.akamaiedge.net.	172800	IN	A	184.26.160.192
+a28-192.akamaiedge.net.	172800	IN	A	95.100.173.192
+a6-192.akamaiedge.net.	172800	IN	A	23.211.133.192
+a1-192.akamaiedge.net.	172800	IN	A	193.108.88.0
+
+;; Query time: 23 msec
+;; SERVER: 192.26.92.30#53(c.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 731
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 48547
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	A
+
+;; AUTHORITY SECTION:
+dscb.akamaiedge.net.	4000	IN	NS	n3dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n4dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n7dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n6dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n5dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n0dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n2dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n1dscb.akamaiedge.net.
+
+;; ADDITIONAL SECTION:
+n7dscb.akamaiedge.net.	4000	IN	A	95.100.106.134
+n0dscb.akamaiedge.net.	4000	IN	AAAA	2600:1480:e800::c0
+n2dscb.akamaiedge.net.	4000	IN	A	104.69.222.212
+n0dscb.akamaiedge.net.	4000	IN	A	88.221.81.192
+n3dscb.akamaiedge.net.	4000	IN	A	95.100.106.173
+n6dscb.akamaiedge.net.	4000	IN	A	95.100.106.144
+n1dscb.akamaiedge.net.	4000	IN	A	95.100.106.171
+n4dscb.akamaiedge.net.	4000	IN	A	95.100.106.140
+n5dscb.akamaiedge.net.	4000	IN	A	23.218.92.36
+
+;; Query time: 90 msec
+;; SERVER: 23.211.133.192#53(a6-192.akamaiedge.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 379
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12767
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	A
+
+;; ANSWER SECTION:
+e13678.dscb.akamaiedge.net. 20	IN	A	2.18.198.101
+
+;; Query time: 2 msec
+;; SERVER: 88.221.81.192#53(n0dscb.akamaiedge.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 71
+

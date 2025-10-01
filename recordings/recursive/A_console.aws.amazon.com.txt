@@ -1,0 +1,1746 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS com.
+;; opcode: QUERY, status: NOERROR, id: 47768
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 NS
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTPy9DURjH8d+5dcXQiqET9SCdSprchGgs3gKJFQntVX/aatrGLuIdGKx0MVgYTbUbLV6DxG4ztPgdfsm50x2+95Nzc57n6foccABymMlUT5tABPfzgqgP5N1ett5r1MrdtHOWdrqZVtrD32Q/nFTDSS2cpOHkIJzUw8lhODkKJ8fh5CScNMJJ83+i7g1u9MXYIB43WRRGxdS8izN36xg+ERJ1yeQtTJosPK84S56YCPKmt00Wnnfxju8nUeND3tymyYI9XLbIE7NGXnbXZMFeVLghTwwmecVlk4X3v6958sQUk7e4Y7LwvI8+eWLkyVttmyy8/514IU/sB3lL9yYL73xrz+SJZSIv2TBZeOdrX5EnNo+8lUeThXe+XJk8sabklW5NFt78vVXIEztNXmXLZMGee/j89YBSPBi+fwUAAP//0Q4d4PcFAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 NS amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 64990
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;amazon.com.	IN	 NS
+
+;; AUTHORITY SECTION:
+amazon.com.	172800	IN	NS	ns1.amzndns.org.
+amazon.com.	172800	IN	NS	ns2.amzndns.org.
+amazon.com.	172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns1.amzndns.net.
+amazon.com.	172800	IN	NS	ns2.amzndns.net.
+amazon.com.	172800	IN	NS	ns1.amzndns.com.
+amazon.com.	172800	IN	NS	ns2.amzndns.com.
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; GZPACK: H4sIAAAAAAAA//p7r5GBgZGBgYGDgZUtMTexKj+POTk/l4GBiYERnc/AtJiBQZA5r9iQPTG3Ki8lr5g5vyidAacyI8LKhJFNY0rOZyrNxq3QiBiFqO7LSy0hxn14lSFMA0kRYRpICkMfAyNULcucWQ5cmNIyUGkBBUZWps//GWBAAMNoZJNcuDCl4SapCTAsFBBDmMTAoCkAZQMCAAD//0R5uMH3AQAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 NS aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 34166
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;aws.amazon.com.	IN	 NS
+
+;; ANSWER SECTION:
+aws.amazon.com.	7200	IN	CNAME	tp.8e49140c2-frontier.amazon.com.
+
+;; AUTHORITY SECTION:
+8e49140c2-frontier.amazon.com.	900	IN	NS	ns-1172.awsdns-18.org.
+8e49140c2-frontier.amazon.com.	900	IN	NS	ns-2017.awsdns-60.co.uk.
+8e49140c2-frontier.amazon.com.	900	IN	NS	ns-439.awsdns-54.com.
+8e49140c2-frontier.amazon.com.	900	IN	NS	ns-959.awsdns-55.net.
+
+;; GZPACK: H4sIAAAAAAAA/2ota2VgYGRgZGBhYGROLC9mS8xNrMrPY07Oz2VgYMIixsrAyMAgo8CgxFRSIGSRamJpaGKQbKSbVpSfV5KZWoSsloA0yHgGBuYWBnH2vGJdQ0NzI87E8uIUENuCOb8onWj9kiD9RgaG5jD9ZgZMyflMpdlEmyDGllesa2JsCTPA1IQkD4C1W5oitJsy56WWMDAwaAowQAAgAAD//14l14hnAQAA
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A org.
+;; opcode: QUERY, status: NOERROR, id: 9795
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;org.	IN	 A
+
+;; AUTHORITY SECTION:
+org.	172800	IN	NS	a0.org.afilias-nst.info.
+org.	172800	IN	NS	a2.org.afilias-nst.info.
+org.	172800	IN	NS	b0.org.afilias-nst.org.
+org.	172800	IN	NS	b2.org.afilias-nst.org.
+org.	172800	IN	NS	c0.org.afilias-nst.info.
+org.	172800	IN	NS	d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info.	172800	IN	A	199.19.56.1
+a0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:e::1
+a2.org.afilias-nst.info.	172800	IN	A	199.249.112.1
+a2.org.afilias-nst.info.	172800	IN	AAAA	2001:500:40::1
+b0.org.afilias-nst.org.	172800	IN	A	199.19.54.1
+b0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:c::1
+b2.org.afilias-nst.org.	172800	IN	A	199.249.120.1
+b2.org.afilias-nst.org.	172800	IN	AAAA	2001:500:48::1
+c0.org.afilias-nst.info.	172800	IN	A	199.19.53.1
+c0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:b::1
+d0.org.afilias-nst.org.	172800	IN	A	199.19.57.1
+d0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:f::1
+
+;; GZPACK: H4sIAAAAAAAA/1JzbmRgYGRgYGBj4GXOL0oHcRghDCYGRgamxQwMkkyJBiAR7sS0zJzMxGLdvOISlsy8tHwGDHVGxKiTYErCMA+sAkMZhnFYlEkyJRPlOgmmFOy24vQdKCTAWlmOC1sw4lYmA1UmoMDIysDAxwADjDjDA8nknwV4lKGa7IBkMo4QRHayGW5VqObyIJuLPciRHVyBWxWquR5I5uKKI2QHm+JRhmoyN5LJOGIV2WBL3KpQzeVHmMvAoMl6AMIGBAAA///5PGODIwMAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @199.19.53.1 A awsdns-18.org.
+;; opcode: QUERY, status: NOERROR, id: 50421
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;awsdns-18.org.	IN	 A
+
+;; AUTHORITY SECTION:
+awsdns-18.org.	3600	IN	NS	g-ns-1618.awsdns-18.org.
+awsdns-18.org.	3600	IN	NS	g-ns-1045.awsdns-18.org.
+awsdns-18.org.	3600	IN	NS	g-ns-724.awsdns-18.org.
+awsdns-18.org.	3600	IN	NS	g-ns-146.awsdns-18.org.
+
+;; ADDITIONAL SECTION:
+g-ns-146.awsdns-18.org.	3600	IN	A	205.251.192.146
+g-ns-724.awsdns-18.org.	3600	IN	A	205.251.194.212
+g-ns-1045.awsdns-18.org.	3600	IN	A	205.251.196.21
+g-ns-1618.awsdns-18.org.	3600	IN	A	205.251.198.82
+g-ns-146.awsdns-18.org.	3600	IN	AAAA	2600:9000:5300:9200::1
+g-ns-724.awsdns-18.org.	3600	IN	AAAA	2600:9000:5302:d400::1
+g-ns-1045.awsdns-18.org.	3600	IN	AAAA	2600:9000:5304:1500::1
+g-ns-1618.awsdns-18.org.	3600	IN	AAAA	2600:9000:5306:5200::1
+
+;; GZPACK: H4sIAAAAAAAA/zrytZGBgZGBgYGFgZMzsbw4Ja9Y19CCOb8oHSTMiC7EBFLLJ8AgyZmuCxI2M7RAU0JIh4GJKZE6JDjAOsyNTEjTYGhihqYClzjIh2CdLGd/H5iEyzpkVYeu4PQGsrIjojjDB1nZsSCcLpOBqhJQY5jAEMwwiQEKGHG6ElUH0xW4DtwuRtXCIoquBYvrUbWwBcG1MDBoslyAsAEBAAD//3oJ3FpUAgAA
+;; SERVER: 199.19.53.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.146 A ns-1172.awsdns-18.org.
+;; opcode: QUERY, status: NOERROR, id: 13627
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1172.awsdns-18.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1172.awsdns-18.org.	172800	IN	A	205.251.196.148
+
+;; AUTHORITY SECTION:
+awsdns-18.org.	172800	IN	NS	g-ns-1045.awsdns-18.org.
+awsdns-18.org.	172800	IN	NS	g-ns-146.awsdns-18.org.
+awsdns-18.org.	172800	IN	NS	g-ns-1618.awsdns-18.org.
+awsdns-18.org.	172800	IN	NS	g-ns-724.awsdns-18.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1045.awsdns-18.org.	172800	IN	A	205.251.196.21
+g-ns-1045.awsdns-18.org.	172800	IN	AAAA	2600:9000:5304:1500::1
+g-ns-146.awsdns-18.org.	172800	IN	A	205.251.192.146
+g-ns-146.awsdns-18.org.	172800	IN	AAAA	2600:9000:5300:9200::1
+g-ns-1618.awsdns-18.org.	172800	IN	A	205.251.198.82
+g-ns-1618.awsdns-18.org.	172800	IN	AAAA	2600:9000:5306:5200::1
+g-ns-724.awsdns-18.org.	172800	IN	A	205.251.194.212
+g-ns-724.awsdns-18.org.	172800	IN	AAAA	2600:9000:5302:d400::1
+
+;; GZPACK: H4sIAAAAAAAA/zK1bmVgYGRgZGBh4GTPK9Y1NDQ34kwsL04BsS2Y84vSwdJ4pBiYFjMwsJz9fWQKuiQTVFKSM10XJGxgYoqmBJcOCQ6IDhMzIjXArDAztCDNCnMjE3QNuByL4llR3MpkoMoE1BgmMASziDJAASMuTyEbfGASTlWo5jJMgpuL0+/IBh8Lwq0M1WS2IDQXY4YRssGHruBUhWou0xW4uQwMmgJQNiAAAP//uiIYLIECAAA=
+;; SERVER: 205.251.192.146
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.196.148 NS console.aws.amazon.com.
+;; opcode: QUERY, status: REFUSED, id: 58128
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+
+;; QUESTION SECTION:
+;console.aws.amazon.com.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/3os0MjKwMgABuzJ+XnF+TmpzInlxWyJuYlV+XnMyfm5DAxMDIyAAAAA//+uTR7cKAAAAA==
+;; SERVER: 205.251.196.148
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 13935
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;console.aws.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8XMTWx1aceik9ah0qlIoKC0uvoKCqwqxjfVPk5SmKLiJ+Aa+gHZxcNEnqLuji88guLtJjeLv6g9upkC//XDDPaeRXIgYESnK3GQridOkG/rBWZoPouA8if1WEo1/N9mLJ0a8oUjJBIXOoNuupWH/NOynfhwO5G+y705a7qTtTkJ3cuBOOu7k0J0cuZNjd3LiTrruJPqfsHsbX+/XPyZGubzSovxdzCyanH+3IdnjSZ1dMnhL00oLy6vMg0cmArzZHaWF5V2+yc9TZ+MD3sKW0gI9uYrBI7MGXmFPaYGeV74BjwwmeJVVpYX1vS8l8MgUg7e8q7SwvPcheGTkwWv0lBbW9049g0f2A7yVe6WFdb71J/DIMoFX31RaWOfrXYNHNg+8tUelhXW+Yg08sqbgVW+VFtb8vTbBIzsNXnNbaYGeefj49USquVH2/hkAAP///v0FGgoGAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 53524
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;console.aws.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazon.com.	172800	IN	NS	ns1.amzndns.org.
+amazon.com.	172800	IN	NS	ns2.amzndns.org.
+amazon.com.	172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns1.amzndns.net.
+amazon.com.	172800	IN	NS	ns2.amzndns.net.
+amazon.com.	172800	IN	NS	ns1.amzndns.com.
+amazon.com.	172800	IN	NS	ns2.amzndns.com.
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; GZPACK: H4sIAAAAAAAA/7oo0sjAwMjAwMDBwMqenJ9XnJ+TypxYXsyWmJtYlZ/HnJyfC5JnROEzMTAyMC1mYBBkzis2ZE/MrcpLyStmzi9KZ8CpzIiwMmFk05iS85lKs3ErNCJGIar78lJLiHEfXmUI00BSRJgGksLQBwpQsFqWObMcuDClZaDSAgqMrEyf/zPAgACG0cgmuXBhSsNNUhNgWCgghjCJgUFTAMoGBAAA//+6LConAwIAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 A console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 32099
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;console.aws.amazon.com.	IN	 A
+
+;; ANSWER SECTION:
+console.aws.amazon.com.	7200	IN	CNAME	console.cname-proxy.amazon.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+
+;; GZPACK: H4sIAAAAAAAA/5TMMQvCMBAF4JdGW8TFSREcujpkaFJrBf9MiMVBeyeNUhUc/d9ipeJSijfee997uCcgIDCAiByT52Mhbe1DW9o7k3RcNnlnNoQAFjHitjF2ZMtCnSq+3n6bXX8E7wVsMQ3Jq1RvRrb2O/JqZf5wWf51Wksqzv1uFpFXiUlMC00mudr3w3kD83XewlQHjoPLAcBygs+9AgAA///vBfX/WQEAAA==
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 3203
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8ZPUVsFWHDppPSqdqhQKisXFV1BwVSGm1/qnSUpbRN2k+Aa+gHZxcNEnqLuji88guLtJjeLv6g9upgzffLjhnpPvX4p4IlKQ2fEwibtJy0yGcRCZaruTnJ3ngii4SOJMmESjzktffPHEH4gUvSDf7LUa1a7pnJpONxObnvxN9t1J6E4a7sS4kwN30nQnh+7kyJ0cu5MTd9JyJ9H/hN3b6Hq/vhgbZnNKi9J3Mb3gZTN3G5I+vtTYJYO3OKW0sLzyHHhkIsCb2VFaWF7/TX6eGhsf8Oa3lBboyVUMHpk18PJ7Sgv0/NINeGQwwSuvKC2s/30pgkemGLylXaWF5b0PwCMjD95aW2lh/e/EM3hkP8BbvldaWOdbfwKPLBN4tU2lhXW+9jV4ZPPAW31UWljnK1TBI2sKXuVWaWHN32sdPLLT4NW3lRboeQ8fv55IJTtM3z8DAAD//247x04SBgAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 41829
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazon.com.	172800	IN	NS	ns1.amzndns.org.
+amazon.com.	172800	IN	NS	ns2.amzndns.org.
+amazon.com.	172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns1.amzndns.net.
+amazon.com.	172800	IN	NS	ns2.amzndns.net.
+amazon.com.	172800	IN	NS	ns1.amzndns.com.
+amazon.com.	172800	IN	NS	ns2.amzndns.com.
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; GZPACK: H4sIAAAAAAAA/1qc2sjAwMjAwMDBwMqenJ9XnJ+Typ2cl5ibqltQlF9RyZaYm1iVn8ecnJ8LUseIwmdiYGRgWszAIMicV2zInphblZeSV8ycX5TOgFOZEWFlwsimMSXnM5Vm41ZoRIxCVPflpZYQ4z68yhCmgaSIMA0khaEPFKBgtSxzZjlwYUrLQKUFFBhZmT7/Z4ABAQyjkU1y4cKUhpukJsCwUEAMYRIDg6YAlA0IAAD///SmchsLAgAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 A console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 26260
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+
+;; GZPACK: H4sIAAAAAAAA/0qb0sjAwMjAwMDCwMienJ9XnJ+Typ2cl5ibqltQlF9RyZaYm1iVn8ecnJ8LUseIU44JbIoNgzh7XrGuobGhMWdieXFKXrGusRlzflE6A0GNkmCNFuYWMI0mRkzJ+Uyl2YS1irGBlVvCdJoag+WJ02dmAddnZMScl1rCwMCgKcAAAYAAAAD//6JkODIfAQAA
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A ns-1313.awsdns-36.org.
+;; opcode: QUERY, status: NOERROR, id: 12072
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns-1313.awsdns-36.org.	IN	 A
+
+;; AUTHORITY SECTION:
+org.	172800	IN	NS	a0.org.afilias-nst.info.
+org.	172800	IN	NS	a2.org.afilias-nst.info.
+org.	172800	IN	NS	b0.org.afilias-nst.org.
+org.	172800	IN	NS	b2.org.afilias-nst.org.
+org.	172800	IN	NS	c0.org.afilias-nst.info.
+org.	172800	IN	NS	d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info.	172800	IN	A	199.19.56.1
+a0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:e::1
+a2.org.afilias-nst.info.	172800	IN	A	199.249.112.1
+a2.org.afilias-nst.info.	172800	IN	AAAA	2001:500:40::1
+b0.org.afilias-nst.org.	172800	IN	A	199.19.54.1
+b0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:c::1
+b2.org.afilias-nst.org.	172800	IN	A	199.249.120.1
+b2.org.afilias-nst.org.	172800	IN	AAAA	2001:500:48::1
+c0.org.afilias-nst.info.	172800	IN	A	199.19.53.1
+c0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:b::1
+d0.org.afilias-nst.org.	172800	IN	A	199.19.57.1
+d0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:f::1
+
+;; GZPACK: H4sIAAAAAAAA/9LXaGRgYGRgYGBj4GXPK9Y1NDY05kwsL07JK9Y1NmPOL0oHSTNCGEwMjAxMixkYJJkSDUAi3IlpmTmZicW6ecUlLJl5afkMGOqMiFEnwZSEYR5YBYYyDOOwKJNkSibKdRJMKdhtxek7UEiAtbIcF7ZgxK1MBqpMQIGRlYGBjwEGGHGGB5LJPwvwKEM12QHJZBwhiOxkM9yqUM3lQTYXe5AjO7gCtypUcz2QzMUVR8gONsWjDNVkbiSTccQqssGWuFWhmsuPMJeBQZP1AIQNCAAA//+HQhU6NQMAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @199.19.53.1 A ns-1313.awsdns-36.org.
+;; opcode: QUERY, status: NOERROR, id: 40882
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns-1313.awsdns-36.org.	IN	 A
+
+;; AUTHORITY SECTION:
+awsdns-36.org.	3600	IN	NS	g-ns-164.awsdns-36.org.
+awsdns-36.org.	3600	IN	NS	g-ns-1636.awsdns-36.org.
+awsdns-36.org.	3600	IN	NS	g-ns-1063.awsdns-36.org.
+awsdns-36.org.	3600	IN	NS	g-ns-742.awsdns-36.org.
+
+;; ADDITIONAL SECTION:
+g-ns-164.awsdns-36.org.	3600	IN	A	205.251.192.164
+g-ns-742.awsdns-36.org.	3600	IN	A	205.251.194.230
+g-ns-1063.awsdns-36.org.	3600	IN	A	205.251.196.39
+g-ns-1636.awsdns-36.org.	3600	IN	A	205.251.198.100
+g-ns-164.awsdns-36.org.	3600	IN	AAAA	2600:9000:5300:a400::1
+g-ns-742.awsdns-36.org.	3600	IN	AAAA	2600:9000:5302:e600::1
+g-ns-1063.awsdns-36.org.	3600	IN	AAAA	2600:9000:5304:2700::1
+g-ns-1636.awsdns-36.org.	3600	IN	AAAA	2600:9000:5306:6400::1
+
+;; GZPACK: H4sIAAAAAAAA/5q/qZGBgZGBgYGFgZM9r1jX0NjQmDOxvDglr1jX2Iw5vygdJM2ILsQE0sMnwCDBka4L0mVmgqYClwZJTqgGYzMSdRiYoTuMgKPMTYzQVOByLMiHYJ0sZ38fWIJLN7KqQ89wugpZ2RF1nN5FVnYsBafLZKCqBNQYJjAEMyxhgAJGnK5E1cH0DK4Dt4tRtbCoo2vB4npULWwpcC0MDJosFyBsQAAAAP//s1FWCFwCAAA=
+;; SERVER: 199.19.53.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.164 A ns-1313.awsdns-36.org.
+;; opcode: QUERY, status: NOERROR, id: 43500
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1313.awsdns-36.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1313.awsdns-36.org.	172800	IN	A	205.251.197.33
+
+;; AUTHORITY SECTION:
+awsdns-36.org.	172800	IN	NS	g-ns-1063.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-1636.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-164.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-742.awsdns-36.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1063.awsdns-36.org.	172800	IN	A	205.251.196.39
+g-ns-1063.awsdns-36.org.	172800	IN	AAAA	2600:9000:5304:2700::1
+g-ns-1636.awsdns-36.org.	172800	IN	A	205.251.198.100
+g-ns-1636.awsdns-36.org.	172800	IN	AAAA	2600:9000:5306:6400::1
+g-ns-164.awsdns-36.org.	172800	IN	A	205.251.192.164
+g-ns-164.awsdns-36.org.	172800	IN	AAAA	2600:9000:5300:a400::1
+g-ns-742.awsdns-36.org.	172800	IN	A	205.251.194.230
+g-ns-742.awsdns-36.org.	172800	IN	AAAA	2600:9000:5302:e600::1
+
+;; GZPACK: H4sIAAAAAAAA/1r5ppWBgZGBkYGFgZM9r1jX0NjQmDOxvDglr1jX2Iw5vygdLI1HioFpMQMDy9nfRxXRJZmgkpKc6bog/QZm6PoJ6TAzNiNShwQHVIcJaRrMTYzQNeByLLJnj6jjViYDVSagxjCBIZhFnQEKGHF6CtnkYym4laGazJYCNxmX55ENPrAEpypUcxmWoJmLGUbI5h56hlMVqrlMz+DmMjBoCkDZgAAAAP//7BqNJoECAAA=
+;; SERVER: 205.251.192.164
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.164 A ns-1313.awsdns-36.org.
+;; opcode: QUERY, status: NOERROR, id: 31506
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1313.awsdns-36.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1313.awsdns-36.org.	172800	IN	A	205.251.197.33
+
+;; AUTHORITY SECTION:
+awsdns-36.org.	172800	IN	NS	g-ns-1063.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-1636.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-164.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-742.awsdns-36.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1063.awsdns-36.org.	172800	IN	A	205.251.196.39
+g-ns-1063.awsdns-36.org.	172800	IN	AAAA	2600:9000:5304:2700::1
+g-ns-1636.awsdns-36.org.	172800	IN	A	205.251.198.100
+g-ns-1636.awsdns-36.org.	172800	IN	AAAA	2600:9000:5306:6400::1
+g-ns-164.awsdns-36.org.	172800	IN	A	205.251.192.164
+g-ns-164.awsdns-36.org.	172800	IN	AAAA	2600:9000:5300:a400::1
+g-ns-742.awsdns-36.org.	172800	IN	A	205.251.194.230
+g-ns-742.awsdns-36.org.	172800	IN	AAAA	2600:9000:5302:e600::1
+
+;; GZPACK: H4sIAAAAAAAA/6oWamVgYGRgZGBh4GTPK9Y1NDY05kwsL07JK9Y1NmPOL0oHS+ORYmBazMDAcvb3UUV0SSaopCRnui5Iv4EZun5COsyMzYjUIcEB1WFCmgZzEyN0Dbgci+zZI+q4lclAlQmoMUxgCGZRZ4ACRpyeQjb5WApuZagms6XATcbleWSDDyzBqQrVXIYlaOZihhGyuYee4VSFai7TM7i5DAyaAlA2IAAA//+oV6+ggQIAAA==
+;; SERVER: 205.251.192.164
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.164 A ns-1313.awsdns-36.org.
+;; opcode: QUERY, status: NOERROR, id: 26029
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1313.awsdns-36.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1313.awsdns-36.org.	172800	IN	A	205.251.197.33
+
+;; AUTHORITY SECTION:
+awsdns-36.org.	172800	IN	NS	g-ns-1063.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-1636.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-164.awsdns-36.org.
+awsdns-36.org.	172800	IN	NS	g-ns-742.awsdns-36.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1063.awsdns-36.org.	172800	IN	A	205.251.196.39
+g-ns-1063.awsdns-36.org.	172800	IN	AAAA	2600:9000:5304:2700::1
+g-ns-1636.awsdns-36.org.	172800	IN	A	205.251.198.100
+g-ns-1636.awsdns-36.org.	172800	IN	AAAA	2600:9000:5306:6400::1
+g-ns-164.awsdns-36.org.	172800	IN	A	205.251.192.164
+g-ns-164.awsdns-36.org.	172800	IN	AAAA	2600:9000:5300:a400::1
+g-ns-742.awsdns-36.org.	172800	IN	A	205.251.194.230
+g-ns-742.awsdns-36.org.	172800	IN	AAAA	2600:9000:5302:e600::1
+
+;; GZPACK: H4sIAAAAAAAA/0pd28rAwMjAyMDCwMmeV6xraGxozJlYXpySV6xrbMacX5QOlsYjxcC0mIGB5ezvo4rokkxQSUnOdF2QfgMzdP2EdJgZmxGpQ4IDqsOENA3mJkboGnA5FtmzR9RxK5OBKhNQY5jAEMyizgAFjDg9hWzysRTcylBNZkuBm4zL88gGH1iCUxWquQxL0MzFDCNkcw89w6kK1VymZ3BzGRg0BaBsQAAAAP//3WM4w4ECAAA=
+;; SERVER: 205.251.192.164
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.197.33 A console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 14467
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	 A
+
+;; ANSWER SECTION:
+console.cname-proxy.amazon.com.	60	IN	CNAME	lbr.us.console.amazonaws.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	1801	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	1801	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	1801	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	1801	IN	NS	ns-689.awsdns-22.net.
+
+;; GZPACK: H4sIAAAAAAAA/4zOsQ6CMBjE8WurEOLipHFxd2CAKtbEl6mVOAj9DJWgrsb3NpbgZurN/19y6vkCGBhGYLEh66gqJ8bqukwvDd3uka71g6wwVPsu2IzBAOyxFNWh4a0bQNJHunO+++n5x8cJ5rF1aSYzmejOHa1LZSGoOYXhwkO1VQNc59wQb89hOot8vhvkRv731btCfV2eC1teAaym6PcOAAD///hLxoxnAQAA
+;; SERVER: 205.251.197.33
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A lbr.us.console.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 61126
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rzUBjH8eckb18VWnHopPVR6VSlUFAsLt6CgqsKaRvrnzQpTVVwE/EOvAHt4uCiV1AXJ0cXr0Ho7ia1ir+jPziZMnzz4YTzPIOncxEjIjmZ8aNaxztOx+pJnCZROBG0grMkDk5Tv560hpUZvXhixOuJ5E2QbXajRjkNOydhJ/XjsCu/k5o7qbuThjsJ3cmeO2m6k313cuBODt3JkTuJ3Enrb8LubXi9n1/862f+Ky0KX8XUvMn4t+syejypsEsGb2FSaWF5xVnwyESAN72ttLC8izf5fipsfMCb21RaoCeXMXhk1sDL7iot0PMK1+CRwQSvuKy0sP73JQ8emWLwFneUFpY36IFHRh681bbSwvrf8WfwyH6At3SntLDOt/YIHlkm8CobSgvrfO0r8MjmgbfyoLSwzpcrg0fWFLzSjdLCmr/XKnhkp8Grbikt0DP37z+eSCnTH71/BAAA//9kHOdhEAYAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A lbr.us.console.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 1967
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazonaws.com.	172800	IN	NS	ns-27.awsdns-03.com.
+amazonaws.com.	172800	IN	NS	ns-967.awsdns-56.net.
+amazonaws.com.	172800	IN	NS	ns-1670.awsdns-16.co.uk.
+amazonaws.com.	172800	IN	NS	ns-1321.awsdns-37.org.
+
+;; ADDITIONAL SECTION:
+ns-27.awsdns-03.com.	172800	IN	A	205.251.192.27
+
+;; GZPACK: H4sIAAAAAAAA/2Jf38jAwMjAwMDCwMSck1TEVFrMnpyfV5yfk8qZmJtYlZ+XWF7MnJyfC1LFiC7ExMDIwLSYgUGUNa9Y18icM7G8OCWvWNfAGCyNS7UYW16xrqUZXLmpGXNeaglO5ZLsecW6hmbmBjD1hmZMyflMpdk4dYiDdRgbGcJ0GJsz5xelM2B1JchfYF0sZ38fkGZg0BRggABAAAAA///NfL+YGwEAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.27 A lbr.us.console.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 26665
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+console.amazonaws.com.	7200	IN	NS	ns-1342.awsdns-39.org.
+console.amazonaws.com.	7200	IN	NS	ns-1832.awsdns-37.co.uk.
+console.amazonaws.com.	7200	IN	NS	ns-372.awsdns-46.com.
+console.amazonaws.com.	7200	IN	NS	ns-671.awsdns-19.net.
+
+;; GZPACK: H4sIAAAAAAAA/8rQbGRgYGRgYGBhYGTOSSpiKi1mT87PK87PSeVMzE2sys9LLC9mTs7PBalixCXFBDJCRoFBnD2vWNfQ2MSIM7G8OCWvWNfYkjm/KJ2BkD5JsD4LY4Q+c6bkfKbSbII6xdjAquEaTczA8kRpMzM3hGkztGTOSy1hYGDQFGCAAEAAAAD//9HuM/cZAQAA
+;; SERVER: 205.251.192.27
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A ns-1342.awsdns-39.org.
+;; opcode: QUERY, status: NOERROR, id: 63595
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns-1342.awsdns-39.org.	IN	 A
+
+;; AUTHORITY SECTION:
+org.	172800	IN	NS	a0.org.afilias-nst.info.
+org.	172800	IN	NS	a2.org.afilias-nst.info.
+org.	172800	IN	NS	b0.org.afilias-nst.org.
+org.	172800	IN	NS	b2.org.afilias-nst.org.
+org.	172800	IN	NS	c0.org.afilias-nst.info.
+org.	172800	IN	NS	d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info.	172800	IN	A	199.19.56.1
+a0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:e::1
+a2.org.afilias-nst.info.	172800	IN	A	199.249.112.1
+a2.org.afilias-nst.info.	172800	IN	AAAA	2001:500:40::1
+b0.org.afilias-nst.org.	172800	IN	A	199.19.54.1
+b0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:c::1
+b2.org.afilias-nst.org.	172800	IN	A	199.249.120.1
+b2.org.afilias-nst.org.	172800	IN	AAAA	2001:500:48::1
+c0.org.afilias-nst.info.	172800	IN	A	199.19.53.1
+c0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:b::1
+d0.org.afilias-nst.org.	172800	IN	A	199.19.57.1
+d0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:f::1
+
+;; GZPACK: H4sIAAAAAAAA//qR3cjAwMjAwMDGwMueV6xraGxixJlYXpySV6xrbMmcX5QOkmaEMJgYGBmYFjMwSDIlGoBEuBPTMnMyE4t184pLWDLz0vIZMNQZEaNOgikJwzywCgxlGMZhUSbJlEyU6ySYUrDbitN3oJAAa2U5LmzBiFuZDFSZgAIjKwMDHwMMMOIMDySTfxbgUYZqsgOSyThCENnJZrhVoZrLg2wu9iBHdnAFblWo5nogmYsrjpAdbIpHGarJ3Egm44hVZIMtcatCNZcfYS4DgybrAQgbEAAA//8Du8CtNQMAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @199.19.53.1 A ns-1342.awsdns-39.org.
+;; opcode: QUERY, status: NOERROR, id: 35645
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns-1342.awsdns-39.org.	IN	 A
+
+;; AUTHORITY SECTION:
+awsdns-39.org.	3600	IN	NS	g-ns-1639.awsdns-39.org.
+awsdns-39.org.	3600	IN	NS	g-ns-1066.awsdns-39.org.
+awsdns-39.org.	3600	IN	NS	g-ns-167.awsdns-39.org.
+awsdns-39.org.	3600	IN	NS	g-ns-745.awsdns-39.org.
+
+;; ADDITIONAL SECTION:
+g-ns-167.awsdns-39.org.	3600	IN	A	205.251.192.167
+g-ns-745.awsdns-39.org.	3600	IN	A	205.251.194.233
+g-ns-1066.awsdns-39.org.	3600	IN	A	205.251.196.42
+g-ns-1639.awsdns-39.org.	3600	IN	A	205.251.198.103
+g-ns-167.awsdns-39.org.	3600	IN	AAAA	2600:9000:5300:a700::1
+g-ns-745.awsdns-39.org.	3600	IN	AAAA	2600:9000:5302:e900::1
+g-ns-1066.awsdns-39.org.	3600	IN	AAAA	2600:9000:5304:2a00::1
+g-ns-1639.awsdns-39.org.	3600	IN	AAAA	2600:9000:5306:6700::1
+
+;; GZPACK: H4sIAAAAAAAA/+q2bWRgYGRgYGBh4GTPK9Y1NDYx4kwsL07JK9Y1tmTOL0oHSTOiCzGB9PAJMEhypuuCdJkZW6IpIaTDwMyMSB0SHFA7zEnTYG5iiqYCl0EgH4J1spz9fWA5Lt3Iqg69xOkNZGVHtHCGD7KyY+k4XSYDVSWgxjCBIZhhOQMUMOJ0JaoOppdwHbhdjKqFRQtdCxbXo2phS4drYWDQZLkAYQMCAAD//2UPVK5cAgAA
+;; SERVER: 199.19.53.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.167 A ns-1342.awsdns-39.org.
+;; opcode: QUERY, status: NOERROR, id: 12608
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1342.awsdns-39.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1342.awsdns-39.org.	172800	IN	A	205.251.197.62
+
+;; AUTHORITY SECTION:
+awsdns-39.org.	172800	IN	NS	g-ns-1066.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-1639.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-167.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-745.awsdns-39.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1066.awsdns-39.org.	172800	IN	A	205.251.196.42
+g-ns-1066.awsdns-39.org.	172800	IN	AAAA	2600:9000:5304:2a00::1
+g-ns-1639.awsdns-39.org.	172800	IN	A	205.251.198.103
+g-ns-1639.awsdns-39.org.	172800	IN	AAAA	2600:9000:5306:6700::1
+g-ns-167.awsdns-39.org.	172800	IN	A	205.251.192.167
+g-ns-167.awsdns-39.org.	172800	IN	AAAA	2600:9000:5300:a700::1
+g-ns-745.awsdns-39.org.	172800	IN	A	205.251.194.233
+g-ns-745.awsdns-39.org.	172800	IN	AAAA	2600:9000:5302:e900::1
+
+;; GZPACK: H4sIAAAAAAAA/zJ0aGVgYGRgZGBh4GTPK9Y1NDYx4kwsL07JK9Y1tmTOL0oHS+ORYmBazMDAcvb3UTt0SSaopCRnui5Iv4GZGZoSQjrMjC2J1CHBAdVhTpoGcxNTdA24HIvs2SNauJXJQJUJqDFMYAhm0WKAAkacnkI2+Vg6bmWoJrOlw03G5Xlkgw8sx6kK1VyG5WjmYoYRsrmHXuJUhWou00u4uQwMmgJQNiAAAP//phZbs4ECAAA=
+;; SERVER: 205.251.192.167
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.167 A ns-1342.awsdns-39.org.
+;; opcode: QUERY, status: NOERROR, id: 2403
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1342.awsdns-39.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1342.awsdns-39.org.	172800	IN	A	205.251.197.62
+
+;; AUTHORITY SECTION:
+awsdns-39.org.	172800	IN	NS	g-ns-1066.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-1639.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-167.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-745.awsdns-39.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1066.awsdns-39.org.	172800	IN	A	205.251.196.42
+g-ns-1066.awsdns-39.org.	172800	IN	AAAA	2600:9000:5304:2a00::1
+g-ns-1639.awsdns-39.org.	172800	IN	A	205.251.198.103
+g-ns-1639.awsdns-39.org.	172800	IN	AAAA	2600:9000:5306:6700::1
+g-ns-167.awsdns-39.org.	172800	IN	A	205.251.192.167
+g-ns-167.awsdns-39.org.	172800	IN	AAAA	2600:9000:5300:a700::1
+g-ns-745.awsdns-39.org.	172800	IN	A	205.251.194.233
+g-ns-745.awsdns-39.org.	172800	IN	AAAA	2600:9000:5302:e900::1
+
+;; GZPACK: H4sIAAAAAAAA/+JMbmVgYGRgZGBh4GTPK9Y1NDYx4kwsL07JK9Y1tmTOL0oHS+ORYmBazMDAcvb3UTt0SSaopCRnui5Iv4GZGZoSQjrMjC2J1CHBAdVhTpoGcxNTdA24HIvs2SNauJXJQJUJqDFMYAhm0WKAAkacnkI2+Vg6bmWoJrOlw03G5Xlkgw8sx6kK1VyG5WjmYoYRsrmHXuJUhWou00u4uQwMmgJQNiAAAP//EwR/9oECAAA=
+;; SERVER: 205.251.192.167
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.167 A ns-1342.awsdns-39.org.
+;; opcode: QUERY, status: NOERROR, id: 41141
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1342.awsdns-39.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1342.awsdns-39.org.	172800	IN	A	205.251.197.62
+
+;; AUTHORITY SECTION:
+awsdns-39.org.	172800	IN	NS	g-ns-1066.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-1639.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-167.awsdns-39.org.
+awsdns-39.org.	172800	IN	NS	g-ns-745.awsdns-39.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1066.awsdns-39.org.	172800	IN	A	205.251.196.42
+g-ns-1066.awsdns-39.org.	172800	IN	AAAA	2600:9000:5304:2a00::1
+g-ns-1639.awsdns-39.org.	172800	IN	A	205.251.198.103
+g-ns-1639.awsdns-39.org.	172800	IN	AAAA	2600:9000:5306:6700::1
+g-ns-167.awsdns-39.org.	172800	IN	A	205.251.192.167
+g-ns-167.awsdns-39.org.	172800	IN	AAAA	2600:9000:5300:a700::1
+g-ns-745.awsdns-39.org.	172800	IN	A	205.251.194.233
+g-ns-745.awsdns-39.org.	172800	IN	AAAA	2600:9000:5302:e900::1
+
+;; GZPACK: H4sIAAAAAAAA/1qwtZWBgZGBkYGFgZM9r1jX0NjEiDOxvDglr1jX2JI5vygdLI1HioFpMQMDy9nfR+3QJZmgkpKc6bog/QZmZmhKCOkwM7YkUocEB1SHOWkazE1M0TXgciyyZ49o4VYmA1UmoMYwgSGYRYsBChhxegrZ5GPpuJWhmsyWDjcZl+eRDT6wHKcqVHMZlqOZixlGyOYeeolTFaq5TC/h5jIwaApA2YAAAAD//3AQ4hKBAgAA
+;; SERVER: 205.251.192.167
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.197.62 A lbr.us.console.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 9553
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+us.console.amazonaws.com.	60	IN	NS	ns-1335.awsdns-38.org.
+us.console.amazonaws.com.	60	IN	NS	ns-1892.awsdns-44.co.uk.
+us.console.amazonaws.com.	60	IN	NS	ns-499.awsdns-62.com.
+us.console.amazonaws.com.	60	IN	NS	ns-611.awsdns-12.net.
+
+;; GZPACK: H4sIAAAAAAAA/1INbGRgYGRgYGBhYGTOSSpiKi1mT87PK87PSeVMzE2sys9LLC9mTs7PBalixCPLBDbFhkGcPa9Y19DY2JQzsbw4Ja9Y19iCOb8onYEIrZJgrRaWRjCtJiZMyflMpdnEaBZjA2mwtITpNTMCyxOr08zQEKbT0Ig5L7WEgYFBU4ABAgABAAD//50AIGElAQAA
+;; SERVER: 205.251.197.62
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A ns-1335.awsdns-38.org.
+;; opcode: QUERY, status: NOERROR, id: 38246
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns-1335.awsdns-38.org.	IN	 A
+
+;; AUTHORITY SECTION:
+org.	172800	IN	NS	a0.org.afilias-nst.info.
+org.	172800	IN	NS	a2.org.afilias-nst.info.
+org.	172800	IN	NS	b0.org.afilias-nst.org.
+org.	172800	IN	NS	b2.org.afilias-nst.org.
+org.	172800	IN	NS	c0.org.afilias-nst.info.
+org.	172800	IN	NS	d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info.	172800	IN	A	199.19.56.1
+a0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:e::1
+a2.org.afilias-nst.info.	172800	IN	A	199.249.112.1
+a2.org.afilias-nst.info.	172800	IN	AAAA	2001:500:40::1
+b0.org.afilias-nst.org.	172800	IN	A	199.19.54.1
+b0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:c::1
+b2.org.afilias-nst.org.	172800	IN	A	199.249.120.1
+b2.org.afilias-nst.org.	172800	IN	AAAA	2001:500:48::1
+c0.org.afilias-nst.info.	172800	IN	A	199.19.53.1
+c0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:b::1
+d0.org.afilias-nst.org.	172800	IN	A	199.19.57.1
+d0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:f::1
+
+;; GZPACK: H4sIAAAAAAAA/5qa1sjAwMjAwMDGwMueV6xraGxsyplYXpySV6xrbMGcX5QOkmaEMJgYGBmYFjMwSDIlGoBEuBPTMnMyE4t184pLWDLz0vIZMNQZEaNOgikJwzywCgxlGMZhUSbJlEyU6ySYUrDbitN3oJAAa2U5LmzBiFuZDFSZgAIjKwMDHwMMMOIMDySTfxbgUYZqsgOSyThCENnJZrhVoZrLg2wu9iBHdnAFblWo5nogmYsrjpAdbIpHGarJ3Egm44hVZIMtcatCNZcfYS4DgybrAQgbEAAA//+7sHKJNQMAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @199.19.53.1 A ns-1335.awsdns-38.org.
+;; opcode: QUERY, status: NOERROR, id: 6100
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns-1335.awsdns-38.org.	IN	 A
+
+;; AUTHORITY SECTION:
+awsdns-38.org.	3600	IN	NS	g-ns-744.awsdns-38.org.
+awsdns-38.org.	3600	IN	NS	g-ns-1065.awsdns-38.org.
+awsdns-38.org.	3600	IN	NS	g-ns-1638.awsdns-38.org.
+awsdns-38.org.	3600	IN	NS	g-ns-166.awsdns-38.org.
+
+;; ADDITIONAL SECTION:
+g-ns-166.awsdns-38.org.	3600	IN	A	205.251.192.166
+g-ns-744.awsdns-38.org.	3600	IN	A	205.251.194.232
+g-ns-1065.awsdns-38.org.	3600	IN	A	205.251.196.41
+g-ns-1638.awsdns-38.org.	3600	IN	A	205.251.198.102
+g-ns-166.awsdns-38.org.	3600	IN	AAAA	2600:9000:5300:a600::1
+g-ns-744.awsdns-38.org.	3600	IN	AAAA	2600:9000:5302:e800::1
+g-ns-1065.awsdns-38.org.	3600	IN	AAAA	2600:9000:5304:2900::1
+g-ns-1638.awsdns-38.org.	3600	IN	AAAA	2600:9000:5306:6600::1
+
+;; GZPACK: H4sIAAAAAAAA/xK/0sjAwMjAwMDCwMmeV6xraGxsyplYXpySV6xrbMGcX5QOkmZEF2IC6eETYJDgSNfNK9Y1NzFBU4FLgyQnWIOhgRm6NYR0mBlbEKkD6ihDMzM0FbjEQT4E62Q5+/vAMlxeQlZ16AVOfyArO6KJ0/HIyo6l4XSZDFSVgBrDBIZghmUMUMCI05WoOphewHXgdjGqFhZNdC1YXI+qhS0NroWBQZPlAoQNCAAA//8JYVXqXAIAAA==
+;; SERVER: 199.19.53.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.166 A ns-1335.awsdns-38.org.
+;; opcode: QUERY, status: NOERROR, id: 30991
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1335.awsdns-38.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1335.awsdns-38.org.	172800	IN	A	205.251.197.55
+
+;; AUTHORITY SECTION:
+awsdns-38.org.	172800	IN	NS	g-ns-1065.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-1638.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-166.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-744.awsdns-38.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1065.awsdns-38.org.	172800	IN	A	205.251.196.41
+g-ns-1065.awsdns-38.org.	172800	IN	AAAA	2600:9000:5304:2900::1
+g-ns-1638.awsdns-38.org.	172800	IN	A	205.251.198.102
+g-ns-1638.awsdns-38.org.	172800	IN	AAAA	2600:9000:5306:6600::1
+g-ns-166.awsdns-38.org.	172800	IN	A	205.251.192.166
+g-ns-166.awsdns-38.org.	172800	IN	AAAA	2600:9000:5300:a600::1
+g-ns-744.awsdns-38.org.	172800	IN	A	205.251.194.232
+g-ns-744.awsdns-38.org.	172800	IN	AAAA	2600:9000:5302:e800::1
+
+;; GZPACK: H4sIAAAAAAAA/6rkb2VgYGRgZGBh4GTPK9Y1NDY25UwsL07JK9Y1tmDOL0oHS+ORYmBazMDAcvb3UXN0SSaopCRnui5Iv4EZun5COsyMLYjUIcEB1WFGmgZzExN0Dbgci+zZI5q4lclAlQmoMUxgCGbRZIACRpyeQjb5WBpuZagms6XBTcbleWSDDyzDqQrVXIZlaOZihhGyuYde4FSFai7TC7i5DAyaAlA2IAAA//9n6IBEgQIAAA==
+;; SERVER: 205.251.192.166
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.166 A ns-1335.awsdns-38.org.
+;; opcode: QUERY, status: NOERROR, id: 25744
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1335.awsdns-38.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1335.awsdns-38.org.	172800	IN	A	205.251.197.55
+
+;; AUTHORITY SECTION:
+awsdns-38.org.	172800	IN	NS	g-ns-1065.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-1638.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-166.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-744.awsdns-38.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1065.awsdns-38.org.	172800	IN	A	205.251.196.41
+g-ns-1065.awsdns-38.org.	172800	IN	AAAA	2600:9000:5304:2900::1
+g-ns-1638.awsdns-38.org.	172800	IN	A	205.251.198.102
+g-ns-1638.awsdns-38.org.	172800	IN	AAAA	2600:9000:5306:6600::1
+g-ns-166.awsdns-38.org.	172800	IN	A	205.251.192.166
+g-ns-166.awsdns-38.org.	172800	IN	AAAA	2600:9000:5300:a600::1
+g-ns-744.awsdns-38.org.	172800	IN	A	205.251.194.232
+g-ns-744.awsdns-38.org.	172800	IN	AAAA	2600:9000:5302:e800::1
+
+;; GZPACK: H4sIAAAAAAAA/0qZ0MrAwMjAyMDCwMmeV6xraGxsyplYXpySV6xrbMGcX5QOlsYjxcC0mIGB5ezvo+bokkxQSUnOdF2QfgMzdP2EdJgZWxCpQ4IDqsOMNA3mJiboGnA5FtmzRzRxK5OBKhNQY5jAEMyiyQAFjDg9hWzysTTcylBNZkuDm4zL88gGH1iGUxWquQzL0MzFDCNkcw+9wKkK1VymF3BzGRg0BaBsQAAAAP//5oe2FIECAAA=
+;; SERVER: 205.251.192.166
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.166 A ns-1335.awsdns-38.org.
+;; opcode: QUERY, status: NOERROR, id: 53325
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1335.awsdns-38.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1335.awsdns-38.org.	172800	IN	A	205.251.197.55
+
+;; AUTHORITY SECTION:
+awsdns-38.org.	172800	IN	NS	g-ns-1065.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-1638.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-166.awsdns-38.org.
+awsdns-38.org.	172800	IN	NS	g-ns-744.awsdns-38.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1065.awsdns-38.org.	172800	IN	A	205.251.196.41
+g-ns-1065.awsdns-38.org.	172800	IN	AAAA	2600:9000:5304:2900::1
+g-ns-1638.awsdns-38.org.	172800	IN	A	205.251.198.102
+g-ns-1638.awsdns-38.org.	172800	IN	AAAA	2600:9000:5306:6600::1
+g-ns-166.awsdns-38.org.	172800	IN	A	205.251.192.166
+g-ns-166.awsdns-38.org.	172800	IN	AAAA	2600:9000:5300:a600::1
+g-ns-744.awsdns-38.org.	172800	IN	A	205.251.194.232
+g-ns-744.awsdns-38.org.	172800	IN	AAAA	2600:9000:5302:e800::1
+
+;; GZPACK: H4sIAAAAAAAA/7rg28rAwMjAyMDCwMmeV6xraGxsyplYXpySV6xrbMGcX5QOlsYjxcC0mIGB5ezvo+bokkxQSUnOdF2QfgMzdP2EdJgZWxCpQ4IDqsOMNA3mJiboGnA5FtmzRzRxK5OBKhNQY5jAEMyiyQAFjDg9hWzysTTcylBNZkuDm4zL88gGH1iGUxWquQzL0MzFDCNkcw+9wKkK1VymF3BzGRg0BaBsQAAAAP//CCs8p4ECAAA=
+;; SERVER: 205.251.192.166
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.197.55 A lbr.us.console.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 18615
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	 A
+
+;; ANSWER SECTION:
+lbr.us.console.amazonaws.com.	60	IN	CNAME	eu-north-1.console.aws.amazon.com.
+
+;; AUTHORITY SECTION:
+us.console.amazonaws.com.	172800	IN	NS	ns-1335.awsdns-38.org.
+us.console.amazonaws.com.	172800	IN	NS	ns-1892.awsdns-44.co.uk.
+us.console.amazonaws.com.	172800	IN	NS	ns-499.awsdns-62.com.
+us.console.amazonaws.com.	172800	IN	NS	ns-611.awsdns-12.net.
+
+;; GZPACK: H4sIAAAAAAAA/4zOMY6CQBTG8W9mdiFstdVurK0sphhAAokH8BojEk2EeQkPQmLvSTyE1zMOmVZ59f/38u0fN0BA4AtCtYdejhzX5JjaJrGdvZKzE6uaOl99KL4hAOyw/mlG7agfztqEVtmJo7n38Zs3EgLyDvzHjrXJsm1iJz461lmpqD8toStPyyoNNM9lTXK8LMF/0QtUVbBFunSxl4UxQZpUuWYAsPnFfM8AAAD//5xpAYVwAQAA
+;; SERVER: 205.251.197.55
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A eu-north-1.console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 38393
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTwS47URTH8TMz//Yv0opFV9RBuiqZpEI0Nl6BxBbJaEeLdqbpFImdiDfgAejGwoYnqL2ljWeQ2HcnNcTv8kvurGbxnU/u5J5zPTwXcUQkL9Pj4bEfxd1e01/6X4ujJG6FXnCaZIN2cBZHXi1uj1InfXHFEbcvUnCCXKPXqvtJ2D0Ju4kXhT35nezZk5o9qduT0J7s25OGPWnakwN7cmhPjuxJy560/ybs3kbX+/nFv0Emq7QofhWTc07Gu1uX9HGlwi4ZvPkJpYXhlWbAIxMB3tS20sLwLt7k+6mw8QFvdlNpgZ5cRuCRWQMvt6u0QM8t3oBHBhO80rLSwvjflwJ4ZIrBW9hRWhjeex88MvLgrXaUFsb/jj2DR/YDvMV7pYVxvrUn8MgygVfZUFoY5+tcgUc2D7yVR6WFcb68Dx5ZU/DKt0oLY/5eq+CRnQavuqW0QM95GP54IuXMIH3/CAAA//+AfyFXFQYAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eu-north-1.console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 18328
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazon.com.	172800	IN	NS	ns1.amzndns.org.
+amazon.com.	172800	IN	NS	ns2.amzndns.org.
+amazon.com.	172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns1.amzndns.net.
+amazon.com.	172800	IN	NS	ns2.amzndns.net.
+amazon.com.	172800	IN	NS	ns1.amzndns.com.
+amazon.com.	172800	IN	NS	ns2.amzndns.com.
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; GZPACK: H4sIAAAAAAAA/3Kf0cjAwMjAwMDBwMqVWqqbl19UkqFryJ6cn1ecn5PKnFhezJaYm1iVn8ecnJ8LUsqIwmdiYGRgWszAIMicV2zInphblZeSV8ycX5TOgFOZEWFlwsimMSXnM5Vm41ZoRIxCVPflpZYQ4z68yhCmgaSIMA0khaEPFKBgtSxzZjlwYUrLQKUFFBhZmT7/Z4ABAQyjkU1y4cKUhpukJsCwUEAMYRIDg6YAlA0IAAD//8PA++oOAgAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 A eu-north-1.console.aws.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 51996
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com.	IN	 A
+
+;; ANSWER SECTION:
+eu-north-1.console.aws.amazon.com.	7200	IN	CNAME	eu-north-1.console.cname-proxy.amazon.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+
+;; GZPACK: H4sIAAAAAAAA/zot08rAwMjAyMDCwMiVWqqbl19UkqFryJ6cn1ecn5PKnFhezJaYm1iVn8ecnJ8LVkqMMlYGRgYGGQUGbSyKuZPzEnNTdQuK8isqkTXhEmdgAhnGYMMgxpZXrGtiZMmZWF6cklesa2pMgj4zC7g+IyPmvNQSwvrE2fOKdQ2NDY1hGo3NmPOL0glrlARrtDC3gGk0MWJKzmcqzWZgYNAUYIAAQAAAAP//LLJB9HoBAAA=
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A eu-north-1.console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 2022
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTwS4zURjG8XemX9svtGLRFXWQrkomqRCNjVsgsUUypkeLzkwzLcFOxB24AbqxsOEKam9p4wZsJPZ2UkM8hyc5s5rFf345k/O++ZczEUdEijI5og+9KE56LW8hH8RRN27r0SDyQ+11kvj4JOeH/mkcZYI4HH7ipC+uOOL2RUqOX2j22g2vq5MjnXQzke7J72THngT2pGFPtD3ZtSdNe9KyJ3v2ZN+eHNiTtj0J/ybs3obX+/nFv0E2p2hR/irGZ5xs5mZV0seVGrtk8GbHFC0MrzIFHpkI8CY2FS0M7/xVvp8aGx/wptcVLdCTiwg8MmvgFbYVLdBzy1fgkcEEr7KoaGH871MJPDLF4M1tKVoY3lsfPDLy4C13FC2M//3/CB7ZD/DmbxUtjPOtPIBHlgm82pqihXG+ziV4ZPPAW7pXtDDOV/TAI2sKXvVa0cKYv+c6eGSnwatvKFqg59y9/3gi1ewgff8IAAD//07FPPIdBgAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eu-north-1.console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 42576
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazon.com.	172800	IN	NS	ns1.amzndns.org.
+amazon.com.	172800	IN	NS	ns2.amzndns.org.
+amazon.com.	172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.	172800	IN	NS	ns1.amzndns.net.
+amazon.com.	172800	IN	NS	ns2.amzndns.net.
+amazon.com.	172800	IN	NS	ns1.amzndns.com.
+amazon.com.	172800	IN	NS	ns2.amzndns.com.
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; GZPACK: H4sIAAAAAAAA/1oW0MjAwMjAwMDBwMqVWqqbl19UkqFryJ6cn1ecn5PKnZyXmJuqW1CUX1HJlpibWJWfx5ycnwvSwojCZ2JgZGBazMAgyJxXbMiemFuVl5JXzJxflM6AU5kRYWXCyKYxJeczlWbjVmhEjEJU9+WllhDjPrzKEKaBpIgwDSSFoQ8UoGC1LHNmOXBhSstApQUUGFmZPv9ngAEBDKORTXLhwpSGm6QmwLBQQAxhEgODpgCUDQgAAP//XvWkdBYCAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 A eu-north-1.console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 57629
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com.	IN	 A
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+
+;; GZPACK: H4sIAAAAAAAA/3oo28jAwMjAwMDCwMiVWqqbl19UkqFryJ6cn1ecn5PKnZyXmJuqW1CUX1HJlpibWJWfx5ycnwvSwohTjglsoA2DGFtesa6JkSVnYnlxSl6xrqkxWJ44fWYWcH1GRsx5qSWE9Ymz5xXrGhobGsM0Gpsx5xelE9YoCdZoYW4B02hixJScz1SazcDAoCnAAAGAAAAA//+v1+VwKgEAAA==
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.197.33 A eu-north-1.console.cname-proxy.amazon.com.
+;; opcode: QUERY, status: NOERROR, id: 31968
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com.	IN	 A
+
+;; ANSWER SECTION:
+eu-north-1.console.cname-proxy.amazon.com.	60	IN	CNAME	gr.aga.console-geo.eu-north-1.amazonaws.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	1801	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	1801	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	1801	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	1801	IN	NS	ns-689.awsdns-22.net.
+
+;; GZPACK: H4sIAAAAAAAA/5TOQY6CMBTG8dd2BsKwmZXGI7joAqqIiZdpalMTpc+0ENS49Z4exVjEuDHoW3+/f975egEgQOAHyJ9uuEVXb3gWK7QedzpVVlaa7x0ejpGs5AktU1gF8s38FwgArIBT45g0Mn0AbjS+dJLOyNYH9jZH77k4gXFsPc9EJhLZ+rX1XBQMnRmGkwDLRdnDWU4V0mY7TEdRmC97ORef/RpcUT5dnjOrawCY/kN3twAAAP//w/Xn/owBAAA=
+;; SERVER: 205.251.197.33
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 6804
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rzUBjH8SfJ2xf/tOLQqdaj0qlKoKJYXLwFBVcVYntM1TYpSVVwE/EOegPaxcFFr6Duji5eg+DuJjWKv6M/OJkyfPPhhPM8pf6FiCMiBZlxw8QLwmCyEUdp3NZ+qOMJfeJHcdJr+cvjQSc4j6PgLPUacWf0kZO9uOKIOxApOkE+7LWbfqqTU52kXqR78jvZtycNe9K0J9qeHNiT0J607MmhPTmyJ8f2pG1POn8Tdm+j6/384t8w91/RovxVTM87Oe92Q7LHlRq7ZPAWphQtDK8yCx6ZCPBKO4oWhnf5Kt9PjY0PeHNbihboyVUEHpk18PJ7ihboueVr8MhggldZUbQw/ve5CB6ZYvAWdxUtDO9tAB4ZefDWuooWxv+OPYFH9gO8pTtFC+N864/gkWUCr7apaGGcr9sHj2weeKsPihbG+Qo+eGRNwaveKFoY8/dSB4/sNHj1bUUL9Jz79x9PpJobZu8fAQAA//847+F1HwYAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 55287
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+amazonaws.com.	172800	IN	NS	ns-27.awsdns-03.com.
+amazonaws.com.	172800	IN	NS	ns-967.awsdns-56.net.
+amazonaws.com.	172800	IN	NS	ns-1670.awsdns-16.co.uk.
+amazonaws.com.	172800	IN	NS	ns-1321.awsdns-37.org.
+
+;; ADDITIONAL SECTION:
+ns-27.awsdns-03.com.	172800	IN	A	205.251.192.27
+
+;; GZPACK: H4sIAAAAAAAA/7r+vZGBgZGBgYGFgYkpvYg5MT2ROzk/rzg/J1U3PTWfK7VUNy+/qCRD15AzMTexKj8vsbyYOTk/F6SJEV2IiYGRgWkxA4Moa16xrpE5Z2J5cUpesa6BMVgal2oxtrxiXUszuHJTM+a81BKcyiXZ84p1Dc3MDWDqDc2YkvOZSrNx6hAH6zA2MoTpMDZnzi9KZ8DqSpC/wLpYzv4+IM3AoCnAAAGAAAAA//+OTlqHKgEAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.27 A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 40456
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+eu-north-1.amazonaws.com.	7200	IN	NS	ns1.amzndns.co.uk.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns1.amzndns.com.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns1.amzndns.net.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns1.amzndns.org.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns2.amzndns.co.uk.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns2.amzndns.com.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns2.amzndns.net.
+eu-north-1.amazonaws.com.	7200	IN	NS	ns2.amzndns.org.
+
+;; GZPACK: H4sIAAAAAAAA/5rH0cjAwMjAwMDBwMiUXsScmJ7InZyfV5yfk6qbnprPlVqqm5dfVJKha8iZmJtYlZ+XWF7MnJyfC9LEiEeWCWSojAKDMHNesSF7Ym5VXkpeMVNyPlNpNgMR2gSRtYGlSNaUl1pCuqb8onRiNIF8ZUSer4zI8ZUROb4yQvEVA4OmAAMEAAIAAP//OSWF3/QBAAA=
+;; SERVER: 205.251.192.27
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @156.154.64.10 A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 19401
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com.	IN	 A
+
+;; AUTHORITY SECTION:
+console-geo.eu-north-1.amazonaws.com.	7200	IN	NS	ns-148.awsdns-18.com.
+console-geo.eu-north-1.amazonaws.com.	7200	IN	NS	ns-581.awsdns-08.net.
+console-geo.eu-north-1.amazonaws.com.	7200	IN	NS	ns-1055.awsdns-03.org.
+console-geo.eu-north-1.amazonaws.com.	7200	IN	NS	ns-1737.awsdns-25.co.uk.
+
+;; GZPACK: H4sIAAAAAAAA//I+2cjAwMjAwMDCwMiUXsScmJ7InZyfV5yfk6qbnprPlVqqm5dfVJKha8iZmJtYlZ+XWF7MnJyfC9LESKRKJpAFMgoMYmx5xbqGJhacieXFKSCmBVieHFNMLQxhphhYMOellpBqijg7yAEGpqZwY4yZ84vSSTVGEmyMubE5zBgjU6bkfKbSbAYGBk0BBggABAAA//9ra/doZAEAAA==
+;; SERVER: 156.154.64.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A ns-1055.awsdns-03.org.
+;; opcode: QUERY, status: NOERROR, id: 32711
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns-1055.awsdns-03.org.	IN	 A
+
+;; AUTHORITY SECTION:
+org.	172800	IN	NS	a0.org.afilias-nst.info.
+org.	172800	IN	NS	a2.org.afilias-nst.info.
+org.	172800	IN	NS	b0.org.afilias-nst.org.
+org.	172800	IN	NS	b2.org.afilias-nst.org.
+org.	172800	IN	NS	c0.org.afilias-nst.info.
+org.	172800	IN	NS	d0.org.afilias-nst.org.
+
+;; ADDITIONAL SECTION:
+a0.org.afilias-nst.info.	172800	IN	A	199.19.56.1
+a0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:e::1
+a2.org.afilias-nst.info.	172800	IN	A	199.249.112.1
+a2.org.afilias-nst.info.	172800	IN	AAAA	2001:500:40::1
+b0.org.afilias-nst.org.	172800	IN	A	199.19.54.1
+b0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:c::1
+b2.org.afilias-nst.org.	172800	IN	A	199.249.120.1
+b2.org.afilias-nst.org.	172800	IN	AAAA	2001:500:48::1
+c0.org.afilias-nst.info.	172800	IN	A	199.19.53.1
+c0.org.afilias-nst.info.	172800	IN	AAAA	2001:500:b::1
+d0.org.afilias-nst.org.	172800	IN	A	199.19.57.1
+d0.org.afilias-nst.org.	172800	IN	AAAA	2001:500:f::1
+
+;; GZPACK: H4sIAAAAAAAA/6o/3sjAwMjAwMDGwMueV6xraGBqyplYXpySV6xrYMycX5QOkmaEMJgYGBmYFjMwSDIlGoBEuBPTMnMyE4t184pLWDLz0vIZMNQZEaNOgikJwzywCgxlGMZhUSbJlEyU6ySYUrDbitN3oJAAa2U5LmzBiFuZDFSZgAIjKwMDHwMMMOIMDySTfxbgUYZqsgOSyThCENnJZrhVoZrLg2wu9iBHdnAFblWo5nogmYsrjpAdbIpHGarJ3Egm44hVZIMtcatCNZcfYS4DgybrAQgbEAAA///ttC/XNQMAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @199.19.53.1 A ns-1055.awsdns-03.org.
+;; opcode: QUERY, status: NOERROR, id: 4108
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns-1055.awsdns-03.org.	IN	 A
+
+;; AUTHORITY SECTION:
+awsdns-03.org.	3600	IN	NS	g-ns-709.awsdns-03.org.
+awsdns-03.org.	3600	IN	NS	g-ns-131.awsdns-03.org.
+awsdns-03.org.	3600	IN	NS	g-ns-1030.awsdns-03.org.
+awsdns-03.org.	3600	IN	NS	g-ns-1603.awsdns-03.org.
+
+;; ADDITIONAL SECTION:
+g-ns-131.awsdns-03.org.	3600	IN	A	205.251.192.131
+g-ns-709.awsdns-03.org.	3600	IN	A	205.251.194.197
+g-ns-1030.awsdns-03.org.	3600	IN	A	205.251.196.6
+g-ns-1603.awsdns-03.org.	3600	IN	A	205.251.198.67
+g-ns-131.awsdns-03.org.	3600	IN	AAAA	2600:9000:5300:8300::1
+g-ns-709.awsdns-03.org.	3600	IN	AAAA	2600:9000:5302:c500::1
+g-ns-1030.awsdns-03.org.	3600	IN	AAAA	2600:9000:5304:600::1
+g-ns-1603.awsdns-03.org.	3600	IN	AAAA	2600:9000:5306:4300::1
+
+;; GZPACK: H4sIAAAAAAAA/xLgaWRgYGRgYGBh4GTPK9Y1NDA15UwsL07JK9Y1MGbOL0oHSTOiCzGB9PAJMEhwpOvmFeuaG1iiqSCgwdDYkEgNkpwQDQbGBiTqMDMwRlOCy26QD8FaWc7+PtCMy0vIqg4dxeksZGVH2HC6BVnZMWecLpOBqhJQY5jAEMzQzAAFjDhdiaqD6ShcB24Xo2phYUPXgsX1qFrYnOFaGBg0WS5A2IAAAAD//9Mk2RNcAgAA
+;; SERVER: 199.19.53.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.131 A ns-1055.awsdns-03.org.
+;; opcode: QUERY, status: NOERROR, id: 39735
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1055.awsdns-03.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1055.awsdns-03.org.	172800	IN	A	205.251.196.31
+
+;; AUTHORITY SECTION:
+awsdns-03.org.	172800	IN	NS	g-ns-1030.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-131.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-1603.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-709.awsdns-03.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1030.awsdns-03.org.	172800	IN	A	205.251.196.6
+g-ns-1030.awsdns-03.org.	172800	IN	AAAA	2600:9000:5304:600::1
+g-ns-131.awsdns-03.org.	172800	IN	A	205.251.192.131
+g-ns-131.awsdns-03.org.	172800	IN	AAAA	2600:9000:5300:8300::1
+g-ns-1603.awsdns-03.org.	172800	IN	A	205.251.198.67
+g-ns-1603.awsdns-03.org.	172800	IN	AAAA	2600:9000:5306:4300::1
+g-ns-709.awsdns-03.org.	172800	IN	A	205.251.194.197
+g-ns-709.awsdns-03.org.	172800	IN	AAAA	2600:9000:5302:c500::1
+
+;; GZPACK: H4sIAAAAAAAA/5pt3srAwMjAyMDCwMmeV6xraGBqyplYXpySV6xrYMycX5QOlsYjxcC0mIGB5ezvI/LokkxQSUnOdF2wfmMDNCW4dEhwQHQYGxKpAWaFmYExaVaYG1iia8DlWBTPsuFWJgNVJqDGMIEhmIWNAQoYcXkK2eADzThVoZrL0Aw3F6ffkQ0+5oxbGarJbM5oLsYMI2SDDx3FqQrVXKajcHMZGDQFoGxAAAAA//+P6nGEgQIAAA==
+;; SERVER: 205.251.192.131
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.131 A ns-1055.awsdns-03.org.
+;; opcode: QUERY, status: NOERROR, id: 32273
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1055.awsdns-03.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1055.awsdns-03.org.	172800	IN	A	205.251.196.31
+
+;; AUTHORITY SECTION:
+awsdns-03.org.	172800	IN	NS	g-ns-1030.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-131.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-1603.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-709.awsdns-03.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1030.awsdns-03.org.	172800	IN	A	205.251.196.6
+g-ns-1030.awsdns-03.org.	172800	IN	AAAA	2600:9000:5304:600::1
+g-ns-131.awsdns-03.org.	172800	IN	A	205.251.192.131
+g-ns-131.awsdns-03.org.	172800	IN	AAAA	2600:9000:5300:8300::1
+g-ns-1603.awsdns-03.org.	172800	IN	A	205.251.198.67
+g-ns-1603.awsdns-03.org.	172800	IN	AAAA	2600:9000:5306:4300::1
+g-ns-709.awsdns-03.org.	172800	IN	A	205.251.194.197
+g-ns-709.awsdns-03.org.	172800	IN	AAAA	2600:9000:5302:c500::1
+
+;; GZPACK: H4sIAAAAAAAA/6oTbGVgYGRgZGBh4GTPK9Y1NDA15UwsL07JK9Y1MGbOL0oHS+ORYmBazMDAcvb3EXl0SSaopCRnui5Yv7EBmhJcOiQ4IDqMDYnUALPCzMCYNCvMDSzRNeByLIpn2XArk4EqE1BjmMAQzMLGAAWMuDyFbPCBZpyqUM1laIabi9PvyAYfc8atDNVkNmc0F2OGEbLBh47iVIVqLtNRuLkMDJoCUDYgAAD//w8NVf6BAgAA
+;; SERVER: 205.251.192.131
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.131 A ns-1055.awsdns-03.org.
+;; opcode: QUERY, status: NOERROR, id: 36672
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns-1055.awsdns-03.org.	IN	 A
+
+;; ANSWER SECTION:
+ns-1055.awsdns-03.org.	172800	IN	A	205.251.196.31
+
+;; AUTHORITY SECTION:
+awsdns-03.org.	172800	IN	NS	g-ns-1030.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-131.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-1603.awsdns-03.org.
+awsdns-03.org.	172800	IN	NS	g-ns-709.awsdns-03.org.
+
+;; ADDITIONAL SECTION:
+g-ns-1030.awsdns-03.org.	172800	IN	A	205.251.196.6
+g-ns-1030.awsdns-03.org.	172800	IN	AAAA	2600:9000:5304:600::1
+g-ns-131.awsdns-03.org.	172800	IN	A	205.251.192.131
+g-ns-131.awsdns-03.org.	172800	IN	AAAA	2600:9000:5300:8300::1
+g-ns-1603.awsdns-03.org.	172800	IN	A	205.251.198.67
+g-ns-1603.awsdns-03.org.	172800	IN	AAAA	2600:9000:5306:4300::1
+g-ns-709.awsdns-03.org.	172800	IN	A	205.251.194.197
+g-ns-709.awsdns-03.org.	172800	IN	AAAA	2600:9000:5302:c500::1
+
+;; GZPACK: H4sIAAAAAAAA/+p3aGVgYGRgZGBh4GTPK9Y1NDA15UwsL07JK9Y1MGbOL0oHS+ORYmBazMDAcvb3EXl0SSaopCRnui5Yv7EBmhJcOiQ4IDqMDYnUALPCzMCYNCvMDSzRNeByLIpn2XArk4EqE1BjmMAQzMLGAAWMuDyFbPCBZpyqUM1laIabi9PvyAYfc8atDNVkNmc0F2OGEbLBh47iVIVqLtNRuLkMDJoCUDYgAAD//xaet/2BAgAA
+;; SERVER: 205.251.192.131
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.196.31 A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; opcode: QUERY, status: NOERROR, id: 15445
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com.	IN	 A
+
+;; ANSWER SECTION:
+gr.aga.console-geo.eu-north-1.amazonaws.com.	60	IN	CNAME	aba8735d2c3d241de.awsglobalaccelerator.com.
+
+;; AUTHORITY SECTION:
+console-geo.eu-north-1.amazonaws.com.	172800	IN	NS	ns-1055.awsdns-03.org.
+console-geo.eu-north-1.amazonaws.com.	172800	IN	NS	ns-148.awsdns-18.com.
+console-geo.eu-north-1.amazonaws.com.	172800	IN	NS	ns-1737.awsdns-25.co.uk.
+console-geo.eu-north-1.amazonaws.com.	172800	IN	NS	ns-581.awsdns-08.net.
+
+;; GZPACK: H4sIAAAAAAAA/5zPT0oDMRTH8V8y/qG6URDFIwgGmknDZNFreIDXJEQwzYNkyoB7T+JFxZG6buftfx++b/v2BQgIXEDIVDtKdOu5NM5Rpcg38aAK1/Fd6RXt6ZMLTa3zvJ9H5w0uIQBs8XpPO3KDsaH3JvQbHeIDTS1l3lEm72OOlUau8+pEW0JAfgNP16UpvbZ2RVMLpam16bimc5nHq19m446KdktinueYwQxHprfSszx8LMqxTv8/5boSRwAvd/i7nwAAAP//sbU298cBAAA=
+;; SERVER: 205.251.196.31
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; opcode: QUERY, status: NOERROR, id: 13397
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTzS4DURjG8XemKhatkHRFHaSrkibVlrJxCyRih+R05qiP6UemDWsRd+AG6MbChiuovaWNa5DY20kN8Rye5MxqFv/55UzO+9Z2L0Q8EcnK7LRu6PV6dTWsBNWwUlsJTU6f95pRp6EjHQQmMrHud+JU0GmNvvGSF1888QciOU9nmv0oLPVMfGbiXqpt+vI3abiTwJ2E7sS4k0N30nQnR+7k2J2cuJNTdxK5k9b/hN3b6Hq/vhgbpscVLfLfxdSCl07dbUry+FJmlwze4qSiheUV5sAjEwHezJ6iheVdvsnPU2bjA978tqIFenLVBo/MGniZA0UL9Pz8DXhkMMErVBUtrP99yYFHphi8pX1FC8t7H4BHRh68ta6ihfW/E8/gkf0Ab/le0cI638YTeGSZwCtvKVpY5+teg0c2D7zao6KFdb5sCTyypuAVbxUtrPl7rYNHdhq8+o6iBXrew8evJ1JMD5P3zwAAAP///gthex4GAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; opcode: QUERY, status: NOERROR, id: 11644
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com.	IN	 A
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com.	172800	IN	NS	ns-609.awsdns-12.net.
+awsglobalaccelerator.com.	172800	IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com.	172800	IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com.	172800	IN	NS	ns-1484.awsdns-57.org.
+
+;; ADDITIONAL SECTION:
+ns-409.awsdns-51.com.	172800	IN	A	205.251.193.153
+
+;; GZPACK: H4sIAAAAAAAA/9KtaWRgYGRgYGBhYBJMTEq0MDc2TTFKNk4xMjFMSRVJLC9Oz8lPSsxJTE5OzUktSizJL2JOzs8F6WHEI8vEwMjAtJiBQYwtr1jXzMCSM7G8OCWvWNfQiDkvtYSBWJ0mCJ2mhmB5InRKsoMssjRB0sqUnM9Umk2MZnGwZhMLE7hmc+b8onQG7K4BhQJYG8vZ3wdnMjBoCjBAACAAAP//JsXT41cBAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.193.153 A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; opcode: QUERY, status: NOERROR, id: 4446
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com.	IN	 A
+
+;; ANSWER SECTION:
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.98.246
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.166.206
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com.	172800	IN	NS	ns-1484.awsdns-57.org.
+awsglobalaccelerator.com.	172800	IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com.	172800	IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com.	172800	IN	NS	ns-609.awsdns-12.net.
+
+;; GZPACK: H4sIAAAAAAAA/xKMa2VgYGRgYmBhYBRMTEq0MDc2TTFKNk4xMjFMSRVJLC9Oz8lPSsxJTE5OzUktSizJL2JOzs8F6SFZPQMDow4Dy7LSpG/k6lx2Do86JpA/FjMwiLPnFesamliYcCaWF6fkFeuamjPnF6UzEKFVEqzV0sQSrtWQKTmfqTSbGM1ibHnFuiYGSHrB8sTqNEPoNDRizkstYWBg0BRggABAAAAA//9aH20fpwEAAA==
+;; SERVER: 205.251.193.153
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.193.153 A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; opcode: QUERY, status: NOERROR, id: 17103
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com.	IN	 A
+
+;; ANSWER SECTION:
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.166.206
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.98.246
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com.	172800	IN	NS	ns-1484.awsdns-57.org.
+awsglobalaccelerator.com.	172800	IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com.	172800	IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com.	172800	IN	NS	ns-609.awsdns-12.net.
+
+;; GZPACK: H4sIAAAAAAAA/3I638rAwMjAxMDCwCiYmJRoYW5smmKUbJxiZGKYkiqSWF6cnpOflJiTmJycmpNalFiSX8ScnJ8L0kOyegYGRh0GlmWly86RqzPpGx51TCB/LGZgEGfPK9Y1NLEw4UwsL07JK9Y1NWfOL0pnIEKrJFirpYklXKshU3I+U2k2MZrF2PKKdU0MkPSC5YnVaYbQaWjEnJdawsDAoCnAAAGAAAAA///dyOxqpwEAAA==
+;; SERVER: 205.251.193.153
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.193.153 A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; opcode: QUERY, status: NOERROR, id: 33985
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com.	IN	 A
+
+;; ANSWER SECTION:
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.166.206
+aba8735d2c3d241de.awsglobalaccelerator.com.	300	IN	A	166.117.98.246
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com.	172800	IN	NS	ns-1484.awsdns-57.org.
+awsglobalaccelerator.com.	172800	IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com.	172800	IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com.	172800	IN	NS	ns-609.awsdns-12.net.
+
+;; GZPACK: H4sIAAAAAAAA/2o52MrAwMjAxMDCwCiYmJRoYW5smmKUbJxiZGKYkiqSWF6cnpOflJiTmJycmpNalFiSX8ScnJ8L0kOyegYGRh0GlmWly86RqzPpGx51TCB/LGZgEGfPK9Y1NLEw4UwsL07JK9Y1NWfOL0pnIEKrJFirpYklXKshU3I+U2k2MZrF2PKKdU0MkPSC5YnVaYbQaWjEnJdawsDAoCnAAAGAAAAA//8TGvr/pwEAAA==
+;; SERVER: 205.251.193.153

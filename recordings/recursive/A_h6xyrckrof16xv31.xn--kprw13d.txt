@@ -1,0 +1,119 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS xn--kprw13d.
+;; opcode: QUERY, status: NOERROR, id: 55019
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;xn--kprw13d.	IN	 NS
+
+;; AUTHORITY SECTION:
+xn--kprw13d.	172800	IN	NS	d.dns.tw.
+xn--kprw13d.	172800	IN	NS	e.dns.tw.
+xn--kprw13d.	172800	IN	NS	f.dns.tw.
+xn--kprw13d.	172800	IN	NS	g.dns.tw.
+xn--kprw13d.	172800	IN	NS	h.dns.tw.
+xn--kprw13d.	172800	IN	NS	anytld.apnic.net.
+
+;; ADDITIONAL SECTION:
+d.dns.tw.	172800	IN	A	60.199.165.186
+d.dns.tw.	172800	IN	AAAA	2001:4541:9010:7::186
+e.dns.tw.	172800	IN	A	211.20.231.11
+e.dns.tw.	172800	IN	AAAA	2001:b000:1e0:c000::11
+f.dns.tw.	172800	IN	A	40.65.125.222
+g.dns.tw.	172800	IN	A	34.141.111.176
+h.dns.tw.	172800	IN	A	204.61.216.119
+h.dns.tw.	172800	IN	AAAA	2001:500:14:6119:ad::1
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+
+;; GZPACK: H4sIAAAAAAAA/7r2upGBgZGBgYGNgZu7Ik9XN7ugqNzQOIWBgYmBEUOAgWkxAwMXYwpzSl4xU0k5Ay4FqYQUpBFSkE5IQQZ+BUJsiXmVJTkprIkFeZnJzHmpJQwIZzMwQlWx2BxfugtJXAYqLqDA6Oo4QYCBnQEMGNsQPkLovSzynBtJHEnvBgbGBwcYoEAQ4VmEXg3H2nsIPyLElXrzNyC8hhA/Y3ujHEkcyS5WBgaRREmGtRCHYvoaYcYpHnlTLPJIZvHeYBCCOZshmIFBkxXqC0AAAAD//3IQiwEmAgAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @34.141.111.176 NS h6xyrckrof16xv31.xn--kprw13d.
+;; opcode: QUERY, status: NOERROR, id: 35367
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 172813168867b8bf0100000068ca7312f3694af3a55e6474
+
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kprw13d.	IN	 NS
+
+;; ANSWER SECTION:
+xn--kprw13d.	3600	IN	DNAME	xn--kpry57d.
+h6xyrckrof16xv31.xn--kprw13d.	3600	IN	CNAME	h6xyrckrof16xv31.xn--kpry57d.
+
+;; GZPACK: H4sIAAAAAAAA/+pSb2VgYGRgYmBgYBTIMKuoLErOLspPMzSrKDM25K7I09XNLigqNzROYWBgYmBEFVBnYGRg4BNg4IUJV5qapzAQMIUVqkkOpzqwKQwMmiwXGEBAhoGLQUJcQ1isI33HfkYGBoaMU8VCnzO9Pi+NSykBBAAA//+cdVr9vwAAAA==
+;; SERVER: 34.141.111.176
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @34.141.111.176 A h6xyrckrof16xv31.xn--kprw13d.
+;; opcode: QUERY, status: NOERROR, id: 46204
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 172813168867b8bf0100000068ca7312f3694af3a55e6474
+
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kprw13d.	IN	 A
+
+;; ANSWER SECTION:
+xn--kprw13d.	3600	IN	DNAME	xn--kpry57d.
+h6xyrckrof16xv31.xn--kprw13d.	3600	IN	CNAME	h6xyrckrof16xv31.xn--kpry57d.
+
+;; GZPACK: H4sIAAAAAAAA/9pS08rAwMjAxMDAwCiQYVZRWZScXZSfZmhWUWZsyF2Rp6ubXVBUbmicAlLFiCqgzsDIwMAnwMALE640NU9hIGAKK1STHE51YFMYGDRZLjCAgAwDF4OEuIawWEf6jv2MDAwMGaeKhT5nen1eGpdSAggAAP//cBE9aL8AAAA=
+;; SERVER: 34.141.111.176
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS xn--kpry57d.
+;; opcode: QUERY, status: NOERROR, id: 49692
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;xn--kpry57d.	IN	 NS
+
+;; AUTHORITY SECTION:
+xn--kpry57d.	172800	IN	NS	d.dns.tw.
+xn--kpry57d.	172800	IN	NS	e.dns.tw.
+xn--kpry57d.	172800	IN	NS	f.dns.tw.
+xn--kpry57d.	172800	IN	NS	g.dns.tw.
+xn--kpry57d.	172800	IN	NS	h.dns.tw.
+xn--kpry57d.	172800	IN	NS	anytld.apnic.net.
+
+;; ADDITIONAL SECTION:
+d.dns.tw.	172800	IN	A	60.199.165.186
+d.dns.tw.	172800	IN	AAAA	2001:4541:9010:7::186
+e.dns.tw.	172800	IN	A	211.20.231.11
+e.dns.tw.	172800	IN	AAAA	2001:b000:1e0:c000::11
+f.dns.tw.	172800	IN	A	40.65.125.222
+g.dns.tw.	172800	IN	A	34.141.111.176
+h.dns.tw.	172800	IN	A	204.61.216.119
+h.dns.tw.	172800	IN	AAAA	2001:500:14:6119:ad::1
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+
+;; GZPACK: H4sIAAAAAAAA/zok08jAwMjAwMDGwM1dkaerm11QVGlqnsLAwMTAiCHAwLSYgYGLMYU5Ja+YqaScAZeCVEIK0ggpSCekIAO/AiG2xLzKkpwU1sSCvMxk5rzUEgaEsxkYoapYbI4v3YUkLgMVF1BgdHWcIMDAzgAGjG0IHyH0XhZ5zo0kjqR3AwPjgwMMUCCI8CxCr4Zj7T2EHxHiSr35GxBeQ4ifsb1RjiSOZBcrA4NIoiTDWohDMX2NMOMUj7wpFnkks3hvMAjBnM0QzMCgyQr1BSAAAP//BVDmuCYCAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @34.141.111.176 NS h6xyrckrof16xv31.xn--kpry57d.
+;; opcode: QUERY, status: NXDOMAIN, id: 41646
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 172813168867b8bf0100000068ca7312f3694af3a55e6474
+
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kpry57d.	IN	 NS
+
+;; AUTHORITY SECTION:
+xn--kpry57d.	900	IN	SOA	d.dns.tw. snw.twnic.net.tw. 2010262929 3600 900 1296000 900
+
+;; GZPACK: H4sIAAAAAAAA/1q0rpWZgZGBgYGRgVEgw6yisig5uyg/zdCsoszYkLsiT1c3u6Co0tQ8hYGBiYERVYANpJG5hcGAMYU5Ja+YqaScgbk4r5y1pDwvM5k5L7UEJFJ+SXciAwOfAFil8LEGMM2gyXKBAQRkGLgYJMQ1hMU60nfsBzkj41Sx0OdMr89L41JKAAEAAP//L42dsJwAAAA=
+;; SERVER: 34.141.111.176

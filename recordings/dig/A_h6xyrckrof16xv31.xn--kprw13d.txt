@@ -1,0 +1,240 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A h6xyrckrof16xv31.xn--kprw13d
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46103
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510622	IN	NS	g.root-servers.net.
+.			510622	IN	NS	h.root-servers.net.
+.			510622	IN	NS	i.root-servers.net.
+.			510622	IN	NS	j.root-servers.net.
+.			510622	IN	NS	k.root-servers.net.
+.			510622	IN	NS	l.root-servers.net.
+.			510622	IN	NS	m.root-servers.net.
+.			510622	IN	NS	a.root-servers.net.
+.			510622	IN	NS	b.root-servers.net.
+.			510622	IN	NS	c.root-servers.net.
+.			510622	IN	NS	d.root-servers.net.
+.			510622	IN	NS	e.root-servers.net.
+.			510622	IN	NS	f.root-servers.net.
+.			510622	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510622	IN	A	198.41.0.4
+a.root-servers.net.	510622	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510622	IN	A	170.247.170.2
+b.root-servers.net.	510622	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510622	IN	A	192.33.4.12
+c.root-servers.net.	510622	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510622	IN	A	199.7.91.13
+d.root-servers.net.	510622	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510622	IN	A	192.203.230.10
+e.root-servers.net.	510622	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510622	IN	A	192.5.5.241
+f.root-servers.net.	510622	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510622	IN	A	192.112.36.4
+g.root-servers.net.	510622	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510622	IN	A	198.97.190.53
+h.root-servers.net.	510622	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510622	IN	A	192.36.148.17
+i.root-servers.net.	510622	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510622	IN	A	192.58.128.30
+j.root-servers.net.	510622	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510622	IN	A	193.0.14.129
+k.root-servers.net.	510622	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510622	IN	A	199.7.83.42
+l.root-servers.net.	510622	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510622	IN	A	202.12.27.33
+m.root-servers.net.	510622	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 59429
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kprw13d.	IN	A
+
+;; AUTHORITY SECTION:
+xn--kprw13d.		172800	IN	NS	d.dns.tw.
+xn--kprw13d.		172800	IN	NS	e.dns.tw.
+xn--kprw13d.		172800	IN	NS	f.dns.tw.
+xn--kprw13d.		172800	IN	NS	g.dns.tw.
+xn--kprw13d.		172800	IN	NS	h.dns.tw.
+xn--kprw13d.		172800	IN	NS	anytld.apnic.net.
+xn--kprw13d.		86400	IN	DS	3667 8 2 8AC78818CCA7D2CD3A323BEAD03CCF68025CA932219014748692F12E D7A4B2CA
+xn--kprw13d.		86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . HZKxUdEwh3gdJ+AqX+Kvyu5+g4KKuKVxI5kwbQMZOw47cvC3/qN6fqeD DDqsgu+H+ihj+OTrO2+8l1kE+87DzLJoAsNxzEXRQuQnKP/7LLDhp2Io eBz9DnPWGAaiYvhHNfZhXhKkMuwQnaevZCO8ij6yDoDPWHnpARcsB30w KZizxGjfhvCw6JqkcMhxJ8/ERoiVd/4YbTtOSEsdWd+FoRXVLjAo4yao jtA06DH459PWzE23hPdc9duDUAsjrkaABAx18anHHC/yJ+oaKfkpemxe kUJ/2SeQXr7jUnQFq1nMLEcPS+f6vX1OmTeyLZ6x2N9N5/cvMYwj9uai hivnfQ==
+
+;; ADDITIONAL SECTION:
+d.dns.tw.		172800	IN	A	60.199.165.186
+e.dns.tw.		172800	IN	A	211.20.231.11
+f.dns.tw.		172800	IN	A	40.65.125.222
+g.dns.tw.		172800	IN	A	34.141.111.176
+h.dns.tw.		172800	IN	A	204.61.216.119
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+d.dns.tw.		172800	IN	AAAA	2001:4541:9010:7::186
+e.dns.tw.		172800	IN	AAAA	2001:b000:1e0:c000::11
+h.dns.tw.		172800	IN	AAAA	2001:500:14:6119:ad::1
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+
+;; Query time: 2 msec
+;; SERVER: 199.7.83.42#53(l.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 716
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 49976
+;; flags: qr aa; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: f48ad691ac1a704c0100000068ca923912eaf2b7a6a5dba5 (good)
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kprw13d.	IN	A
+
+;; ANSWER SECTION:
+xn--kprw13d.		3600	IN	DNAME	xn--kpry57d.
+xn--kprw13d.		3600	IN	RRSIG	DNAME 8 1 3600 20251017010001 20250917010001 5505 xn--kprw13d. e1Vl3sXfyFw/xSoRdBsI+ysX9bKGqZjMYFStkJ7PmW/ag0V0nd/7ycSe ZFbOpw2X9Fheoh8qoF22u5kMtOG1F3WWZah9nd9N/c3r6MAzzvPpqcyO eJOxDtBQr4UPOO67q8gyF7SlgNknH2FN1t3CwhQO1iVvx0r3zJJ/OaR2 RoI=
+h6xyrckrof16xv31.xn--kprw13d. 3600 IN	CNAME	h6xyrckrof16xv31.xn--kpry57d.
+
+;; Query time: 276 msec
+;; SERVER: 211.20.231.11#53(e.dns.tw) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 312
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A h6xyrckrof16xv31.xn--kpry57d.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46066
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510622	IN	NS	i.root-servers.net.
+.			510622	IN	NS	j.root-servers.net.
+.			510622	IN	NS	k.root-servers.net.
+.			510622	IN	NS	l.root-servers.net.
+.			510622	IN	NS	m.root-servers.net.
+.			510622	IN	NS	a.root-servers.net.
+.			510622	IN	NS	b.root-servers.net.
+.			510622	IN	NS	c.root-servers.net.
+.			510622	IN	NS	d.root-servers.net.
+.			510622	IN	NS	e.root-servers.net.
+.			510622	IN	NS	f.root-servers.net.
+.			510622	IN	NS	g.root-servers.net.
+.			510622	IN	NS	h.root-servers.net.
+.			510622	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510622	IN	A	198.41.0.4
+a.root-servers.net.	510622	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510622	IN	A	170.247.170.2
+b.root-servers.net.	510622	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510622	IN	A	192.33.4.12
+c.root-servers.net.	510622	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510622	IN	A	199.7.91.13
+d.root-servers.net.	510622	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510622	IN	A	192.203.230.10
+e.root-servers.net.	510622	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510622	IN	A	192.5.5.241
+f.root-servers.net.	510622	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510622	IN	A	192.112.36.4
+g.root-servers.net.	510622	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510622	IN	A	198.97.190.53
+h.root-servers.net.	510622	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510622	IN	A	192.36.148.17
+i.root-servers.net.	510622	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510622	IN	A	192.58.128.30
+j.root-servers.net.	510622	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510622	IN	A	193.0.14.129
+k.root-servers.net.	510622	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510622	IN	A	199.7.83.42
+l.root-servers.net.	510622	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510622	IN	A	202.12.27.33
+m.root-servers.net.	510622	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46371
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 1176b90651ed60840100000068ca9239a3cff04b0ea3c93e (good)
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kpry57d.	IN	A
+
+;; AUTHORITY SECTION:
+xn--kpry57d.		172800	IN	NS	h.dns.tw.
+xn--kpry57d.		172800	IN	NS	g.dns.tw.
+xn--kpry57d.		172800	IN	NS	f.dns.tw.
+xn--kpry57d.		172800	IN	NS	d.dns.tw.
+xn--kpry57d.		172800	IN	NS	e.dns.tw.
+xn--kpry57d.		172800	IN	NS	anytld.apnic.net.
+xn--kpry57d.		86400	IN	DS	15901 8 2 119F2B2637AEB13DA5C5D5B605DDCB9389A811A27D52102D9DF28EE5 07C02DA4
+xn--kpry57d.		86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . gL18zNf4F3hHZnLxg9ZWu5PRycwQSiii4KaGi6/rfsC5HQsVRyX/+GfG ENfi+GuVM8IesEJOBoKInWWaLdjvVSAS1PSEA3Gq7WjgtMLt/b7qqSQa CC2u1La281e5w9rYELKS4gMLhn1URriVqld9zuV0k/vkAtdmDdTEzOwV HawF0bqrj8PHaBNPq9wQonPtDpUmb0Anin/TLDMJRz1F7coyH2B4+4Vi U5fiuMBcT7sPoEPC7kXeKtiqLN413kV+jJIBpbIShgGPqBxNsfMv4/UW OGENj63aDh337zLnziEiRTxyfg7s4xYYfgeXX/d6Q0v7lkq9gkV+9qCY 8cGyOA==
+
+;; ADDITIONAL SECTION:
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+h.dns.tw.		172800	IN	A	204.61.216.119
+g.dns.tw.		172800	IN	A	34.141.111.176
+f.dns.tw.		172800	IN	A	40.65.125.222
+e.dns.tw.		172800	IN	A	211.20.231.11
+d.dns.tw.		172800	IN	A	60.199.165.186
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+h.dns.tw.		172800	IN	AAAA	2001:500:14:6119:ad::1
+e.dns.tw.		172800	IN	AAAA	2001:b000:1e0:c000::11
+d.dns.tw.		172800	IN	AAAA	2001:4541:9010:7::186
+
+;; Query time: 32 msec
+;; SERVER: 192.33.4.12#53(c.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 744
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 4869
+;; flags: qr aa; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 1176b90651ed60840100000068ca9239128b3ac144f4a7e3 (good)
+;; QUESTION SECTION:
+;h6xyrckrof16xv31.xn--kpry57d.	IN	A
+
+;; AUTHORITY SECTION:
+xn--kpry57d.		900	IN	SOA	d.dns.tw. snw.twnic.net.tw. 2010262930 3600 900 1296000 900
+xn--kpry57d.		900	IN	RRSIG	SOA 8 1 900 20251017090003 20250917090003 27225 xn--kpry57d. BwLWfSwUj3o9CwihbhdDGyL2QAqG0Two9D0qfVUZHco8qicKcosG64cf 89h+zOXZiBClHlaodqsbYlb3yRg03tUJo5i0PnJkeVkpXOJz+gdJT5MT GTFISKmfUtPcJ1SSfSytRpdqe9Y386AtZcMvJlhB3uaZBox1l1auy8Sm MWI=
+99IOUO1LIA0B7KJNCO46I51VUL80K5VC.xn--kpry57d. 900 IN NSEC3 1 1 0 - 99RCK95LS2GLK6JIH9BH5LGNH8M34OC1 NS SOA RRSIG DNSKEY NSEC3PARAM
+99IOUO1LIA0B7KJNCO46I51VUL80K5VC.xn--kpry57d. 900 IN RRSIG NSEC3 8 2 900 20251017090003 20250917090003 27225 xn--kpry57d. A7HfR2O8SZ3YgcAy+jPIVLnjl8oAQ5ufLKDzMPFTa1Kr391XjdLsS99j VV1H51iytw5EN5ahX7+nQptcTFBJzI8u0tjnHM1VkRnM/kS3efHlOUkr qIKa/mh9dI8iVcsPTYOW5Sc4LleEujek/cWPhl6Vhv+QWSNYYgz8mXm8 zz0=
+7HM6G2V0G8DMEN5RGQS1VKSQUN5BQVTJ.xn--kpry57d. 900 IN NSEC3 1 1 0 - 7ITQHAEJH3AL9MGAJOFEOL1LMEPO3SL0 DNAME RRSIG
+7HM6G2V0G8DMEN5RGQS1VKSQUN5BQVTJ.xn--kpry57d. 900 IN RRSIG NSEC3 8 2 900 20251017090003 20250917090003 27225 xn--kpry57d. pjqdSnK5r0sxylwOpwuADLJx2ngLyphVDNCCgDo3HERck/i7C3aDuhrF qSfkVti3NANxkcUPxIKPYy7VuqTi9Sp4z/ilXnq5O6I2ztyxdCMM/NdF zO7UQAWB933kGqA4GSpTxyhrOq0SME1RdOPz/uZOIDg4Ryx27AChlEzG gsA=
+IQUB3Q2J2B8PP0E6MQVPMQASR3Q1L53H.xn--kpry57d. 900 IN NSEC3 1 1 0 - IS0NQ0JHIQD37N6MMBQ92EJOG9P2G41J DNAME RRSIG
+IQUB3Q2J2B8PP0E6MQVPMQASR3Q1L53H.xn--kpry57d. 900 IN RRSIG NSEC3 8 2 900 20251017090003 20250917090003 27225 xn--kpry57d. BJ1vPcDVN6q4azxiQoT2Fj5o6GkUL6r75SmBzaIa3IPDb5t5bca8M5Oq 6hK6/SDituA7UcBFwNP9lB/fFX1dIiAf1oPhLKQTTDX8Ik+AzdG/kWZA CPrle+kLu44v1Td/QxS3622u/IMltsJNPFiJDbARAkujPBQfeWojeEr8 E6w=
+
+;; Query time: 30 msec
+;; SERVER: 202.12.31.53#53(anytld.apnic.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:29 CEST 2025
+;; MSG SIZE  rcvd: 1067
+

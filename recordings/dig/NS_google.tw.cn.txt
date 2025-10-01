@@ -1,0 +1,138 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS google.tw.cn
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 59546
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510671	IN	NS	k.root-servers.net.
+.			510671	IN	NS	l.root-servers.net.
+.			510671	IN	NS	m.root-servers.net.
+.			510671	IN	NS	a.root-servers.net.
+.			510671	IN	NS	b.root-servers.net.
+.			510671	IN	NS	c.root-servers.net.
+.			510671	IN	NS	d.root-servers.net.
+.			510671	IN	NS	e.root-servers.net.
+.			510671	IN	NS	f.root-servers.net.
+.			510671	IN	NS	g.root-servers.net.
+.			510671	IN	NS	h.root-servers.net.
+.			510671	IN	NS	i.root-servers.net.
+.			510671	IN	NS	j.root-servers.net.
+.			510671	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510671	IN	A	198.41.0.4
+a.root-servers.net.	510671	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510671	IN	A	170.247.170.2
+b.root-servers.net.	510671	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510671	IN	A	192.33.4.12
+c.root-servers.net.	510671	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510671	IN	A	199.7.91.13
+d.root-servers.net.	510671	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510671	IN	A	192.203.230.10
+e.root-servers.net.	510671	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510671	IN	A	192.5.5.241
+f.root-servers.net.	510671	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510671	IN	A	192.112.36.4
+g.root-servers.net.	510671	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510671	IN	A	198.97.190.53
+h.root-servers.net.	510671	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510671	IN	A	192.36.148.17
+i.root-servers.net.	510671	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510671	IN	A	192.58.128.30
+j.root-servers.net.	510671	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510671	IN	A	193.0.14.129
+k.root-servers.net.	510671	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510671	IN	A	199.7.83.42
+l.root-servers.net.	510671	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510671	IN	A	202.12.27.33
+m.root-servers.net.	510671	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 49982
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 12
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;google.tw.cn.			IN	NS
+
+;; AUTHORITY SECTION:
+cn.			172800	IN	NS	a.dns.cn.
+cn.			172800	IN	NS	b.dns.cn.
+cn.			172800	IN	NS	c.dns.cn.
+cn.			172800	IN	NS	d.dns.cn.
+cn.			172800	IN	NS	e.dns.cn.
+cn.			172800	IN	NS	ns.cernet.net.
+cn.			86400	IN	DS	33094 8 2 CCCF13ED73A83244F7D2936F0B6C3507D85C3EBC5E1BE4FB644064BC 5B5FE3B2
+cn.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . X3b8r9iMvy4o1c4YbUkLDTAtITnrS615pi0dcpe/w2EHWlvOkYG7t6ko mGIR/9CR08/xSxnnOWBNqnk3KhiVCz3kObdYGI3j2x39rKlCXcSoxJxz 1I/dZerKQAJ597gks0vPW3UGyxwQCcXS6OE7mvFzXVi0AXA3OKOzpkvO 6wDbkLsBnGSZ0IcLxmcwC1hHCdEkZz+t4fEEBDxoffbt5qr6yun7Opsd wM+XX6Tog9ikYYdcGanJb17TngIymlImEw+MhN7M9qQkLOJZGd/jNAeE /GyLwHVhOAH5FnxdUuoHRckWY+4j204JYNfOKgVoiA387oUbgYjglhsL 1rRpmg==
+
+;; ADDITIONAL SECTION:
+a.dns.cn.		172800	IN	A	203.119.25.1
+b.dns.cn.		172800	IN	A	203.119.26.1
+c.dns.cn.		172800	IN	A	203.119.27.1
+d.dns.cn.		172800	IN	A	203.119.28.1
+e.dns.cn.		172800	IN	A	203.119.29.1
+ns.cernet.net.		172800	IN	A	202.112.0.44
+a.dns.cn.		172800	IN	AAAA	2001:dc7::1
+b.dns.cn.		172800	IN	AAAA	2001:dc7:1::1
+c.dns.cn.		172800	IN	AAAA	2001:dc7:2::1
+d.dns.cn.		172800	IN	AAAA	2001:dc7:1000::1
+e.dns.cn.		172800	IN	AAAA	2001:dc7:3::1
+
+;; Query time: 24 msec
+;; SERVER: 198.97.190.53#53(h.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 723
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 53063
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;google.tw.cn.			IN	NS
+
+;; AUTHORITY SECTION:
+google.tw.cn.		86400	IN	NS	joyce.ns.cloudflare.com.
+google.tw.cn.		86400	IN	NS	louis.ns.cloudflare.com.
+r4ibhrgsu42hj6qqtan9n4cumb429ucu.tw.cn.	21600 IN NSEC3 1 1 10 AEF123AB 19PHTHA65JK640SQ3DN87ABH5G8NA9DC NS SOA RRSIG DNSKEY NSEC3PARAM
+r4ibhrgsu42hj6qqtan9n4cumb429ucu.tw.cn.	21600 IN RRSIG NSEC3 8 3 21600 20251012101938 20250912092454 54306 tw.cn. GSttj1/caxpkQxhlaOp6+zwpApu8Q4/FJh6J6xkCnza6MIPlD0bzYExe YRFG9w3LEZXxxwO+TJE3RRf8i0za+o+CPh1L/SsHIU0fG9/xdd3DjLfa cT2M3RUJGxul3+/qPn0DI6QCA7rHQof0t+pLbsNoiuJO7FA35M5tBVmc NgM=
+75avjnma9jfge3jlcv8foct7dc9kplat.tw.cn.	21600 IN NSEC3 1 1 10 AEF123AB D8HTQ9QSN0BR2MUHCLD75685I1QL5HCT NS DS RRSIG
+75avjnma9jfge3jlcv8foct7dc9kplat.tw.cn.	21600 IN RRSIG NSEC3 8 3 21600 20251012080054 20250912071644 54306 tw.cn. EVbjWTlmonnH01ZvIvduTAak65jjpEQiyLBlsv4lXTZtiIlzmRJg/QMT xCitdw0nk0bmwI84yZ2JsklV2X3NHxrIC0E0Fw0iAFHiUsyLRDj3DPi2 ZrXkihpsM051qOeR0Zb5N7NeSvhGxxgl1tQ8qpna/4QAw/O0VRumC92x BIc=
+
+;; Query time: 203 msec
+;; SERVER: 203.119.25.1#53(a.dns.cn) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 678
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 44732
+;; flags: qr aa; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;google.tw.cn.			IN	NS
+
+;; ANSWER SECTION:
+google.tw.cn.		86400	IN	NS	joyce.ns.cloudflare.com.
+google.tw.cn.		86400	IN	NS	louis.ns.cloudflare.com.
+
+;; Query time: 3 msec
+;; SERVER: 172.64.35.89#53(louis.ns.cloudflare.com) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 98
+

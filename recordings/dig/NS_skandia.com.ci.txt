@@ -1,0 +1,119 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS skandia.com.ci
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41977
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510671	IN	NS	e.root-servers.net.
+.			510671	IN	NS	f.root-servers.net.
+.			510671	IN	NS	g.root-servers.net.
+.			510671	IN	NS	h.root-servers.net.
+.			510671	IN	NS	i.root-servers.net.
+.			510671	IN	NS	j.root-servers.net.
+.			510671	IN	NS	k.root-servers.net.
+.			510671	IN	NS	l.root-servers.net.
+.			510671	IN	NS	m.root-servers.net.
+.			510671	IN	NS	a.root-servers.net.
+.			510671	IN	NS	b.root-servers.net.
+.			510671	IN	NS	c.root-servers.net.
+.			510671	IN	NS	d.root-servers.net.
+.			510671	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510671	IN	A	198.41.0.4
+a.root-servers.net.	510671	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510671	IN	A	170.247.170.2
+b.root-servers.net.	510671	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510671	IN	A	192.33.4.12
+c.root-servers.net.	510671	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510671	IN	A	199.7.91.13
+d.root-servers.net.	510671	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510671	IN	A	192.203.230.10
+e.root-servers.net.	510671	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510671	IN	A	192.5.5.241
+f.root-servers.net.	510671	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510671	IN	A	192.112.36.4
+g.root-servers.net.	510671	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510671	IN	A	198.97.190.53
+h.root-servers.net.	510671	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510671	IN	A	192.36.148.17
+i.root-servers.net.	510671	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510671	IN	A	192.58.128.30
+j.root-servers.net.	510671	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510671	IN	A	193.0.14.129
+k.root-servers.net.	510671	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510671	IN	A	199.7.83.42
+l.root-servers.net.	510671	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510671	IN	A	202.12.27.33
+m.root-servers.net.	510671	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 38045
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: ab8350ce3f815dce0100000068ca9208d0700e7392a138c9 (good)
+;; QUESTION SECTION:
+;skandia.com.ci.			IN	NS
+
+;; AUTHORITY SECTION:
+ci.			172800	IN	NS	ci.hosting.nic.fr.
+ci.			172800	IN	NS	any.nic.ci.
+ci.			172800	IN	NS	ns-ci.afrinic.net.
+ci.			172800	IN	NS	phloem.uoregon.edu.
+ci.			172800	IN	NS	ns.nic.ci.
+ci.			86400	IN	DS	37284 13 2 2F58097214BB1938479A8ED69DB3E857E0C4A45A6B1D435639D99301 814936EC
+ci.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . Du2jM+rjVckvp8Vw5oh7l/6S+R/+eVLKTVSqDIkHmI89invVhapKbRLt GXpzj2JT9QUbnPuvx62qpAWJcAKi0haTKK9zHOKePmfK63XQaAb3/f37 MkSks1L7k2/hoezhSiL9GcB2QNohsHBPmSvpIxIPrwHRKSCoNy7GnEmX smKgrIVnS8awfMqmg8JO21NHNdHbC2dojat3aHOxdSfqbah4+m6aTXpS 0rRQAUDtIPGNOfv37Q49ljBMCfcL4v9UFq6xm5XI+RQtwPWUFYBku2rD vjKtk+OAT1r05LmFwF80uoNUq9j0ulrj9Rk8DJQRN9Aj12lmc42rwVrR cGlWcw==
+
+;; ADDITIONAL SECTION:
+phloem.uoregon.edu.	172800	IN	A	128.223.32.35
+ns-ci.afrinic.net.	172800	IN	A	196.216.168.30
+any.nic.ci.		172800	IN	A	204.61.216.120
+ns.nic.ci.		172800	IN	A	196.49.0.84
+ci.hosting.nic.fr.	172800	IN	A	192.134.0.49
+phloem.uoregon.edu.	172800	IN	AAAA	2001:468:d01:20::80df:2023
+ns-ci.afrinic.net.	172800	IN	AAAA	2001:43f8:120::30
+any.nic.ci.		172800	IN	AAAA	2001:500:14:6120:ad::1
+ci.hosting.nic.fr.	172800	IN	AAAA	2001:660:3006:1::1:1
+
+;; Query time: 31 msec
+;; SERVER: 192.33.4.12#53(c.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 735
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 1115
+;; flags: qr aa; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+; COOKIE: ab8350ce3f815dce4614627a68ca920871a08aab2215e074 (good)
+;; QUESTION SECTION:
+;skandia.com.ci.			IN	NS
+
+;; AUTHORITY SECTION:
+ci.			7200	IN	SOA	ns.nic.ci. hostmaster.ns.nic.ci. 2384164272 480 300 1209600 7200
+ci.			7200	IN	RRSIG	SOA 13 1 7200 20251017104336 20250917094336 10926 ci. ppanrgmv2kZnyMX4yiS8MVjrSHwcjmbSMhTdTh1jOZ61YgbC/8xzhGTk sLsNLhiaxKcMJzPRoUWAywdCkXnjcw==
+showmax.com.ci.		7200	IN	NSEC	sofib.com.ci. NS RRSIG NSEC
+showmax.com.ci.		7200	IN	RRSIG	NSEC 13 3 7200 20251012061336 20250912052801 10926 ci. GSPY1P+z4aQ+y22rkkBEtk0yoTV/++CjIZdJp35UJ7eTHMl+rool9OfS SB5X38Nl7wdNLU6HdYAl31KIF+24iQ==
+colo.ci.		7200	IN	NSEC	10bet.com.ci. NS RRSIG NSEC
+colo.ci.		7200	IN	RRSIG	NSEC 13 2 7200 20251008160827 20250908155209 10926 ci. 7MNbOCZZ/IP6hthRfa/ZM4ymnGsaRCDyqx+UjWDC7WOxD5jKGV+kCyuR HJqLg4Utkzo8WBTJGblkTdF4X9Qn+w==
+
+;; Query time: 130 msec
+;; SERVER: 196.49.0.84#53(ns.nic.ci) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 500
+

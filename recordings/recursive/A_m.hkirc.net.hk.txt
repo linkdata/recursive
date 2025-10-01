@@ -1,0 +1,104 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @198.41.0.4 NS hk.
+;; opcode: QUERY, status: NOERROR, id: 21579
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 9, ADDITIONAL: 19
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;hk.	IN	 NS
+
+;; AUTHORITY SECTION:
+hk.	172800	IN	NS	d.hkirc.net.hk.
+hk.	172800	IN	NS	t.hkirc.net.hk.
+hk.	172800	IN	NS	y.hkirc.net.hk.
+hk.	172800	IN	NS	v.hkirc.net.hk.
+hk.	172800	IN	NS	m.hkirc.net.hk.
+hk.	172800	IN	NS	u.hkirc.net.hk.
+hk.	172800	IN	NS	z.hkirc.net.hk.
+hk.	172800	IN	NS	x.hkirc.net.hk.
+hk.	172800	IN	NS	c.hkirc.net.hk.
+
+;; ADDITIONAL SECTION:
+d.hkirc.net.hk.	172800	IN	A	203.119.87.218
+d.hkirc.net.hk.	172800	IN	AAAA	2001:dca:2000::cb77:57da
+t.hkirc.net.hk.	172800	IN	A	202.12.31.53
+t.hkirc.net.hk.	172800	IN	AAAA	2001:dd8:12::53
+y.hkirc.net.hk.	172800	IN	A	137.189.6.21
+y.hkirc.net.hk.	172800	IN	AAAA	2405:3000:3:6::15
+v.hkirc.net.hk.	172800	IN	A	204.61.216.46
+v.hkirc.net.hk.	172800	IN	AAAA	2001:500:14:6046:ad::1
+m.hkirc.net.hk.	172800	IN	A	125.208.49.10
+m.hkirc.net.hk.	172800	IN	AAAA	2001:dc7:feff::10
+u.hkirc.net.hk.	172800	IN	A	210.201.138.58
+u.hkirc.net.hk.	172800	IN	AAAA	2404:0:10a0::58
+z.hkirc.net.hk.	172800	IN	A	194.146.106.70
+z.hkirc.net.hk.	172800	IN	AAAA	2001:67c:1010:17::53
+x.hkirc.net.hk.	172800	IN	A	202.45.188.39
+x.hkirc.net.hk.	172800	IN	AAAA	2405:3001:1:3a::27
+c.hkirc.net.hk.	172800	IN	A	203.119.2.218
+c.hkirc.net.hk.	172800	IN	AAAA	2001:dca:4000::cb77:2da
+
+;; GZPACK: H4sIAAAAAAAA/wrxbmRgYGRgYOBkEGbKyGZgYGJghNEMTIsZGAQYU1gzsjOLkpnzUktAMmiyJXhlK/HKluGVzcUrW4pXtgqvbAVe2WRUWXT/MzBCVbKcLg+/hSErAzNHgZH3lAIDBIBVluAy5xSPvCmGLLI5NxiEGGAgGD1MEeZ07mUTxZCFm6PCasDAwMzABjVHFD30Eeacsb2hhyGL5B5WBgaRBDeGtWBzGNHjCWFO7QVDLgxZZH8d//cf7i+MGEWYc+lklxWGLMJfLAwMAgvg5kSgxz3CnEOTstwwZJHcw1YjIMAgDg/nCpzxpbtHHUMWOZxBKq2g5qijpyfk9MN0C0MWJf04wNMP0y0GBk0BKBcQAAD//7wVWlu1AwAA
+;; SERVER: 198.41.0.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @125.208.49.10 A net.hk.
+;; opcode: QUERY, status: NOERROR, id: 58479
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;net.hk.	IN	 A
+
+;; AUTHORITY SECTION:
+net.hk.	900	IN	SOA	ns3.hkirc.net.hk. hostmaster.hkirc.net.hk. 2070792111 1800 900 1209600 86400
+
+;; GZPACK: H4sIAAAAAAAA/3qS38rAwMgAwozMeaklTBnZqGw2kCxzC4M9c16xMWtGdmZRMkyOKyO/uCQ3sbgktQhVojr3+HoGBnYOsEahUgYGxsAGBgZNAQYIAAQAAP//gi0kenQAAAA=
+;; SERVER: 125.208.49.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @125.208.49.10 A hkirc.net.hk.
+;; opcode: QUERY, status: NOERROR, id: 44506
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 7
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;hkirc.net.hk.	IN	 A
+
+;; AUTHORITY SECTION:
+hkirc.net.hk.	28800	IN	NS	z.hkirc.net.hk.
+hkirc.net.hk.	28800	IN	NS	ns7.hkirc.net.hk.
+hkirc.net.hk.	28800	IN	NS	ns8.hkirc.net.hk.
+hkirc.net.hk.	28800	IN	NS	hk-ns.pch.net.
+
+;; ADDITIONAL SECTION:
+z.hkirc.net.hk.	28800	IN	A	194.146.106.70
+z.hkirc.net.hk.	28800	IN	AAAA	2001:67c:1010:17::53
+ns7.hkirc.net.hk.	28800	IN	A	203.119.2.172
+ns7.hkirc.net.hk.	28800	IN	AAAA	2001:dca:4000::cb77:2ac
+ns8.hkirc.net.hk.	28800	IN	A	203.119.87.172
+ns8.hkirc.net.hk.	28800	IN	AAAA	2001:dca:2000::cb77:57ac
+
+;; GZPACK: H4sIAAAAAAAA/1p7q5GBgZGBgYGFgZ01IzuzKJk5L7WEKSMbJMqIJsIEUlnQwCDAWIUqg0OdEHNesTnRKi2IUsnPmpGtm1fMXJCcAZJjQHcKyNlghSyHJmW5YcjKwLygwMhWIyDAIM4AAcGYTkWYdLqcaQ0WeSSzeE85QA2CqrXAbVY4NnkUsxTgZoWvYWDQFIByAQEAAP//gWi4KqwBAAA=
+;; SERVER: 125.208.49.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @194.146.106.70 A m.hkirc.net.hk.
+;; opcode: QUERY, status: NOERROR, id: 27559
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ad3a743e250f43fa0100000068ca72f00700e82e3c6835f5
+
+;; QUESTION SECTION:
+;m.hkirc.net.hk.	IN	 A
+
+;; ANSWER SECTION:
+m.hkirc.net.hk.	28800	IN	A	125.208.49.10
+
+;; GZPACK: H4sIAAAAAAAA/8pe3srAwMjAyMDAwMiYy5qRnVmUzJyXWsKUkQ0WxybGwFDQwMBSe8GQi4FBk+UCAwjIMHAxSKy1KrFT5Xf+BTIt41TRB3aGF3o2GaZfAQEAAP//o+GIWGUAAAA=
+;; SERVER: 194.146.106.70

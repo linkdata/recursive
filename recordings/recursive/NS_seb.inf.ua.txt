@@ -1,0 +1,363 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS ua.
+;; opcode: QUERY, status: NOERROR, id: 11527
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 20c481b38f565f580100000068ca730794eec70fc1572527
+
+;; QUESTION SECTION:
+;ua.	IN	 NS
+
+;; AUTHORITY SECTION:
+ua.	172800	IN	NS	cz.ns.ua.
+ua.	172800	IN	NS	nn.ns.ua.
+ua.	172800	IN	NS	ho1.ns.ua.
+ua.	172800	IN	NS	in1.ns.ua.
+ua.	172800	IN	NS	pch.ns.ua.
+ua.	172800	IN	NS	rcz.ns.ua.
+ua.	172800	IN	NS	bg.ns.ua.
+
+;; ADDITIONAL SECTION:
+rcz.ns.ua.	172800	IN	A	193.46.128.10
+pch.ns.ua.	172800	IN	A	204.61.216.12
+in1.ns.ua.	172800	IN	A	74.123.224.40
+ho1.ns.ua.	172800	IN	A	195.47.253.1
+nn.ns.ua.	172800	IN	A	194.58.197.4
+cz.ns.ua.	172800	IN	A	185.43.134.15
+bg.ns.ua.	172800	IN	A	185.136.96.185
+bg.ns.ua.	172800	IN	A	185.136.97.185
+rcz.ns.ua.	172800	IN	AAAA	2a02:850:ffe0::10
+pch.ns.ua.	172800	IN	AAAA	2001:500:14:6012:ad::1
+in1.ns.ua.	172800	IN	AAAA	2604:ee00:0:101::40
+ho1.ns.ua.	172800	IN	AAAA	2001:67c:258::1
+nn.ns.ua.	172800	IN	AAAA	2a01:3f1:c001::53
+cz.ns.ua.	172800	IN	AAAA	2001:148f:fffd::15
+bg.ns.ua.	172800	IN	AAAA	2a06:fb00:1::2:185
+bg.ns.ua.	172800	IN	AAAA	2a06:fb00:1::4:185
+
+;; GZPACK: H4sIAAAAAAAA/9Jlb2RgYGRgYGBnEGQqTWRgYGJghNEMTIsZGLiYkquY8opBYmjieXnYxLmZM/INsUtk5uGQKEjOwC5RhMvupHSoOJISBkaoNMtBvQYuJEMREmdsb/AgOQMh4VX9QAPJ4QiJw/p/GRE+RYgfsjrKwoTF6p3abfwI1yGJdyTsxC6euBPZDzJQCQEtJo6A/w8YYEAA2T9wRQqMrAwMIglCDGvBihiR/QZXpMbyDiTHCDXJAdmfSCax1TBFwK1D9jPCSYzMHw8wwtUEM2FxtgKjSP//v3A1okh+RpjD9huS5kCAibGVoBoWxlYGBk2WC2CODAMXg4TCkcbN/WHxESAVGaeK2ae8O85/MFxVHRAAAP//THKbzs8CAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @74.123.224.40 NS inf.ua.
+;; opcode: QUERY, status: NOERROR, id: 54401
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1400
+
+;; QUESTION SECTION:
+;inf.ua.	IN	 NS
+
+;; AUTHORITY SECTION:
+inf.ua.	10801	IN	NS	ns1.1gb.ua.
+inf.ua.	10801	IN	NS	ns2.1gbua.com.
+inf.ua.	10801	IN	NS	ns3.1gbua.net.
+
+;; GZPACK: H4sIAAAAAAAA/7rS2MjAwMjAwMDMwMicmZfGVJrIwMCEymZg0DJk4GHOKzZkNkxPAoliyPIz5xUbsRqmJ5UmMifn52JXYAxVkJdawsDAoMlawQAGgAAAAP//QytzgoMAAAA=
+;; SERVER: 74.123.224.40
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A ua.
+;; opcode: QUERY, status: NOERROR, id: 3701
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 20c481b38f565f580100000068ca730794eec70fc1572527
+
+;; QUESTION SECTION:
+;ua.	IN	 A
+
+;; AUTHORITY SECTION:
+ua.	172800	IN	NS	in1.ns.ua.
+ua.	172800	IN	NS	ho1.ns.ua.
+ua.	172800	IN	NS	bg.ns.ua.
+ua.	172800	IN	NS	cz.ns.ua.
+ua.	172800	IN	NS	rcz.ns.ua.
+ua.	172800	IN	NS	pch.ns.ua.
+ua.	172800	IN	NS	nn.ns.ua.
+
+;; ADDITIONAL SECTION:
+rcz.ns.ua.	172800	IN	A	193.46.128.10
+pch.ns.ua.	172800	IN	A	204.61.216.12
+in1.ns.ua.	172800	IN	A	74.123.224.40
+ho1.ns.ua.	172800	IN	A	195.47.253.1
+nn.ns.ua.	172800	IN	A	194.58.197.4
+cz.ns.ua.	172800	IN	A	185.43.134.15
+bg.ns.ua.	172800	IN	A	185.136.96.185
+bg.ns.ua.	172800	IN	A	185.136.97.185
+rcz.ns.ua.	172800	IN	AAAA	2a02:850:ffe0::10
+pch.ns.ua.	172800	IN	AAAA	2001:500:14:6012:ad::1
+in1.ns.ua.	172800	IN	AAAA	2604:ee00:0:101::40
+ho1.ns.ua.	172800	IN	AAAA	2001:67c:258::1
+nn.ns.ua.	172800	IN	AAAA	2a01:3f1:c001::53
+cz.ns.ua.	172800	IN	AAAA	2001:148f:fffd::15
+bg.ns.ua.	172800	IN	AAAA	2a06:fb00:1::2:185
+bg.ns.ua.	172800	IN	AAAA	2a06:fb00:1::4:185
+
+;; GZPACK: H4sIAAAAAAAA/+IrbWRgYGRgYGBnEGQqTQSxGcE0EwMjA9NiBgZu5sw8Q6a8YpAgmkRGPlYJLqakdOziyVXYDSrCJVGQnIHdpLw8qDiSXpDTwdIsB/UauJD0IiTO2N7gQfIPQsKr+oEGkn8QEof1/zIibEOIH7I6ysKExeqd2m38CP8jiXck7MQunrgT2Q8yUAkBLSaOgP8PGGBAANk/cEUKjKwMDCIJQgxrwYoYkf0GV6TG8g4kxwg1yQHZn0gmsdUwRcCtQ/YzwkmMzB8PMMLVBDNhcbYCo0j//79wNaJIfkaYw/YbkuZAgImxlaAaFsZWBgZNlgtgjgwDF4OEwpHGzf1h8REgFRmnitmnvDvOfzBcVR0QAAD//9m3pYzPAgAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @74.123.224.40 A 1gb.ua.
+;; opcode: QUERY, status: NOERROR, id: 55841
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1400
+
+;; QUESTION SECTION:
+;1gb.ua.	IN	 A
+
+;; AUTHORITY SECTION:
+1gb.ua.	10801	IN	NS	ns1.1gb.com.ua.
+1gb.ua.	10801	IN	NS	ns2.1gbua.com.
+1gb.ua.	10801	IN	NS	ns3.1gbua.net.
+
+;; GZPACK: H4sIAAAAAAAA/7ql2MjAwMjAwMDMwMhsmJ7EVJoI4iPYTCBZLUMGAea8YkOQKHNyfi5IBkMFP3NesRGrYXpSaSJIDXYFxlAFeaklDAwMmqwVDGAACAAA//9FokRwhwAAAA==
+;; SERVER: 74.123.224.40
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A com.
+;; opcode: QUERY, status: NOERROR, id: 60682
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 20c481b38f565f580100000068ca730794eec70fc1572527
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUv0pCYRgG8PcctUK0Ghyi7M2QCAtBKJKWbqEgqIb+UHrSSk1U2iWaW7yBcmloqW4gIQiioaGla4jc20Izer564HPyg995+Xif55yPYF3EEZGwjPkyx8XOwfn+44ojblMk4uyGcrVCNln1KidepeoreTX5Sw7sxLOTPTsp2EnRTnJ2krWTvJ3s20nGTg7t5Og/YYvoxNt9wn+fXlW2TRCJS2VzQczfKrsciNSysnKAmL1WtkkQC2VliYGY2VK2ahDxOWUNBBHaVhY6iIkVZWmBGN1UVmIQk4PK3icQgT6lyUV7YjjmBJybT/n5pWiKqOUtDZolitoXToJm6aJ2yw3QLGlj9mILNEvdmD3wDJo1wJjdboJmbTD0awQ0a4Zxk+gFaNYSY99nJdCsMcZNTt9Bs/YYOj7es66kaJMMfbX0q0US/pfuISpBGYk91O/O13Y2Ol///FO1v9F+HGqtT01/BQAA//+zBxF7EwYAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A 1gbua.com.
+;; opcode: QUERY, status: NOERROR, id: 16975
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;1gbua.com.	IN	 A
+
+;; AUTHORITY SECTION:
+1gbua.com.	172800	IN	NS	ns1.1gb.ua.
+1gbua.com.	172800	IN	NS	ns3.1gbua.net.
+1gbua.com.	172800	IN	NS	ns2.1gbua.com.
+
+;; ADDITIONAL SECTION:
+ns2.1gbua.com.	172800	IN	A	195.234.5.20
+
+;; GZPACK: H4sIAAAAAAAA/3Lyb2RgYGRgYGBmYGI1TE8qTWROzs8FCTEic5kYGBmYFjMw8DDnFRsyG6YnMZUmMmBTwM+cV2wMlchLLcGpxghJAo0LshusjuXwK1YRBgZNAQYIAAQAAP//hMMHnqwAAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.5.20 A ns2.1gbua.com.
+;; opcode: QUERY, status: NOERROR, id: 29350
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns2.1gbua.com.	IN	 A
+
+;; ANSWER SECTION:
+ns2.1gbua.com.	3600	IN	A	195.234.5.20
+
+;; GZPACK: H4sIAAAAAAAA/ypa1srAwMjAyMDAwMicV2zEapieVJrInJyfCxbGIsTAwCfAwHL4FasIA4MmywUGMAAEAAD//wH01RhHAAAA
+;; SERVER: 195.234.5.20
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.5.20 A ns1.1gb.ua.
+;; opcode: QUERY, status: NOERROR, id: 2180
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns1.1gb.ua.	IN	 A
+
+;; ANSWER SECTION:
+ns1.1gb.ua.	3600	IN	A	195.234.4.10
+
+;; GZPACK: H4sIAAAAAAAA/+JoaWVgYGRgZGBgYGTOKzZkNkxPYipNBIuh8xkY+AQYWA6/YuFiYNBkucAABoAAAAD//+vfRD9BAAAA
+;; SERVER: 195.234.5.20
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A net.
+;; opcode: QUERY, status: NOERROR, id: 11182
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 20c481b38f565f580100000068ca73088fb4ce14b07a246e
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUvUo7QRQF8Dub5E/4k4hFCtF4jcQmhkBAMdj4CgqCWPiBmjVRYwhJsLALYp3GF9A0FiJ+PYCClYhY2PgMgr2dZI14Rg/MVjvsb4bhnsNmz1siRkTiMhSq+s3uwny9eGLE64gkTDlWalaKuYZf3/PrjeDrb7LhJjtu4rtJxU3W3WTLTUpusu0mm25SdJNdN1n7S9i2brzBjvBtYV7ZNEFkTpSlBmLyStkUQORnlU0bRPZMWcNATNWUxQFifFnZqEGkJ5TVC0RsRVkWIEbmlBUdxOCSsvqBGO1TlhWIyD+lySV7oj9lIubyQ76fPE0RtbwWQLNEUYfiOdAsXdRe7Qg0S9o6e/oONEvdOjv6CJo1wDr7vQOatcHSLwnQrBnWTZLHoFlLrHkfVkGzxlg3OXgDzdpj6fRwz3qSp02y9OnMjxbJhJ+DRVL+y0DqvnXdXlhd7P79yw+NaPvmKXGxP1b9DAAA//9efTdXEwYAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A 1gbua.net.
+;; opcode: QUERY, status: NOERROR, id: 2050
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;1gbua.net.	IN	 A
+
+;; AUTHORITY SECTION:
+1gbua.net.	172800	IN	NS	ns1.1gb.ua.
+1gbua.net.	172800	IN	NS	ns3.1gbua.net.
+1gbua.net.	172800	IN	NS	ns2.1gbua.com.
+
+;; ADDITIONAL SECTION:
+ns3.1gbua.net.	172800	IN	A	5.231.205.19
+
+;; GZPACK: H4sIAAAAAAAA/+JgamRgYGRgYGBmYGI1TE8qTWTOSy0BCTEic5kYGBmYFjMw8DDnFRsyG6YnMZUmMmBTwM+cV2yMJIFLjRFUIjk/lwFNC8husDoW1udnhRkYNAUYIAAQAAD//0+T4WWsAAAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @5.231.205.19 A ns3.1gbua.net.
+;; opcode: QUERY, status: NOERROR, id: 63056
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4000
+
+;; QUESTION SECTION:
+;ns3.1gbua.net.	IN	 A
+
+;; ANSWER SECTION:
+ns3.1gbua.net.	3600	IN	A	5.231.205.19
+
+;; GZPACK: H4sIAAAAAAAA//oW0MrAwMjAyMDAwMicV2zMapieVJrInJdaAhbGIsTAwCfAwML6/KwwA4Mm/wIGMAAEAAD//7slFylHAAAA
+;; SERVER: 5.231.205.19
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.4.10 NS seb.inf.ua.
+;; opcode: QUERY, status: FORMERR, id: 7539
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+; COOKIE: 20c481b38f565f58
+
+;; QUESTION SECTION:
+;seb.inf.ua.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/5ItbmRkYGQAAUbm4tQk5sy8NKbSRAYGJpCopgBYhoGHgYuBQ+FI4+b+sPgIQAAAAP//jP9JwzMAAAA=
+;; SERVER: 195.234.4.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.4.10 NS seb.inf.ua.
+;; opcode: QUERY, status: NOERROR, id: 9234
+;; flags: qr rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1280
+
+;; QUESTION SECTION:
+;seb.inf.ua.	IN	 NS
+
+;; ANSWER SECTION:
+seb.inf.ua.	3600	IN	NS	u1.1gb.ua.
+
+;; ADDITIONAL SECTION:
+u1.1gb.ua.	3600	IN	A	195.234.4.19
+
+;; GZPACK: H4sIAAAAAAAA/1IRamRgYGRgZGBgYGIuTk1izsxLYypNZGBgYmBE5zMw8AkwcDOVGjIbpieBBJGYEDP4BBhYDr9iEWZg0GRlgABAAAAA//+YrVspYQAAAA==
+;; SERVER: 195.234.4.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.4.19 NS seb.inf.ua.
+;; SERVER: 195.234.4.19
+;; ERROR: read udp4 172.16.10.241:56396->195.234.4.19:53: i/o timeout
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @195.234.4.19 NS seb.inf.ua.
+;; SERVER: 195.234.4.19
+;; ERROR: dial tcp4 195.234.4.19:53: i/o timeout

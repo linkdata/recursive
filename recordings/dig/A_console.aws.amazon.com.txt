@@ -1,0 +1,1343 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A console.aws.amazon.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 6872
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41891
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1450
+;; QUESTION SECTION:
+;console.aws.amazon.com.		IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 23 msec
+;; SERVER: 199.7.91.13#53(d.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1182
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21071
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.aws.amazon.com.		IN	A
+
+;; AUTHORITY SECTION:
+amazon.com.		172800	IN	NS	ns1.amzndns.org.
+amazon.com.		172800	IN	NS	ns2.amzndns.org.
+amazon.com.		172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns1.amzndns.net.
+amazon.com.		172800	IN	NS	ns2.amzndns.net.
+amazon.com.		172800	IN	NS	ns1.amzndns.com.
+amazon.com.		172800	IN	NS	ns2.amzndns.com.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN NSEC3 1 1 0 - K201OL9RR8G60SVOKTU0G0BE7M05JF51 NS DS RRSIG
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN RRSIG NSEC3 13 2 900 20250921023649 20250914012649 20545 com. fk+LMRi2unHqDC5Uh0SkLQJMHO6++dX5rbwAE8ths5VgjzXQ4cNNMDGj P38X0JA+h4ZM3Mg2E1WNx/DVEOe2pQ==
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; Query time: 19 msec
+;; SERVER: 192.52.178.30#53(k.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 683
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47901
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.aws.amazon.com.		IN	A
+
+;; ANSWER SECTION:
+console.aws.amazon.com.	7200	IN	CNAME	console.cname-proxy.amazon.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+
+;; Query time: 1 msec
+;; SERVER: 156.154.64.10#53(ns1.amzndns.com) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 234
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A console.cname-proxy.amazon.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 24709
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41120
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+
+;; Query time: 1 msec
+;; SERVER: 198.41.0.4#53(a.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1190
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 32164
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	A
+
+;; AUTHORITY SECTION:
+amazon.com.		172800	IN	NS	ns1.amzndns.org.
+amazon.com.		172800	IN	NS	ns2.amzndns.org.
+amazon.com.		172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns1.amzndns.net.
+amazon.com.		172800	IN	NS	ns2.amzndns.net.
+amazon.com.		172800	IN	NS	ns1.amzndns.com.
+amazon.com.		172800	IN	NS	ns2.amzndns.com.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN NSEC3 1 1 0 - K201OL9RR8G60SVOKTU0G0BE7M05JF51 NS DS RRSIG
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN RRSIG NSEC3 13 2 900 20250921023649 20250914012649 20545 com. fk+LMRi2unHqDC5Uh0SkLQJMHO6++dX5rbwAE8ths5VgjzXQ4cNNMDGj P38X0JA+h4ZM3Mg2E1WNx/DVEOe2pQ==
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; Query time: 21 msec
+;; SERVER: 192.41.162.30#53(l.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 691
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14107
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	A
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+
+;; Query time: 103 msec
+;; SERVER: 156.154.150.1#53(ns2.amzndns.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 196
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 53674
+;; flags: qr aa ad; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;console.cname-proxy.amazon.com.	IN	A
+
+;; ANSWER SECTION:
+console.cname-proxy.amazon.com.	60 IN	CNAME	lbr.us.console.amazonaws.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	1801	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	1801	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	1801	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	1801	IN	NS	ns-689.awsdns-22.net.
+
+;; Query time: 4 msec
+;; SERVER: 205.251.197.33#53(ns-1313.awsdns-36.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 235
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A lbr.us.console.amazonaws.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 36233
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 57043
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 2 msec
+;; SERVER: 192.203.230.10#53(e.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1188
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 62606
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	A
+
+;; AUTHORITY SECTION:
+amazonaws.com.		172800	IN	NS	ns-27.awsdns-03.com.
+amazonaws.com.		172800	IN	NS	ns-967.awsdns-56.net.
+amazonaws.com.		172800	IN	NS	ns-1670.awsdns-16.co.uk.
+amazonaws.com.		172800	IN	NS	ns-1321.awsdns-37.org.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+F1RGHV8CVSR5SBF46VJMSSJPAH752J3F.com. 900 IN NSEC3 1 1 0 - F1RH49R1IFVTNRFEFE2RDU1MVVK0RFD5 NS DS RRSIG
+F1RGHV8CVSR5SBF46VJMSSJPAH752J3F.com. 900 IN RRSIG NSEC3 13 2 900 20250921005712 20250913234712 20545 com. /n9AX6VBWAxXk7G3ZQIcpS0BeVbAnrOR1u+r/iNtSKgQ25jKJiTANHff E02vHEyvtYbn0TVrixPB/6JG48IQ5Q==
+
+;; ADDITIONAL SECTION:
+ns-27.awsdns-03.com.	172800	IN	A	205.251.192.27
+
+;; Query time: 22 msec
+;; SERVER: 192.33.14.30#53(b.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 566
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45103
+;; flags: qr ad; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	A
+
+;; AUTHORITY SECTION:
+console.amazonaws.com.	7200	IN	NS	ns-1342.awsdns-39.org.
+console.amazonaws.com.	7200	IN	NS	ns-1832.awsdns-37.co.uk.
+console.amazonaws.com.	7200	IN	NS	ns-372.awsdns-46.com.
+console.amazonaws.com.	7200	IN	NS	ns-671.awsdns-19.net.
+
+;; Query time: 7 msec
+;; SERVER: 205.251.198.134#53(ns-1670.awsdns-16.co.uk) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 194
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 31814
+;; flags: qr ad; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	A
+
+;; AUTHORITY SECTION:
+us.console.amazonaws.com. 60	IN	NS	ns-1335.awsdns-38.org.
+us.console.amazonaws.com. 60	IN	NS	ns-1892.awsdns-44.co.uk.
+us.console.amazonaws.com. 60	IN	NS	ns-499.awsdns-62.com.
+us.console.amazonaws.com. 60	IN	NS	ns-611.awsdns-12.net.
+
+;; Query time: 1 msec
+;; SERVER: 205.251.193.116#53(ns-372.awsdns-46.com) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 194
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 35925
+;; flags: qr aa ad; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;lbr.us.console.amazonaws.com.	IN	A
+
+;; ANSWER SECTION:
+lbr.us.console.amazonaws.com. 60 IN	CNAME	eu-north-1.console.aws.amazon.com.
+
+;; AUTHORITY SECTION:
+us.console.amazonaws.com. 172800 IN	NS	ns-1335.awsdns-38.org.
+us.console.amazonaws.com. 172800 IN	NS	ns-1892.awsdns-44.co.uk.
+us.console.amazonaws.com. 172800 IN	NS	ns-499.awsdns-62.com.
+us.console.amazonaws.com. 172800 IN	NS	ns-611.awsdns-12.net.
+
+;; Query time: 7 msec
+;; SERVER: 205.251.199.100#53(ns-1892.awsdns-44.co.uk) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 238
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A eu-north-1.console.aws.amazon.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 58033
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510669	IN	NS	h.root-servers.net.
+.			510669	IN	NS	i.root-servers.net.
+.			510669	IN	NS	j.root-servers.net.
+.			510669	IN	NS	k.root-servers.net.
+.			510669	IN	NS	l.root-servers.net.
+.			510669	IN	NS	m.root-servers.net.
+.			510669	IN	NS	a.root-servers.net.
+.			510669	IN	NS	b.root-servers.net.
+.			510669	IN	NS	c.root-servers.net.
+.			510669	IN	NS	d.root-servers.net.
+.			510669	IN	NS	e.root-servers.net.
+.			510669	IN	NS	f.root-servers.net.
+.			510669	IN	NS	g.root-servers.net.
+.			510669	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510669	IN	A	198.41.0.4
+a.root-servers.net.	510669	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510669	IN	A	170.247.170.2
+b.root-servers.net.	510669	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510669	IN	A	192.33.4.12
+c.root-servers.net.	510669	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510669	IN	A	199.7.91.13
+d.root-servers.net.	510669	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510669	IN	A	192.203.230.10
+e.root-servers.net.	510669	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510669	IN	A	192.5.5.241
+f.root-servers.net.	510669	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510669	IN	A	192.112.36.4
+g.root-servers.net.	510669	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510669	IN	A	198.97.190.53
+h.root-servers.net.	510669	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510669	IN	A	192.36.148.17
+i.root-servers.net.	510669	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510669	IN	A	192.58.128.30
+j.root-servers.net.	510669	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510669	IN	A	193.0.14.129
+k.root-servers.net.	510669	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510669	IN	A	199.7.83.42
+l.root-servers.net.	510669	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510669	IN	A	202.12.27.33
+m.root-servers.net.	510669	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 35346
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com. IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; Query time: 22 msec
+;; SERVER: 193.0.14.129#53(k.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1196
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 59879
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com. IN	A
+
+;; AUTHORITY SECTION:
+amazon.com.		172800	IN	NS	ns1.amzndns.org.
+amazon.com.		172800	IN	NS	ns2.amzndns.org.
+amazon.com.		172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns1.amzndns.net.
+amazon.com.		172800	IN	NS	ns2.amzndns.net.
+amazon.com.		172800	IN	NS	ns1.amzndns.com.
+amazon.com.		172800	IN	NS	ns2.amzndns.com.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN NSEC3 1 1 0 - K201OL9RR8G60SVOKTU0G0BE7M05JF51 NS DS RRSIG
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN RRSIG NSEC3 13 2 900 20250921023649 20250914012649 20545 com. fk+LMRi2unHqDC5Uh0SkLQJMHO6++dX5rbwAE8ths5VgjzXQ4cNNMDGj P38X0JA+h4ZM3Mg2E1WNx/DVEOe2pQ==
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; Query time: 20 msec
+;; SERVER: 192.33.14.30#53(b.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 694
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 29225
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;eu-north-1.console.aws.amazon.com. IN	A
+
+;; ANSWER SECTION:
+eu-north-1.console.aws.amazon.com. 7200	IN CNAME eu-north-1.console.cname-proxy.amazon.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+
+;; Query time: 1 msec
+;; SERVER: 156.154.66.10#53(ns1.amzndns.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 256
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A eu-north-1.console.cname-proxy.amazon.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27816
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510669	IN	NS	c.root-servers.net.
+.			510669	IN	NS	d.root-servers.net.
+.			510669	IN	NS	e.root-servers.net.
+.			510669	IN	NS	f.root-servers.net.
+.			510669	IN	NS	g.root-servers.net.
+.			510669	IN	NS	h.root-servers.net.
+.			510669	IN	NS	i.root-servers.net.
+.			510669	IN	NS	j.root-servers.net.
+.			510669	IN	NS	k.root-servers.net.
+.			510669	IN	NS	l.root-servers.net.
+.			510669	IN	NS	m.root-servers.net.
+.			510669	IN	NS	a.root-servers.net.
+.			510669	IN	NS	b.root-servers.net.
+.			510669	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510669	IN	A	198.41.0.4
+a.root-servers.net.	510669	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510669	IN	A	170.247.170.2
+b.root-servers.net.	510669	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510669	IN	A	192.33.4.12
+c.root-servers.net.	510669	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510669	IN	A	199.7.91.13
+d.root-servers.net.	510669	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510669	IN	A	192.203.230.10
+e.root-servers.net.	510669	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510669	IN	A	192.5.5.241
+f.root-servers.net.	510669	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510669	IN	A	192.112.36.4
+g.root-servers.net.	510669	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510669	IN	A	198.97.190.53
+h.root-servers.net.	510669	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510669	IN	A	192.36.148.17
+i.root-servers.net.	510669	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510669	IN	A	192.58.128.30
+j.root-servers.net.	510669	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510669	IN	A	193.0.14.129
+k.root-servers.net.	510669	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510669	IN	A	199.7.83.42
+l.root-servers.net.	510669	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510669	IN	A	202.12.27.33
+m.root-servers.net.	510669	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 49512
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com. IN A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 2 msec
+;; SERVER: 192.5.5.241#53(f.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1201
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21100
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 12, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com. IN A
+
+;; AUTHORITY SECTION:
+amazon.com.		172800	IN	NS	ns1.amzndns.org.
+amazon.com.		172800	IN	NS	ns2.amzndns.org.
+amazon.com.		172800	IN	NS	ns1.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns2.amzndns.co.uk.
+amazon.com.		172800	IN	NS	ns1.amzndns.net.
+amazon.com.		172800	IN	NS	ns2.amzndns.net.
+amazon.com.		172800	IN	NS	ns1.amzndns.com.
+amazon.com.		172800	IN	NS	ns2.amzndns.com.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN NSEC3 1 1 0 - K201OL9RR8G60SVOKTU0G0BE7M05JF51 NS DS RRSIG
+K2018RPS5825HNTF5IBTBK1G1T6BMOAB.com. 900 IN RRSIG NSEC3 13 2 900 20250921023649 20250914012649 20545 com. fk+LMRi2unHqDC5Uh0SkLQJMHO6++dX5rbwAE8ths5VgjzXQ4cNNMDGj P38X0JA+h4ZM3Mg2E1WNx/DVEOe2pQ==
+
+;; ADDITIONAL SECTION:
+ns1.amzndns.com.	172800	IN	A	156.154.64.10
+ns1.amzndns.com.	172800	IN	AAAA	2001:502:f3ff::10
+ns2.amzndns.com.	172800	IN	A	156.154.68.10
+ns2.amzndns.com.	172800	IN	AAAA	2610:a1:1016::10
+
+;; Query time: 2 msec
+;; SERVER: 192.54.112.30#53(h.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 702
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 13195
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com. IN A
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	60	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	60	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	60	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	60	IN	NS	ns-689.awsdns-22.net.
+
+;; Query time: 1 msec
+;; SERVER: 156.154.68.10#53(ns2.amzndns.com) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 207
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 28909
+;; flags: qr aa ad; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;eu-north-1.console.cname-proxy.amazon.com. IN A
+
+;; ANSWER SECTION:
+eu-north-1.console.cname-proxy.amazon.com. 60 IN CNAME gr.aga.console-geo.eu-north-1.amazonaws.com.
+
+;; AUTHORITY SECTION:
+cname-proxy.amazon.com.	1801	IN	NS	ns-1313.awsdns-36.org.
+cname-proxy.amazon.com.	1801	IN	NS	ns-1878.awsdns-42.co.uk.
+cname-proxy.amazon.com.	1801	IN	NS	ns-429.awsdns-53.com.
+cname-proxy.amazon.com.	1801	IN	NS	ns-689.awsdns-22.net.
+
+;; Query time: 4 msec
+;; SERVER: 205.251.197.33#53(ns-1313.awsdns-36.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 261
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A gr.aga.console-geo.eu-north-1.amazonaws.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 32886
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510669	IN	NS	c.root-servers.net.
+.			510669	IN	NS	d.root-servers.net.
+.			510669	IN	NS	e.root-servers.net.
+.			510669	IN	NS	f.root-servers.net.
+.			510669	IN	NS	g.root-servers.net.
+.			510669	IN	NS	h.root-servers.net.
+.			510669	IN	NS	i.root-servers.net.
+.			510669	IN	NS	j.root-servers.net.
+.			510669	IN	NS	k.root-servers.net.
+.			510669	IN	NS	l.root-servers.net.
+.			510669	IN	NS	m.root-servers.net.
+.			510669	IN	NS	a.root-servers.net.
+.			510669	IN	NS	b.root-servers.net.
+.			510669	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510669	IN	A	198.41.0.4
+a.root-servers.net.	510669	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510669	IN	A	170.247.170.2
+b.root-servers.net.	510669	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510669	IN	A	192.33.4.12
+c.root-servers.net.	510669	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510669	IN	A	199.7.91.13
+d.root-servers.net.	510669	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510669	IN	A	192.203.230.10
+e.root-servers.net.	510669	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510669	IN	A	192.5.5.241
+f.root-servers.net.	510669	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510669	IN	A	192.112.36.4
+g.root-servers.net.	510669	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510669	IN	A	198.97.190.53
+h.root-servers.net.	510669	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510669	IN	A	192.36.148.17
+i.root-servers.net.	510669	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510669	IN	A	192.58.128.30
+j.root-servers.net.	510669	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510669	IN	A	193.0.14.129
+k.root-servers.net.	510669	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510669	IN	A	199.7.83.42
+l.root-servers.net.	510669	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510669	IN	A	202.12.27.33
+m.root-servers.net.	510669	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 43047
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 26
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 3854b918ac98d8aa0100000068ca920a3efa1d003b504718 (good)
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com. IN	A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+
+;; Query time: 1 msec
+;; SERVER: 192.36.148.17#53(i.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1206
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 21773
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com. IN	A
+
+;; AUTHORITY SECTION:
+amazonaws.com.		172800	IN	NS	ns-27.awsdns-03.com.
+amazonaws.com.		172800	IN	NS	ns-967.awsdns-56.net.
+amazonaws.com.		172800	IN	NS	ns-1670.awsdns-16.co.uk.
+amazonaws.com.		172800	IN	NS	ns-1321.awsdns-37.org.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+F1RGHV8CVSR5SBF46VJMSSJPAH752J3F.com. 900 IN NSEC3 1 1 0 - F1RH49R1IFVTNRFEFE2RDU1MVVK0RFD5 NS DS RRSIG
+F1RGHV8CVSR5SBF46VJMSSJPAH752J3F.com. 900 IN RRSIG NSEC3 13 2 900 20250921005712 20250913234712 20545 com. /n9AX6VBWAxXk7G3ZQIcpS0BeVbAnrOR1u+r/iNtSKgQ25jKJiTANHff E02vHEyvtYbn0TVrixPB/6JG48IQ5Q==
+
+;; ADDITIONAL SECTION:
+ns-27.awsdns-03.com.	172800	IN	A	205.251.192.27
+
+;; Query time: 2 msec
+;; SERVER: 192.42.93.30#53(g.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 581
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47788
+;; flags: qr ad; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com. IN	A
+
+;; AUTHORITY SECTION:
+eu-north-1.amazonaws.com. 7200	IN	NS	ns1.amzndns.co.uk.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns1.amzndns.com.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns1.amzndns.net.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns1.amzndns.org.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns2.amzndns.co.uk.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns2.amzndns.com.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns2.amzndns.net.
+eu-north-1.amazonaws.com. 7200	IN	NS	ns2.amzndns.org.
+
+;; Query time: 7 msec
+;; SERVER: 205.251.198.134#53(ns-1670.awsdns-16.co.uk) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 259
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45492
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com. IN	A
+
+;; AUTHORITY SECTION:
+console-geo.eu-north-1.amazonaws.com. 7200 IN NS ns-148.awsdns-18.com.
+console-geo.eu-north-1.amazonaws.com. 7200 IN NS ns-581.awsdns-08.net.
+console-geo.eu-north-1.amazonaws.com. 7200 IN NS ns-1055.awsdns-03.org.
+console-geo.eu-north-1.amazonaws.com. 7200 IN NS ns-1737.awsdns-25.co.uk.
+
+;; Query time: 22 msec
+;; SERVER: 156.154.67.10#53(ns1.amzndns.co.uk) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 209
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 41130
+;; flags: qr aa ad; QUERY: 1, ANSWER: 1, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;gr.aga.console-geo.eu-north-1.amazonaws.com. IN	A
+
+;; ANSWER SECTION:
+gr.aga.console-geo.eu-north-1.amazonaws.com. 60	IN CNAME aba8735d2c3d241de.awsglobalaccelerator.com.
+
+;; AUTHORITY SECTION:
+console-geo.eu-north-1.amazonaws.com. 172800 IN	NS ns-1055.awsdns-03.org.
+console-geo.eu-north-1.amazonaws.com. 172800 IN	NS ns-148.awsdns-18.com.
+console-geo.eu-north-1.amazonaws.com. 172800 IN	NS ns-1737.awsdns-25.co.uk.
+console-geo.eu-north-1.amazonaws.com. 172800 IN	NS ns-581.awsdns-08.net.
+
+;; Query time: 4 msec
+;; SERVER: 205.251.196.31#53(ns-1055.awsdns-03.org) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 262
+
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A aba8735d2c3d241de.awsglobalaccelerator.com.
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47715
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510669	IN	NS	l.root-servers.net.
+.			510669	IN	NS	m.root-servers.net.
+.			510669	IN	NS	a.root-servers.net.
+.			510669	IN	NS	b.root-servers.net.
+.			510669	IN	NS	c.root-servers.net.
+.			510669	IN	NS	d.root-servers.net.
+.			510669	IN	NS	e.root-servers.net.
+.			510669	IN	NS	f.root-servers.net.
+.			510669	IN	NS	g.root-servers.net.
+.			510669	IN	NS	h.root-servers.net.
+.			510669	IN	NS	i.root-servers.net.
+.			510669	IN	NS	j.root-servers.net.
+.			510669	IN	NS	k.root-servers.net.
+.			510669	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510669	IN	A	198.41.0.4
+a.root-servers.net.	510669	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510669	IN	A	170.247.170.2
+b.root-servers.net.	510669	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510669	IN	A	192.33.4.12
+c.root-servers.net.	510669	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510669	IN	A	199.7.91.13
+d.root-servers.net.	510669	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510669	IN	A	192.203.230.10
+e.root-servers.net.	510669	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510669	IN	A	192.5.5.241
+f.root-servers.net.	510669	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510669	IN	A	192.112.36.4
+g.root-servers.net.	510669	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510669	IN	A	198.97.190.53
+h.root-servers.net.	510669	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510669	IN	A	192.36.148.17
+i.root-servers.net.	510669	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510669	IN	A	192.58.128.30
+j.root-servers.net.	510669	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510669	IN	A	193.0.14.129
+k.root-servers.net.	510669	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510669	IN	A	199.7.83.42
+l.root-servers.net.	510669	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510669	IN	A	202.12.27.33
+m.root-servers.net.	510669	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 25404
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 15, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com. IN A
+
+;; AUTHORITY SECTION:
+com.			172800	IN	NS	a.gtld-servers.net.
+com.			172800	IN	NS	b.gtld-servers.net.
+com.			172800	IN	NS	c.gtld-servers.net.
+com.			172800	IN	NS	d.gtld-servers.net.
+com.			172800	IN	NS	e.gtld-servers.net.
+com.			172800	IN	NS	f.gtld-servers.net.
+com.			172800	IN	NS	g.gtld-servers.net.
+com.			172800	IN	NS	h.gtld-servers.net.
+com.			172800	IN	NS	i.gtld-servers.net.
+com.			172800	IN	NS	j.gtld-servers.net.
+com.			172800	IN	NS	k.gtld-servers.net.
+com.			172800	IN	NS	l.gtld-servers.net.
+com.			172800	IN	NS	m.gtld-servers.net.
+com.			86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A
+com.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . dI8QTsyQROu6sZLf0435BaX0Uq6/9usd1XvuOM1mT2ZLlhd1J4wr8fqk brImQHgJANO4Z09tXcqD9JanpsUJoPsEU1dWVNDMFwsfEzoGfypmAGEP nNb+RUDgAUFqZFJaTF6pdTC/3HmwQujCd4QLanj6FdkVFOcLmGvDRTbT sFAfNrOoske3aJQ4fy7vHz0HNsaQLgYK8kq47x3aqb3sZ+RNn+1+RKLZ V0uVnsPc4QvPHgEkumShrzUyiS2KQRtaddCAgZ0aKQlCu9WWgUBUh/7U 7Ln2OZrfuUr6lmWaaoGpVFN/SgT+w41yOozLlxZ/1rFbjWbRWEOuuHKD wgYa0A==
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; Query time: 24 msec
+;; SERVER: 198.97.190.53#53(h.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1202
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 37424
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com. IN A
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com. 172800 IN	NS	ns-609.awsdns-12.net.
+awsglobalaccelerator.com. 172800 IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com. 172800 IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com. 172800 IN	NS	ns-1484.awsdns-57.org.
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN NSEC3 1 1 0 - CK0Q3UDG8CEKKAE7RUKPGCT1DVSSH8LL NS SOA RRSIG DNSKEY NSEC3PARAM
+CK0POJMG874LJREF7EFN8430QVIT8BSM.com. 900 IN RRSIG NSEC3 13 2 900 20250924002611 20250916231611 20545 com. pd4Ns+LJVpNSAHkyxMDNDOxfu+SCWzDKiGmIPpFEFNQYIqbUT1YR/YbZ xhsdKXXTjSxDU5qrOVpaGIQX0l4M/Q==
+NH8O4B62QPGP6608TUEQJ50I32T9KK21.com. 900 IN NSEC3 1 1 0 - NH8ON23J0GUFCUPMRU8GC3401FSONH7O NS DS RRSIG
+NH8O4B62QPGP6608TUEQJ50I32T9KK21.com. 900 IN RRSIG NSEC3 13 2 900 20250924020052 20250917005052 20545 com. ihXX68ArYJNWzqFwDD5Yf2GlMElW7TulqJQ5gOyhwL7A6gF+C8Vxxb9r 41NB7fMCoUlhGL5ZOlb77Hz+5hPr5Q==
+
+;; ADDITIONAL SECTION:
+ns-409.awsdns-51.com.	172800	IN	A	205.251.193.153
+
+;; Query time: 19 msec
+;; SERVER: 192.55.83.30#53(m.gtld-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 581
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 64421
+;; flags: qr aa ad; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;aba8735d2c3d241de.awsglobalaccelerator.com. IN A
+
+;; ANSWER SECTION:
+aba8735d2c3d241de.awsglobalaccelerator.com. 300	IN A 166.117.98.246
+aba8735d2c3d241de.awsglobalaccelerator.com. 300	IN A 166.117.166.206
+
+;; AUTHORITY SECTION:
+awsglobalaccelerator.com. 172800 IN	NS	ns-1484.awsdns-57.org.
+awsglobalaccelerator.com. 172800 IN	NS	ns-1949.awsdns-51.co.uk.
+awsglobalaccelerator.com. 172800 IN	NS	ns-409.awsdns-51.com.
+awsglobalaccelerator.com. 172800 IN	NS	ns-609.awsdns-12.net.
+
+;; Query time: 7 msec
+;; SERVER: 205.251.199.157#53(ns-1949.awsdns-51.co.uk) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 240
+

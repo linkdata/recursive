@@ -1,0 +1,255 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS la.
+;; opcode: QUERY, status: NOERROR, id: 11053
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 9
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;la.	IN	 NS
+
+;; AUTHORITY SECTION:
+la.	172800	IN	NS	ns1.nic.la.
+la.	172800	IN	NS	ns2.nic.la.
+la.	172800	IN	NS	ns3.nic.la.
+la.	172800	IN	NS	ns4.nic.la.
+
+;; ADDITIONAL SECTION:
+ns1.nic.la.	172800	IN	A	185.24.64.15
+ns1.nic.la.	172800	IN	AAAA	2a04:2b00:13cc::1:15
+ns2.nic.la.	172800	IN	A	194.169.218.14
+ns2.nic.la.	172800	IN	AAAA	2001:67c:13cc::1:14
+ns3.nic.la.	172800	IN	A	185.24.64.14
+ns3.nic.la.	172800	IN	AAAA	2a04:2b00:13cc::1:14
+ns4.nic.la.	172800	IN	A	194.169.218.15
+ns4.nic.la.	172800	IN	AAAA	2001:67c:13cc::1:15
+
+;; GZPACK: H4sIAAAAAAAA/9LWbWRgYGRgYGBh4GTKSWRgYGJghNEMTIsZGHiY84oNmfMyk0GiGDJGOGWMccqYwGSQTWZghKpg2SnhwI8iIwOVEdBi0WYQPsMAAYwMosj2I/QfWnmLD0UGrl+Bka0GSb8IsitR7OdDkcFlvwiyX1Ds50eRwWW/KAODJusBCA8QAAD//8h3O7OHAQAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @185.24.64.14 NS per.la.
+;; opcode: QUERY, status: NOERROR, id: 28332
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ad2cada17a9f78ff925b585568ca72f848f37214ca0cd26e
+
+;; QUESTION SECTION:
+;per.la.	IN	 NS
+
+;; AUTHORITY SECTION:
+per.la.	3600	IN	NS	ns2.traffichosting.com.
+per.la.	3600	IN	NS	ns1.traffichosting.com.
+
+;; GZPACK: H4sIAAAAAAAA/8pb08jAwMjAwMDEwMhckFrElJOIwWZg4BNgkGDOKzbiKylKTEvLTM7ILy7JzEtnTs7PZcCq0hCbSgYGTZYLDCAgw8DFILFWZ+3CqvkV/ydFR4RmnCr64fG5SOQUz6U8QAAAAP//wV7Qz5MAAAA=
+;; SERVER: 185.24.64.14
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A com.
+;; opcode: QUERY, status: NOERROR, id: 54976
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8XMTIw6tOHTSelQ6VSkEFIuLr6DgqoK2sf5pa2mLu4hv4AtoFwcXfYK4O4rgMwjubhKj+Lv6g5MphW8/3HDPeUnPRZyIFGUmbJx2sh8ufwnESTASKbm9QmvYbtYGSf8s6Q/CbjKUv8m+nTTspGkniZ0c2EnLTg7t5MhOju3kxE7adtL5n7B7y6736x9jaTSutCh/F1PzLgpv1yV/AonZJYO3MKm08LzKLHhkIsCb3lZaeN7Fm/w8MRsf8OY2lRboyWUXPDJr4BV2lRboBeVr8MhggldZVlp43/tcAo9MMXiLO0oLz3sfgUdGHrzVntLC+96JJ/DIfoC3dKe08M639ggeWSbw4g2lhXe+3hV4ZPPAW3lQWnjnK9bAI2sKXvVGaeHN32sdPLLT4NW3lBboufuPX0+kGqX5+2cAAAD//7BuiYr3BQAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A traffichosting.com.
+;; opcode: QUERY, status: NOERROR, id: 23702
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;traffichosting.com.	IN	 A
+
+;; AUTHORITY SECTION:
+traffichosting.com.	172800	IN	NS	ns1.afternic.com.
+traffichosting.com.	172800	IN	NS	ns2.afternic.com.
+
+;; ADDITIONAL SECTION:
+ns1.afternic.com.	172800	IN	AAAA	2603:5:2126::45
+ns1.afternic.com.	172800	IN	A	97.74.98.69
+ns2.afternic.com.	172800	IN	A	173.201.66.69
+ns2.afternic.com.	172800	IN	AAAA	2603:5:2226::45
+
+;; GZPACK: H4sIAAAAAAAA/4qZ1sjAwMjAwMDEwMpXUpSYlpaZnJFfXJKZl86cnJ8LkmPEKs7EwMjAtJiBQYg5r9iQIzGtJLUoLzMZLEdQvRGqekwTGGSgqgXUmBlYFdUYYMAVi1pGqFqWRK8kV0zTEfJrTzphk0exSwnJLgYGTQEoGxAAAP//NcQ6QicBAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @97.74.98.69 A ns1.traffichosting.com.
+;; opcode: QUERY, status: NOERROR, id: 52733
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns1.traffichosting.com.	IN	 A
+
+;; ANSWER SECTION:
+ns1.traffichosting.com.	3600	IN	A	99.83.161.153
+ns1.traffichosting.com.	3600	IN	A	166.117.110.61
+
+;; GZPACK: H4sIAAAAAAAA/zr7t5WBgZGBiYGBgZE5r9iQr6QoMS0tMzkjv7gkMy+dOTk/FySPV46BgU+AgSU5eOFMwqqWlebZMjBosh5gAANAAAAA//8upfmXfwAAAA==
+;; SERVER: 97.74.98.69
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @166.117.110.61 NS telia.per.la.
+;; SERVER: 166.117.110.61
+;; ERROR: read udp4 172.16.10.241:50009->166.117.110.61:53: i/o timeout
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @166.117.110.61 NS telia.per.la.
+;; SERVER: 166.117.110.61
+;; ERROR: dial tcp4 166.117.110.61:53: i/o timeout
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A com.
+;; opcode: QUERY, status: NOERROR, id: 47487
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8XMTIw6tOHTSelQ6VSkEFIuLr6DgqoK2sf5pa2mLq4j4Br6AdnFw0c2t7o4uPoPg7iYxir9rf3AypfDthxvuOU/nFyJORPIyE9ZOW+kPl70E4iQYiBTcXq7Rb9YrvaR7lnR7YTvpy/9k305qdlK3k8RODuykYSeHdnJkJ8d2cmInTTtpjSbs3tLr/f7H2DAaV1oUf4qpeReFd+uSPYHE7JLBW5hUWnheaRY8MhHgTW8rLTzv8l1+n5iND3hzm0oL9OSqDR6ZNfByu0oL9ILiDXhkMMErLSstvO99LYBHphi8xR2lhed9DMAjIw/eakdp4X3vxAt4ZD/AW7pXWnjnW3sGjywTePGG0sI7X+caPLJ54K08Ki288+Ur4JE1Ba98q7Tw5u+tCh7ZafCqW0oL9NzD558nUo6G2ftXAAAA//9i/FUy9wUAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A traffichosting.com.
+;; opcode: QUERY, status: NOERROR, id: 28761
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;traffichosting.com.	IN	 A
+
+;; AUTHORITY SECTION:
+traffichosting.com.	172800	IN	NS	ns1.afternic.com.
+traffichosting.com.	172800	IN	NS	ns2.afternic.com.
+
+;; ADDITIONAL SECTION:
+ns1.afternic.com.	172800	IN	AAAA	2603:5:2126::45
+ns1.afternic.com.	172800	IN	A	97.74.98.69
+ns2.afternic.com.	172800	IN	A	173.201.66.69
+ns2.afternic.com.	172800	IN	AAAA	2603:5:2226::45
+
+;; GZPACK: H4sIAAAAAAAA/yqIbGRgYGRgYGBiYOUrKUpMS8tMzsgvLsnMS2dOzs8FyTFiFWdiYGRgWszAIMScV2zIkZhWklqUl5kMliOo3ghVPaYJDDJQ1QJqzAysimoMMOCKRS0jVC1LoleSK6bpCPm1J52wyaPYpYRkFwODpgCUDQgAAP///bf2EycBAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @97.74.98.69 A ns2.traffichosting.com.
+;; opcode: QUERY, status: NOERROR, id: 16227
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;ns2.traffichosting.com.	IN	 A
+
+;; ANSWER SECTION:
+ns2.traffichosting.com.	3600	IN	A	99.83.161.153
+ns2.traffichosting.com.	3600	IN	A	166.117.110.61
+
+;; GZPACK: H4sIAAAAAAAA/7JPbmVgYGRgYmBgYGTOKzbiKylKTEvLTM7ILy7JzEtnTs7PBcnjlWNg4BNgYEkOXjiTsKplpXm2DAyarAcYwAAQAAD//976Fil/AAAA
+;; SERVER: 97.74.98.69
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @99.83.161.153 A telia.per.la.
+;; SERVER: 99.83.161.153
+;; ERROR: read udp4 172.16.10.241:60074->99.83.161.153:53: i/o timeout
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @99.83.161.153 A telia.per.la.
+;; SERVER: 99.83.161.153
+;; ERROR: dial tcp4 99.83.161.153:53: i/o timeout

@@ -1,0 +1,71 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS ar.
+;; opcode: QUERY, status: NOERROR, id: 35105
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ae5a7a7bc42a0f9b0100000068ca7311f6dfaba091ac591b
+
+;; QUESTION SECTION:
+;ar.	IN	 NS
+
+;; AUTHORITY SECTION:
+ar.	172800	IN	NS	e.dns.ar.
+ar.	172800	IN	NS	a.lactld.org.
+ar.	172800	IN	NS	d.dns.ar.
+ar.	172800	IN	NS	c.dns.ar.
+ar.	172800	IN	NS	f.dns.ar.
+
+;; ADDITIONAL SECTION:
+f.dns.ar.	172800	IN	A	130.59.31.20
+e.dns.ar.	172800	IN	A	170.238.66.50
+d.dns.ar.	172800	IN	A	192.140.126.50
+c.dns.ar.	172800	IN	A	200.108.148.50
+a.lactld.org.	172800	IN	A	200.0.68.10
+f.dns.ar.	172800	IN	AAAA	2001:620:0:ff::20
+e.dns.ar.	172800	IN	AAAA	2801:140:eeee::50
+d.dns.ar.	172800	IN	AAAA	2801:140:dddd::50
+c.dns.ar.	172800	IN	AAAA	2801:140:10::10
+a.lactld.org.	172800	IN	AAAA	2801:14:a000::10
+
+;; GZPACK: H4sIAAAAAAAA/+pUbGRgYGRgYGBl4GZKLGJgYGJghNEMTIsZGLgYU5lT8opBYijifIyJbDmJySU5Kcz5RekMaHpSsOrhYkzGIZ4GE0ewGBihsixN1vIiCFcgxFe9czJC2IQQP9BTZ4SwCSF+ImeKEaqrkeQYXJBcwSADFRdQYGRTYGBg+M8AAQpI7oCr0WBkdHj3jgEGApDchKLm7l0kNcnY1TAIwNUIoLkVSR2DyAIGhDoGBk2WC2CmDAMXg8S6qKrqI1r8s0GxmnGqWPDb/dULJq6JlAYEAAD//1L58ovrAQAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @130.59.31.20 NS bet.ar.
+;; opcode: QUERY, status: NOERROR, id: 48008
+;; flags: qr aa rd; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ae5a7a7bc42a0f9b0100000068ca7311a2325527be654212
+
+;; QUESTION SECTION:
+;bet.ar.	IN	 NS
+
+;; ANSWER SECTION:
+bet.ar.	7200	IN	NS	c.dns.ar.
+bet.ar.	7200	IN	NS	d.dns.ar.
+bet.ar.	7200	IN	NS	f.dns.ar.
+bet.ar.	7200	IN	NS	a.lactld.org.
+bet.ar.	7200	IN	NS	e.dns.ar.
+
+;; GZPACK: H4sIAAAAAAAA/9rd0crAwMjAysDAwMiclFrClFjEwMCEymZgkFFg4GJMZk7JKwaJYZFLwSOXhlOOjzGRLScxuSQnhTm/KB2b3lSYXgYGTZYLDCAgw8DFILEuqqr6iBb/bEYGBoaMU8WCi4xC1felOgkBAgAA//+rN+yPzwAAAA==
+;; SERVER: 130.59.31.20
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @130.59.31.20 NS wetrgijrotigj.bet.ar.
+;; opcode: QUERY, status: NXDOMAIN, id: 54341
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ae5a7a7bc42a0f9b0100000068ca7311a2325527be654212
+
+;; QUESTION SECTION:
+;wetrgijrotigj.bet.ar.	IN	 NS
+
+;; AUTHORITY SECTION:
+bet.ar.	7200	IN	SOA	e.dns.ar. noc.nic.gob.ar. 2025091705 600 300 1728000 7200
+
+;; GZPACK: H4sIAAAAAAAA/7ri2srMwMjAwMDIwMhbnlpSlJ6ZVZRfkpmexZyUWsKUWMTAwMTACGezgdTKKDDoMaYyp+QVg8SY8/KTmfMyk5nT85NA/IotRZUMDEwRDAyMOgxScQxg9QyaLBcYQECGgYtBYl1UVfURLf7ZIHszThULLjIKVd+X6iQECAAA///3fxRyjQAAAA==
+;; SERVER: 130.59.31.20

@@ -1,0 +1,80 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS mv.
+;; opcode: QUERY, status: NOERROR, id: 45475
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 4
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: c44cb5dadb2475860100000068ca72f7329f0473dff7b475
+
+;; QUESTION SECTION:
+;mv.	IN	 NS
+
+;; AUTHORITY SECTION:
+mv.	172800	IN	NS	mv-ns.anycast.pch.net.
+mv.	172800	IN	NS	ns.dhivehinet.net.mv.
+mv.	172800	IN	NS	ns2.dhivehinet.net.mv.
+
+;; ADDITIONAL SECTION:
+mv-ns.anycast.pch.net.	172800	IN	A	204.61.216.24
+ns2.dhivehinet.net.mv.	172800	IN	A	202.1.201.201
+ns.dhivehinet.net.mv.	172800	IN	A	202.1.192.196
+
+;; GZPACK: H4sIAAAAAAAA/9q4uJGBgZGBgYGZgYUpt4yBgYmBEUYzMC1mYBBnzS3TzStmT8yrTE4sLmEuSM5gzkstYUBRJMaUV8yVkpFZlpqRmZdaAlIAkkc1iDmv2AiLIhzmMzBC9bGcsb0hgUMvQtEpxpMnsTsCWc2BIwwMmiwXGEBAhoGLQeKIz9Zbt1VK20AhkHGq6LvRfJbi+9+3lAICAAD//8vdpogXAQAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @202.1.192.196 NS biz.mv.
+;; opcode: QUERY, status: NOERROR, id: 26892
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;biz.mv.	IN	 NS
+
+;; AUTHORITY SECTION:
+biz.mv.	3600	IN	NS	webns.mv.
+
+;; GZPACK: H4sIAAAAAAAA/8rkaWRgYGQAYUbmpMwqptwyBgYmVDYDA58AAxdreWpSXjFYjEFTgAECAAEAAP//YHEz4T8AAAA=
+;; SERVER: 202.1.192.196
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A mv.
+;; opcode: QUERY, status: NOERROR, id: 16928
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 4
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: c44cb5dadb2475860100000068ca72f7329f0473dff7b475
+
+;; QUESTION SECTION:
+;mv.	IN	 A
+
+;; AUTHORITY SECTION:
+mv.	172800	IN	NS	ns.dhivehinet.net.mv.
+mv.	172800	IN	NS	ns2.dhivehinet.net.mv.
+mv.	172800	IN	NS	mv-ns.anycast.pch.net.
+
+;; ADDITIONAL SECTION:
+mv-ns.anycast.pch.net.	172800	IN	A	204.61.216.24
+ns2.dhivehinet.net.mv.	172800	IN	A	202.1.201.201
+ns.dhivehinet.net.mv.	172800	IN	A	202.1.192.196
+
+;; GZPACK: H4sIAAAAAAAA/3JSaGRgYGRgYGBmYGHKLQOxGcE0EwMjA9NiBgYxprxirpSMzLLUjMy81BLmvNQSkDyKGnHmvGIjgopYc8t084rZE/MqkxOLS5gLkjNA6hhwCIMcAtbHcsb2hgQOCxCKTjGePIndpchqDhxhYNBkucAAAjIMXAwSR3y23rqtUtoGCoGMU0XfjeazFN//vqUUEAAA///ADdqKFwEAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @202.1.192.196 A webns.mv.
+;; opcode: QUERY, status: NXDOMAIN, id: 55226
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;webns.mv.	IN	 A
+
+;; AUTHORITY SECTION:
+mv.	3600	IN	SOA	ns.mv. hostmaster.dhivehinet.net.mv. 2025091704 1800 1800 3600 3600
+
+;; GZPACK: H4sIAAAAAAAA/7q+q5WZgZGBgYGRgZG1PDUpr5gptwzMA9NsIDk+AQZLJogEV0Z+cUluYnFJahFXSkZmWWpGZl5qCXNeaglItmJLUQUDAzsHBPMJQLCmAAMEAAIAAP//Nua1QGwAAAA=
+;; SERVER: 202.1.192.196

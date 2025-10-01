@@ -1,0 +1,100 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A telia.biz.mv
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 3944
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510669	IN	NS	l.root-servers.net.
+.			510669	IN	NS	m.root-servers.net.
+.			510669	IN	NS	a.root-servers.net.
+.			510669	IN	NS	b.root-servers.net.
+.			510669	IN	NS	c.root-servers.net.
+.			510669	IN	NS	d.root-servers.net.
+.			510669	IN	NS	e.root-servers.net.
+.			510669	IN	NS	f.root-servers.net.
+.			510669	IN	NS	g.root-servers.net.
+.			510669	IN	NS	h.root-servers.net.
+.			510669	IN	NS	i.root-servers.net.
+.			510669	IN	NS	j.root-servers.net.
+.			510669	IN	NS	k.root-servers.net.
+.			510669	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510669	IN	A	198.41.0.4
+a.root-servers.net.	510669	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510669	IN	A	170.247.170.2
+b.root-servers.net.	510669	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510669	IN	A	192.33.4.12
+c.root-servers.net.	510669	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510669	IN	A	199.7.91.13
+d.root-servers.net.	510669	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510669	IN	A	192.203.230.10
+e.root-servers.net.	510669	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510669	IN	A	192.5.5.241
+f.root-servers.net.	510669	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510669	IN	A	192.112.36.4
+g.root-servers.net.	510669	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510669	IN	A	198.97.190.53
+h.root-servers.net.	510669	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510669	IN	A	192.36.148.17
+i.root-servers.net.	510669	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510669	IN	A	192.58.128.30
+j.root-servers.net.	510669	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510669	IN	A	193.0.14.129
+k.root-servers.net.	510669	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510669	IN	A	199.7.83.42
+l.root-servers.net.	510669	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510669	IN	A	202.12.27.33
+m.root-servers.net.	510669	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 7928
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 4
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1450
+;; QUESTION SECTION:
+;telia.biz.mv.			IN	A
+
+;; AUTHORITY SECTION:
+mv.			172800	IN	NS	ns.dhivehinet.net.mv.
+mv.			172800	IN	NS	ns2.dhivehinet.net.mv.
+mv.			172800	IN	NS	mv-ns.anycast.pch.net.
+mv.			86400	IN	NSEC	mw. NS RRSIG NSEC
+mv.			86400	IN	RRSIG	NSEC 8 1 86400 20250930050000 20250917040000 46441 . ELfMPAxcHC6Fvkw2Hjg+MM/1/z6N6SLZZBmBfvXiuKgav0f/b5juQO0D QL+NfqRi7RxrRZ+88EucXoSF9+ZNFhCfroQ7oipJh8Y61Oeltj7qKKqs OtO12vmmHrsKp3jES6HZWpf/KxoaMZCbFtoz0hLi3OqJj6547gjjaxJt 9JpNOTb1TMHAroEjcmjPdA+oKXkenpMJsfVaFoZSlzijur9+RnpmBjtW j1UWkkWEoz9ad0bHTOz5oXd3Ir3WQTyYrqv+fLzKyF1JXEFGeR7ThKcd 0ggRrcglJgl4mQAthbGkkI/2hOlSKCx3hOiz+VUzST9tL3VFzAFEyy+h 7JB8FA==
+
+;; ADDITIONAL SECTION:
+ns.dhivehinet.net.mv.	172800	IN	A	202.1.192.196
+ns2.dhivehinet.net.mv.	172800	IN	A	202.1.201.201
+mv-ns.anycast.pch.net.	172800	IN	A	204.61.216.24
+
+;; Query time: 22 msec
+;; SERVER: 199.7.91.13#53(d.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:42 CEST 2025
+;; MSG SIZE  rcvd: 485
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 8501
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+;; QUESTION SECTION:
+;telia.biz.mv.			IN	A
+
+;; AUTHORITY SECTION:
+biz.mv.			3600	IN	NS	webns.mv.
+
+couldn't get address for 'webns.mv': not found

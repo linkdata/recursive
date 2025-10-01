@@ -1,0 +1,635 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS com.
+;; opcode: QUERY, status: NOERROR, id: 48265
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: d2b76d22d59cb5a30100000068ca72f18c40e185a6fbd4f3
+
+;; QUESTION SECTION:
+;com.	IN	 NS
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUP0tCURgG8PdcNSI0Ghyi7O2Pk4UgFElL9A0KWisovWmlJirtEQ5BY2NLCdHQUhAtDbVGQ4QNjc1BEE3REoXVc+qBc6d74XcOL+/zcC+2N0WMiESkN5BZL4p4Yn5exGuIRE0+nKsVssmqX9nwK9VAya/JX5JzkzU3KbrJkpv4brLiJlk3WXSTjJssu8mqmxT+E7ZOMa0Twcv0rLJTIBIHylIDMXaqbDgQqWll2wYxcqysYSDGy8oKBmJ4XtkeQcRHlRUDRHhBWegg+meUBQqiZ05ZQ0EMdirrDYhQm9LkYi3RNWBC5uRNvp8UTRG1PKRBs0RRByJJ0Cxd1F55FzRL2rp74go0S926u/0GNGuAdfdzAzRrg6WbUdCsGdYksX3QrCXWvusl0Kwx1iRbT6BZeywd72tZT1K0SZY+mvzVIong7ddHTDqk++68OHS/d9b4/PvnrysvO1OP9cP35utHAAAA//+yIxb9EwYAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 NS microsoft.com.
+;; opcode: QUERY, status: NOERROR, id: 33666
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;microsoft.com.	IN	 NS
+
+;; AUTHORITY SECTION:
+microsoft.com.	172800	IN	NS	ns1-39.azure-dns.com.
+microsoft.com.	172800	IN	NS	ns2-39.azure-dns.net.
+microsoft.com.	172800	IN	NS	ns3-39.azure-dns.org.
+microsoft.com.	172800	IN	NS	ns4-39.azure-dns.info.
+
+;; ADDITIONAL SECTION:
+ns1-39.azure-dns.com.	172800	IN	A	150.171.10.39
+
+;; GZPACK: H4sIAAAAAAAA/2puamRgYGRgYGBhYOLMzUwuyi/OTythTs7PZWBgYmDEIsTAtJiBQYwtr9hQ19iSM7GqtChVNyWvGCyPT7kRqvK81BK8yo1RlecXpeNULs6WV2yCopwlMy8tnwG7GxkYodpYpq3mUmdg0BRggABAAAAA//+OihSbCwEAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @150.171.10.39 NS www.microsoft.com.
+;; opcode: QUERY, status: NOERROR, id: 16547
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;www.microsoft.com.	IN	 NS
+
+;; ANSWER SECTION:
+www.microsoft.com.	3600	IN	CNAME	www.microsoft.com-c-3.edgekey.net.
+
+;; GZPACK: H4sIAAAAAAAA/3JY3MrAwMjAyMDAwMhcXl7OmZuZXJRfnJ9Wwpycn8vAwIRdmBWkg0+AQRlVkj05P1c3WdeYPTUlPTU7tZI5L7WEgYFBk+UCAxgAAgAA///aBKb8bgAAAA==
+;; SERVER: 150.171.10.39
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @150.171.10.39 A www.microsoft.com.
+;; opcode: QUERY, status: NOERROR, id: 61604
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;www.microsoft.com.	IN	 A
+
+;; ANSWER SECTION:
+www.microsoft.com.	3600	IN	CNAME	www.microsoft.com-c-3.edgekey.net.
+
+;; GZPACK: H4sIAAAAAAAA//qwpJWBgZGBkYGBgZG5vLycMzczuSi/OD+thDk5PxcshU2YFaSDT4BBGVWSPTk/VzdZ15g9NSU9NTu1kjkvtYSBgUGT5QIDGAACAAD//wI1/FtuAAAA
+;; SERVER: 150.171.10.39
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS net.
+;; opcode: QUERY, status: NOERROR, id: 11876
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: d2b76d22d59cb5a30100000068ca72f18c40e185a6fbd4f3
+
+;; QUESTION SECTION:
+;net.	IN	 NS
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUvS9DURgG8PfctiLSiqGDUK+PTiWVJkRjEf8BiRUJerVom6Zt7CLdjEYLTcRgIRErqxhEajCaJRIxiUU0F8/hSc6d7sfvnnvyPk/ueG5HxIhITPpDZb8u4on5ORGvKRI3+Wi+Xsyla35126/W2k//kqKb+G6Sc5NVNym4yYqbrLnJhpusu8mmm2y5Sek/YffEBG+Er7ILymIDkTpS9mkQk+fK9g8iM6dsTiDGTpVFBmKqoqyDIEaXlI0aRHJCWQNBRJeVFRDE4LyyWoDoW1TWUBDD3craByLSoTS5RCB6hkzEnL3L95GhKaKWxyxolijqUCwNmqWL2qvsg2ZJW2tPX4NmqVtrd96CZg2w1n5pgmZtsHQrDpo1w9pJ4hA0a4k170YZNGuMtZPdZ9CsPZZODgTWkwxtkqVPZn61SCp8175ISJf03l+WRh4OLppff//CTfV1b/apcfzRevsMAAD//yLqkxMTBgAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 NS edgekey.net.
+;; opcode: QUERY, status: NOERROR, id: 16970
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;edgekey.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+edgekey.net.	172800	IN	NS	a6-65.akam.net.
+edgekey.net.	172800	IN	NS	a12-65.akam.net.
+edgekey.net.	172800	IN	NS	a7-64.akam.net.
+edgekey.net.	172800	IN	NS	a16-65.akam.net.
+edgekey.net.	172800	IN	NS	a18-65.akam.net.
+edgekey.net.	172800	IN	NS	a1-66.akam.net.
+edgekey.net.	172800	IN	NS	a28-65.akam.net.
+edgekey.net.	172800	IN	NS	a10-66.akam.net.
+
+;; ADDITIONAL SECTION:
+a6-65.akam.net.	172800	IN	A	23.211.133.65
+a6-65.akam.net.	172800	IN	AAAA	2600:1401:1::41
+a12-65.akam.net.	172800	IN	A	184.26.160.65
+a12-65.akam.net.	172800	IN	AAAA	2600:1480:f000::41
+a7-64.akam.net.	172800	IN	A	23.61.199.64
+a7-64.akam.net.	172800	IN	AAAA	2600:1406:32::40
+a16-65.akam.net.	172800	IN	A	23.211.132.65
+a16-65.akam.net.	172800	IN	AAAA	2600:1406:1b::41
+a18-65.akam.net.	172800	IN	AAAA	2600:1480:4800::41
+a18-65.akam.net.	172800	IN	A	95.101.36.65
+a1-66.akam.net.	172800	IN	A	193.108.91.66
+a1-66.akam.net.	172800	IN	AAAA	2600:1401:2::42
+a28-65.akam.net.	172800	IN	AAAA	2600:1480:d800::41
+a28-65.akam.net.	172800	IN	A	95.100.173.65
+a10-66.akam.net.	172800	IN	AAAA	2600:1480:d000::42
+a10-66.akam.net.	172800	IN	A	96.7.50.66
+
+;; GZPACK: H4sIAAAAAAAA/3LyamRgYGRgYOBgEGRPTUlPzU6tZM5LLWFgYGJgxBBgYFrMwCDAmmima2bKkpidmAuWwa5MkC3R0IgIdQKsiea6ZibEGEestRbEWWuoa2ZGhHFGxBgHstYAxTz0UGJghCplEb/c6oghKwNzlxqDCCM4RiDAESMYEQbtkFqARRrZpIYPDAiT0AMayUW2xx0wZJHNYWMwgpvjgBETyF5rccSURjVJGsVvFngc78GATync0vhUFUf02ETIHsyJdsKQRQ1tJrg1ThjRjeqiGyguQleKcFHKWkeMBIFq0gUGZEvRlcJNSmA3cmJg0BSAKgUEAAD//6fEBmivAwAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.61.199.64 NS com-c-3.edgekey.net.
+;; opcode: QUERY, status: NOERROR, id: 37853
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;com-c-3.edgekey.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+edgekey.net.	180	IN	SOA	ns1-2.akamai.com. hostmaster.akamai.com. 1579418669 900 300 604800 180
+
+;; GZPACK: H4sIAAAAAAAA/5p8t5WBgZEBhBnZk/NzdZN1jdlTU9JTs1MrmfNSSxgYmBgYUQXYwOq3MNiy5hUb6hqxJWYn5iZmMifn5zJwZeQXl+QmFpekFiELx6mw6DIwMLcwMDDqMHBaNYC1M2gKMEAAIAAA//8I9qB8hAAAAA==
+;; SERVER: 23.61.199.64
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.61.199.64 NS microsoft.com-c-3.edgekey.net.
+;; opcode: QUERY, status: NOERROR, id: 31932
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;microsoft.com-c-3.edgekey.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+edgekey.net.	180	IN	SOA	ns1-2.akamai.com. hostmaster.akamai.com. 1579418669 900 300 604800 180
+
+;; GZPACK: H4sIAAAAAAAA/6rZ08rAwMgAwoycuZnJRfnF+Wkl7Mn5ubrJusbsqSnpqdmplcx5qSUMDEwMjKgCbGCdWxhsWfOKDXWN2BKzE3MTM5mT83MZuDLyi0tyE4tLUouQheNUWHQZGJhbGBgYdRg4rRrA2hk0BRggABAAAP//WcRJb44AAAA=
+;; SERVER: 23.61.199.64
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.61.199.64 NS www.microsoft.com-c-3.edgekey.net.
+;; opcode: QUERY, status: NOERROR, id: 31902
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.	IN	 NS
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net.	900	IN	CNAME	www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+
+;; GZPACK: H4sIAAAAAAAA/6qZ18rAwMjAyMDAwMhcXl7OmZuZXJRfnJ9Wwp6cn6ubrGvMnpqSnpqdWsmcl1rCwMBEnDJWkInMLQxWhBVzp+fkJyXmFKWmZBaxJWYnpuQVQ8xg0BRggABAAAAA//93ydFLpQAAAA==
+;; SERVER: 23.61.199.64
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.61.199.64 A www.microsoft.com-c-3.edgekey.net.
+;; opcode: QUERY, status: NOERROR, id: 38228
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.	IN	 A
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net.	900	IN	CNAME	www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+
+;; GZPACK: H4sIAAAAAAAA/5oa0srAwMjAyMDAwMhcXl7OmZuZXJRfnJ9Wwp6cn6ubrGvMnpqSnpqdWsmcl1oCVkqMMlaQicwtDFaEFXOn5+QnJeYUpaZkFrElZiem5BVDzGDQFGCAAEAAAAD//7ZpOZilAAAA
+;; SERVER: 23.61.199.64
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS net.
+;; opcode: QUERY, status: NOERROR, id: 60229
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: d2b76d22d59cb5a30100000068ca72f18c40e185a6fbd4f3
+
+;; QUESTION SECTION:
+;net.	IN	 NS
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUP0hyURgG8Pdc9eMjNBocouztj5OFIBRJS7Q0F7RWUHnTSkVU2iPcGhtbSoiGloJorTUaImxobBaCaIqWSG71nHrg3Ole7u8cDu/z3Nue3RExIhKT/lDZr4t4Yr5vxGuKxM1qNF8v5tI1v7rtV2udt7+J7yZbbrLiJmtuUnKTDTfJucmmm6y7ScFN8m5S/EvYIMQEK8JX2QVlq0CkjpSlBmLiXNkUQGTmlE0bxNipshmAmKwoGwGI0SVlowaRHFdWUhDRZWWhgxicV9Y/EH2Lyr4WEMPdymoOIvJPaXKJQPQMmYg5e5OvK0NTRC2PWdAsUdShWBo0Sxe1V9kHzZK29p66Bs1St/b+fwuaNcDa+7kJmrXB0q04aNYM6ySJQ9CsJda8G2XQrDHWSXbboFl7LJ0cCKwnGdokS59M/2iRVPiu85CQLum9vyyNPBxcND///oWb6svezFPj+L31+hEAAP//DnQRNxMGAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 NS akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 29514
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 9, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;akadns.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+akadns.net.	172800	IN	NS	a3-129.akadns.net.
+akadns.net.	172800	IN	NS	a1-128.akadns.net.
+akadns.net.	172800	IN	NS	a28-129.akagtm.org.
+akadns.net.	172800	IN	NS	a18-128.akagtm.org.
+akadns.net.	172800	IN	NS	a46-129.akadns.net.
+akadns.net.	172800	IN	NS	a44-131.akadns.net.
+akadns.net.	172800	IN	NS	a42-130.akagtm.org.
+akadns.net.	172800	IN	NS	a7-130.akagtm.org.
+akadns.net.	172800	IN	NS	a8-130.akadns.net.
+
+;; ADDITIONAL SECTION:
+a3-129.akadns.net.	172800	IN	AAAA	2600:1408:1c::81
+a3-129.akadns.net.	172800	IN	A	96.7.49.129
+a1-128.akadns.net.	172800	IN	A	193.108.88.128
+a1-128.akadns.net.	172800	IN	AAAA	2600:1403:11::80
+a46-129.akadns.net.	172800	IN	A	23.61.245.129
+a46-129.akadns.net.	172800	IN	AAAA	2600:1480:400::81
+a44-131.akadns.net.	172800	IN	A	2.17.46.131
+a44-131.akadns.net.	172800	IN	AAAA	2600:1480:c00::83
+a8-130.akadns.net.	172800	IN	A	2.16.40.130
+a8-130.akadns.net.	172800	IN	AAAA	2600:1403:a::82
+
+;; GZPACK: H4sIAAAAAAAA/yr2amRgYGRgYOBk4GZLzE5MyStmzkstYWBgYmBE5zMwLWZgEGZLNNY1NLJElsSl0FDX0MiCoEIR9kQjC5iR6SW5zPlF6ThVGlrAzCSk0sSMKGeCVJroGhobEqXSSNfQ2ICg7cJsiebEKrSAKUTYjRG+DDJQ9QJqDCIcDDIMMNCITTEjVDFLArthI5ZIQCg4mBPRgE0BsnXMDIJw6xqwhSrCOHHbr41YVSCb18DCgHA+trBHmMckqNeMVQWKeTwI85qxBCeScQIaTdgUoPqWC25aEwODpgCUDQgAAP//n+/fWicDAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 1316
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;globalredir.akadns.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+akadns.net.	180	IN	SOA	internal.akadns.net. hostmaster.akamai.com. 1741200000 90000 90000 90000 180
+
+;; GZPACK: H4sIAAAAAAAA/2JVaWVgYGQAYUbu9Jz8pMScotSUzCK2xOzElLxi5rzUEgYGJgZGFD4bWMcWBgeOzLyS1KK8xBxkaa6M/OKS3MTiklSwKbmJmczJ+bkM6SdmNTAwxk+AY5AJDJoCDBAACAAA//8Ud6nHiQAAAA==
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 8439
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;net.globalredir.akadns.net.	IN	 NS
+
+;; ANSWER SECTION:
+net.globalredir.akadns.net.	300	IN	CNAME	a23.g.akamai.net.
+
+;; GZPACK: H4sIAAAAAAAA/1L43srAwMjAyMDAwMicl1rCnZ6Tn5SYU5SaklnElpidmJJXDBJmYGAiIM8KMoNRh0GIOdHImDEdJJebmAmRY9AUYIAAQAAAAP//HO655m8AAAA=
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS edgekey.net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 34519
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;edgekey.net.globalredir.akadns.net.	IN	 NS
+
+;; ANSWER SECTION:
+edgekey.net.globalredir.akadns.net.	300	IN	CNAME	a23.g.akamai.net.
+
+;; GZPACK: H4sIAAAAAAAA/2q73srAwMjAyMDAwMiempKemp1ayZyXWsKdnpOflJhTlJqSWcSWmJ2YklcMEmZgYCJSHSvITEYdBiHmRCNjxnSQXG5iJkSOQVOAAQIAAQAA//9+caJzfwAAAA==
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS com-c-3.edgekey.net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 1739
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;com-c-3.edgekey.net.globalredir.akadns.net.	IN	 NS
+
+;; ANSWER SECTION:
+com-c-3.edgekey.net.globalredir.akadns.net.	300	IN	CNAME	a23.g.akamai.net.
+
+;; GZPACK: H4sIAAAAAAAA/2I73crAwMjAyMDAwMienJ+rm6xrzJ6akp6anVrJnJdawp2ek5+UmFOUmpJZxJaYnZiSVwwSZmBgIlE9K8gORh0GIeZEI2PGdJBcbmImRI5BU4ABAgABAAD//5N9C7SPAAAA
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 5428
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	IN	 NS
+
+;; ANSWER SECTION:
+microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	300	IN	CNAME	a23.g.akamai.net.
+
+;; GZPACK: H4sIAAAAAAAA/xI1aWVgYGRgZGBgYOTMzUwuyi/OTythT87P1U3WNWZPTUlPzU6tZM5LLeFOz8lPSswpSk3JLGJLzE5MySsGCTMwMJGtkxVkL6MOgxBzopExYzpILjcxEyLHoCnAAAGAAAAA//9DIV+6owAAAA==
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 NS www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 32095
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	IN	 NS
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	900	IN	CNAME	e13678.dscb.akamaiedge.net.
+
+;; GZPACK: H4sIAAAAAAAA/6qNb2VgYGRgZGBgYGQuLy/nzM1MLsovzk8rYU/Oz9VN1jVmT01JT81OrWTOSy3hTs/JT0rMKUpNySxiS8xOTMkrBgkzMDBRpJsVZD9zC4MMW6qhsZm5BUtKcXISV2J2Ym5iJkg/RBWDpgADBAACAAD//3yeTR+1AAAA
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.130 A www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.
+;; opcode: QUERY, status: NOERROR, id: 64538
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	IN	 A
+
+;; ANSWER SECTION:
+www.microsoft.com-c-3.edgekey.net.globalredir.akadns.net.	900	IN	CNAME	e13678.dscb.akamaiedge.net.
+
+;; GZPACK: H4sIAAAAAAAA//oj1crAwMjAyMDAwMhcXl7OmZuZXJRfnJ9Wwp6cn6ubrGvMnpqSnpqdWsmcl1rCnZ6Tn5SYU5SaklnElpidmJJXDBIGm0CBblaQ/cwtDDJsqYbGZuYWLCnFyUlcidmJuYmZIP0QVQyaAgwQAAgAAP//qSN5dLUAAAA=
+;; SERVER: 2.16.40.130
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS net.
+;; opcode: QUERY, status: NOERROR, id: 29574
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: d2b76d22d59cb5a30100000068ca72f18c40e185a6fbd4f3
+
+;; QUESTION SECTION:
+;net.	IN	 NS
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUP0vDUBQF8PvSVkRaceggWq9/OlUpFBSLi/gNFFxVUBtbtS2lLe4idXJ0dNGCOLgoiKuu4iBSB0dnQRAncRFL1PP0wMuUkN+7eck5pLa7LWJEJCb9obJfF/HE/JyI1xSJm0I0Xy/m0jW/uuVXa+27f0nJTTbcxHeTvJusuMmym6y5yaqb5Nxk3U023aT4n7BQxAQrwlfZeWWrQKSOlD0axMS5slxBZGaVvSGIsVNlDQMxWVGWO4jRRWWBgUiOK6sXiOiSsrhADM4pyxxE34Ky+oEY7lbWPhCRDqXJJQLRM2Qi5uxdvo8MTRG1PGZBs0RRh2Jp0Cxd1F5lHzRL2po9dQ2apW7N7rwFzRpgzX5pgmZtsHQrDpo1w9pJ4hA0a4n1vRtl0Kwx1k52nkGz9lg6ORBYTzK0SZY+mf7VIqnwXfsiIV3Se39ZGnk4uGh+/f0LN9XXvZmnxvFH6+0zAAD//xLVLtwTBgAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 NS akamaiedge.net.
+;; opcode: QUERY, status: NOERROR, id: 40525
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;akamaiedge.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+akamaiedge.net.	172800	IN	NS	la1.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	la3.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	lar2.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	ns3-194.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	a12-192.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	a28-192.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	a6-192.akamaiedge.net.
+akamaiedge.net.	172800	IN	NS	a1-192.akamaiedge.net.
+
+;; ADDITIONAL SECTION:
+la1.akamaiedge.net.	172800	IN	A	184.26.161.192
+la3.akamaiedge.net.	172800	IN	A	95.101.36.192
+lar2.akamaiedge.net.	172800	IN	A	2.16.40.192
+ns3-194.akamaiedge.net.	172800	IN	A	23.61.199.194
+ns3-194.akamaiedge.net.	172800	IN	AAAA	2600:1406:32::c2
+a12-192.akamaiedge.net.	172800	IN	A	184.26.160.192
+a28-192.akamaiedge.net.	172800	IN	A	95.100.173.192
+a6-192.akamaiedge.net.	172800	IN	A	23.211.133.192
+a1-192.akamaiedge.net.	172800	IN	A	193.108.88.0
+
+;; GZPACK: H4sIAAAAAAAA/5rn28jAwMjAwMDBwMWVmJ2Ym5iZmpKeypyXWsLAwMTAiE2MgWkxA4MIc06iIbosXtXGRKsWZclJLDIiWrkEe16xsa6hpQkJOhINjXQNLUmxI9HIgiQd4myJZqRqMMSmAVtAMzBCNbHskFp4AFvgIlTEp6ocwBqgCCVMAhoHcAUiQpW47fFDOFXJQFUJqDGIsDEYMcDAIVxBjeyFBQdwBS+SN1LWHsARpEhOvNx6AEcwIhQdzIlgYGDQFIC6EBAAAP//AgxAkwMDAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @2.16.40.192 NS dscb.akamaiedge.net.
+;; opcode: QUERY, status: NOERROR, id: 53050
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;dscb.akamaiedge.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+dscb.akamaiedge.net.	4000	IN	NS	n6dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n3dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n4dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n2dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n1dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n7dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n5dscb.akamaiedge.net.
+dscb.akamaiedge.net.	4000	IN	NS	n0dscb.akamaiedge.net.
+
+;; ADDITIONAL SECTION:
+n7dscb.akamaiedge.net.	4000	IN	A	95.100.106.134
+n3dscb.akamaiedge.net.	4000	IN	A	95.100.106.173
+n2dscb.akamaiedge.net.	4000	IN	A	104.69.222.212
+n1dscb.akamaiedge.net.	4000	IN	A	95.100.106.171
+n0dscb.akamaiedge.net.	4000	IN	A	88.221.81.192
+n0dscb.akamaiedge.net.	4000	IN	AAAA	2600:1480:e800::c0
+n6dscb.akamaiedge.net.	4000	IN	A	95.100.106.144
+n5dscb.akamaiedge.net.	4000	IN	A	23.218.92.36
+n4dscb.akamaiedge.net.	4000	IN	A	95.100.106.140
+
+;; GZPACK: H4sIAAAAAAAA/zpv1cjAwMjAwMDBwMWSUpycxJWYnZibmJmakp7KnJdawsDAxMCIU4KBgX8Bgzhbnhk2BQR1GZOly4QsXUZk6TIkS5c5WbpMydJlgE0BDicwMEL1scSnZLXhCH8URWtxBBxCUYbrvSs4wgnFpNU4nIpQFHE38AAuRTJQRQJqDCINLxjg4ACOpIdi9QQcYYtQJH4rRgVHwkIxqYeBQVMAajUgAAD//9jjK6Y5AwAA
+;; SERVER: 2.16.40.192
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.218.92.36 NS e13678.dscb.akamaiedge.net.
+;; opcode: QUERY, status: NOERROR, id: 14591
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	 NS
+
+;; AUTHORITY SECTION:
+dscb.akamaiedge.net.	1000	IN	SOA	n0dscb.akamaiedge.net. hostmaster.akamai.com. 1758098161 1000 1000 1000 1800
+
+;; GZPACK: H4sIAAAAAAAA/7L438rAwMgAwoxsqYbGZuYWLCnFyUlcidmJuYmZqSnpqcx5qSUMDEwMjNgl2EDamV8wOLHlGWBTwJWRX1ySm1hcklrEBpFiTs7PZcg4VfQRrA+O2TkYGDQFGCAAEAAA//88DwCNmAAAAA==
+;; SERVER: 23.218.92.36
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @23.218.92.36 A e13678.dscb.akamaiedge.net.
+;; opcode: QUERY, status: NOERROR, id: 24840
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;e13678.dscb.akamaiedge.net.	IN	 A
+
+;; ANSWER SECTION:
+e13678.dscb.akamaiedge.net.	20	IN	A	2.18.198.101
+
+;; GZPACK: H4sIAAAAAAAA/0rkaGVgYGRgZGBgYGRLNTQ2M7dgSSlOTuJKzE7MTcxMTUlPZc5LLQGrISTPwMAgwsDCJHQslYFBU4ABAgABAAD//yg1GGJhAAAA
+;; SERVER: 23.218.92.36

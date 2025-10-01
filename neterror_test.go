@@ -52,7 +52,8 @@ func TestMaybeDisableIPv6(t *testing.T) {
 	ip6 := netip.MustParseAddr("2001:db8::1")
 	r := &Recursive{useIPv4: true, useIPv6: true, rootServers: []netip.Addr{ip4, ip6}}
 
-	if !r.maybeDisableIPv6(syscall.ENETUNREACH) {
+	r.maybeDisableIPv6(syscall.ENETUNREACH)
+	if r.usingIPv6() {
 		t.Fatalf("expected IPv6 to be disabled")
 	}
 	if r.useIPv6 {
@@ -68,7 +69,8 @@ func TestMaybeDisableIPv6String(t *testing.T) {
 	ip6 := netip.MustParseAddr("2001:db8::1")
 	r := &Recursive{useIPv4: true, useIPv6: true, rootServers: []netip.Addr{ip4, ip6}}
 
-	if !r.maybeDisableIPv6(errors.New("no route to host")) {
+	r.maybeDisableIPv6(errors.New("no route to host"))
+	if r.usingIPv6() {
 		t.Fatalf("expected IPv6 to be disabled on string error")
 	}
 	if r.useIPv6 {
@@ -82,7 +84,8 @@ func TestMaybeDisableIPv6String(t *testing.T) {
 func TestMaybeDisableUdp(t *testing.T) {
 	r := &Recursive{useUDP: true}
 	err := &net.OpError{Op: "dial", Net: "udp", Err: syscall.ENOSYS}
-	if !r.maybeDisableUdp(err) {
+	r.maybeDisableUdp(err)
+	if r.usingUDP() {
 		t.Fatalf("expected UDP to be disabled")
 	}
 	if r.useUDP {
@@ -93,7 +96,8 @@ func TestMaybeDisableUdp(t *testing.T) {
 func TestMaybeDisableUdpString(t *testing.T) {
 	r := &Recursive{useUDP: true}
 	err := &net.OpError{Op: "dial", Net: "udp", Err: errors.New("network not implemented")}
-	if !r.maybeDisableUdp(err) {
+	r.maybeDisableUdp(err)
+	if r.usingIPv6() {
 		t.Fatalf("expected UDP to be disabled on string error")
 	}
 	if r.useUDP {
@@ -104,10 +108,25 @@ func TestMaybeDisableUdpString(t *testing.T) {
 func TestMaybeDisableUdpTimeout(t *testing.T) {
 	r := &Recursive{useUDP: true}
 	err := &net.OpError{Op: "dial", Net: "udp", Err: timeoutErr{}}
-	if r.maybeDisableUdp(err) {
+	r.maybeDisableUdp(err)
+	if !r.usingUDP() {
 		t.Fatalf("UDP disabled on timeout error")
 	}
 	if !r.useUDP {
 		t.Fatalf("UDP unexpectedly disabled")
+	}
+}
+
+func TestNetErrorErrorString(t *testing.T) {
+	t.Parallel()
+
+	base := errors.New("network unreachable")
+	ne := netError{Err: base}
+
+	if got := ne.Error(); got != base.Error() {
+		t.Fatalf("Error() = %q, want %q", got, base.Error())
+	}
+	if !errors.Is(ne, base) {
+		t.Fatalf("netError does not unwrap to base error")
 	}
 }

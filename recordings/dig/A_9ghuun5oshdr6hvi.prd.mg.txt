@@ -1,0 +1,108 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A 9ghuun5oshdr6hvi.prd.mg
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 57483
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510621	IN	NS	m.root-servers.net.
+.			510621	IN	NS	a.root-servers.net.
+.			510621	IN	NS	b.root-servers.net.
+.			510621	IN	NS	c.root-servers.net.
+.			510621	IN	NS	d.root-servers.net.
+.			510621	IN	NS	e.root-servers.net.
+.			510621	IN	NS	f.root-servers.net.
+.			510621	IN	NS	g.root-servers.net.
+.			510621	IN	NS	h.root-servers.net.
+.			510621	IN	NS	i.root-servers.net.
+.			510621	IN	NS	j.root-servers.net.
+.			510621	IN	NS	k.root-servers.net.
+.			510621	IN	NS	l.root-servers.net.
+.			510621	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510621	IN	A	198.41.0.4
+a.root-servers.net.	510621	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510621	IN	A	170.247.170.2
+b.root-servers.net.	510621	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510621	IN	A	192.33.4.12
+c.root-servers.net.	510621	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510621	IN	A	199.7.91.13
+d.root-servers.net.	510621	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510621	IN	A	192.203.230.10
+e.root-servers.net.	510621	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510621	IN	A	192.5.5.241
+f.root-servers.net.	510621	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510621	IN	A	192.112.36.4
+g.root-servers.net.	510621	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510621	IN	A	198.97.190.53
+h.root-servers.net.	510621	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510621	IN	A	192.36.148.17
+i.root-servers.net.	510621	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510621	IN	A	192.58.128.30
+j.root-servers.net.	510621	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510621	IN	A	193.0.14.129
+k.root-servers.net.	510621	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510621	IN	A	199.7.83.42
+l.root-servers.net.	510621	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510621	IN	A	202.12.27.33
+m.root-servers.net.	510621	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 23082
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 8
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	A
+
+;; AUTHORITY SECTION:
+mg.			172800	IN	NS	ns.nic.mg.
+mg.			172800	IN	NS	pch.nic.mg.
+mg.			172800	IN	NS	ns-mg.afrinic.net.
+mg.			172800	IN	NS	ns-mg.malagasy.com.
+mg.			172800	IN	NS	dns-tld.ird.fr.
+mg.			86400	IN	DS	31916 8 2 61C4C85F931E44175E37E585D4ECF728FE63587742D7335836E1E686 AD44950E
+mg.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . KgdwtpAYm/0USyWJ9Azy6nEQueMuQRf3+KpLx0Ygo1RzdwAY5bLxnoJU vDWZWMnEN5rs7gm7zK1jD9lpjP3M6bzgayWgFL/TD4EpzmHOMKd8t/tI x8i3PxaF5fcJJmy+XGgFImriSz0PDYQbXMn4JoO0WM4hiC42hJ7uxJeG nORyyD1UejhQpS1mVpfOiNRtYYxcXUlYTYSzEJXliAi3ksq6Gjww07Qc ySo1EmB60EnyC4k9KUXJ+QhsGIoSSzlT25FT9N3JkBHIdjJE8BdCzpsq V9hSzyegdZYS7fDXfT4vh3XNP2TdpGoXKQKBvhhHuk2leAQ6tr5afZCt A5I8/g==
+
+;; ADDITIONAL SECTION:
+ns.nic.mg.		172800	IN	A	196.192.42.153
+pch.nic.mg.		172800	IN	A	204.61.216.121
+ns-mg.afrinic.net.	172800	IN	A	196.216.168.35
+ns-mg.malagasy.com.	172800	IN	A	51.178.182.212
+dns-tld.ird.fr.		172800	IN	A	13.39.116.127
+pch.nic.mg.		172800	IN	AAAA	2001:500:14:6121:ad::1
+ns-mg.afrinic.net.	172800	IN	AAAA	2001:43f8:120::35
+
+;; Query time: 23 msec
+;; SERVER: 192.58.128.30#53(j.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 653
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: SERVFAIL, id: 26280
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+; COOKIE: d98955f67fd1c9736b9c576268ca923abd22f42a976f0348 (good)
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	A
+
+;; Query time: 23 msec
+;; SERVER: 204.61.216.121#53(pch.nic.mg) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 80
+

@@ -1,0 +1,181 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS be.
+;; opcode: QUERY, status: NOERROR, id: 21522
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;be.	IN	 NS
+
+;; AUTHORITY SECTION:
+be.	172800	IN	NS	a.nsset.be.
+be.	172800	IN	NS	b.nsset.be.
+be.	172800	IN	NS	c.nsset.be.
+be.	172800	IN	NS	d.nsset.be.
+be.	172800	IN	NS	y.nsset.be.
+be.	172800	IN	NS	z.nsset.be.
+
+;; ADDITIONAL SECTION:
+a.nsset.be.	172800	IN	A	194.0.6.1
+a.nsset.be.	172800	IN	AAAA	2001:678:9::1
+b.nsset.be.	172800	IN	A	194.0.37.1
+b.nsset.be.	172800	IN	AAAA	2001:678:64::1
+c.nsset.be.	172800	IN	A	194.0.43.1
+c.nsset.be.	172800	IN	AAAA	2001:678:68::1
+d.nsset.be.	172800	IN	A	194.0.44.1
+d.nsset.be.	172800	IN	AAAA	2001:678:6c::1
+y.nsset.be.	172800	IN	A	120.29.253.8
+y.nsset.be.	172800	IN	AAAA	2001:dcd:7::8
+z.nsset.be.	172800	IN	A	194.0.25.36
+z.nsset.be.	172800	IN	AAAA	2001:678:20::36
+
+;; GZPACK: H4sIAAAAAAAA/woRamRgYGRgYGBj4GVKSmVgYGJghNEMTIsZGHgYE1nziotTS0CiaDJJOGWSccqk4JSpxClThZBBdg0DI1QFyyEGNkYUGRmojIACI1sFAycDDDAiuxlZvyqqDKr+FCT9ydj1a6PKoOrPQNKfgl2/DqoMqv4cJP2V2PRXyP7lQJFB0s97loEdrp8DOSyR7ZdUQZFBtV8Brt+MgUGT9QCEDQgAAP//YgSaWjsCAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @120.29.253.8 NS eoh.be.
+;; opcode: QUERY, status: NOERROR, id: 8536
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;eoh.be.	IN	 NS
+
+;; AUTHORITY SECTION:
+eoh.be.	86400	IN	NS	ns.eurosrs.net.
+eoh.be.	86400	IN	NS	ns.eurosrs.org.
+eoh.be.	86400	IN	NS	ns.eurosrs.com.
+
+;; GZPACK: H4sIAAAAAAAA/1KMaGRgYGRgYGBmYGROzc9gSkplYGBCZTMwBjYwCDDlFbOnlhblFxcVM+elljDgV5FflE5ARXJ+LgMDgybLBQYwAAQAAP//G6GFbIkAAAA=
+;; SERVER: 120.29.253.8
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A com.
+;; opcode: QUERY, status: NOERROR, id: 48671
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8XMTIw6tOHTSeqp0qlIIKBYXX0HBVQVtY/3T1tIWdxHfwBfQLg4u+gBSd0cXn0Fwd5MYxd+1PziZUvj2ww33nKfShYgTkbzMhfWzdvrDZS+BOAmGIgW3n2sOWo1qP+mdJ71+2EkG8j85sJO6nTTsJLGTQztp2smRnRzbyYmdnNpJy07a4wm7t/R6v/8xMYomlRbFn2JmwUXh3YZkTyAxu2TwFqeVFp5XngePTAR4sztKC8+7fJffJ2bjA15pS2mBnlx1wCOzBl5uT2mBXlC8AY8MJnjlFaWF972vBfDIFIO3tKu08LyPIXhk5MFb6yotvO+degGP7Ad4y/dKC+9868/gkWUCL95UWnjn616DRzYPvNVHpYV3vnwVPLKm4FVulRbe/L3VwCM7DV5tW2mBnnv4/PNEKtEoe/8KAAD//zxhz0D3BQAA
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eurosrs.com.
+;; opcode: QUERY, status: NOERROR, id: 58696
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eurosrs.com.	IN	 A
+
+;; AUTHORITY SECTION:
+eurosrs.com.	172800	IN	NS	ns.eurosrs.net.
+eurosrs.com.	172800	IN	NS	ns.eurosrs.com.
+eurosrs.com.	172800	IN	NS	ns.eurosrs.org.
+
+;; ADDITIONAL SECTION:
+ns.eurosrs.com.	172800	IN	AAAA	2a00:e760:100:3:8:1113:0:1
+ns.eurosrs.com.	172800	IN	A	85.119.243.4
+
+;; GZPACK: H4sIAAAAAAAA/3rq0cjAwMjAwMDMwMyeWlqUX1xUzJycnwsSZEQVYGJgZGBazMAgwJRXDJfJSy1hIEIZSIYIZflF6Qzo2hhkYCq1GJ4nMIJcyiEozMDAwIihkhGqkiW0/DMLA4OmAAMEAAIAAP//O9uJPOUAAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @85.119.243.4 A ns.eurosrs.com.
+;; opcode: QUERY, status: NOERROR, id: 24554
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns.eurosrs.com.	IN	 A
+
+;; ANSWER SECTION:
+ns.eurosrs.com.	3600	IN	A	85.119.243.4
+
+;; GZPACK: H4sIAAAAAAAA/4p/1crAwMjAyMDAwMiUV8yeWlqUX1xUzJycnwsWxybGwMAnwMASWv6ZhYFBk+UCAxgAAgAA///FMKvUSQAAAA==
+;; SERVER: 85.119.243.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @85.119.243.4 NS eoh.be.
+;; opcode: QUERY, status: NOERROR, id: 29142
+;; flags: qr aa rd; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;eoh.be.	IN	 NS
+
+;; ANSWER SECTION:
+eoh.be.	3600	IN	NS	ns.eurosrs.com.
+eoh.be.	3600	IN	NS	ns.eurosrs.org.
+eoh.be.	3600	IN	NS	ns.eurosrs.net.
+
+;; GZPACK: H4sIAAAAAAAA/yq81srAwMjAzMDAwMicmp/BlJTKwMCEymZg4BNgEGDKK2ZPLS3KLy4qZk7Oz2XAryK/KJ2AirzUEgYGBk2WCwxgAAgAAP//JmvGgIkAAAA=
+;; SERVER: 85.119.243.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @85.119.243.4 A eoh.be.
+;; opcode: QUERY, status: NOERROR, id: 1210
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;eoh.be.	IN	 A
+
+;; AUTHORITY SECTION:
+eoh.be.	8	IN	SOA	ns.eurosrs.net. postmaster.eurosrs.net. 2011050901 28800 7200 604800 8
+
+;; GZPACK: H4sIAAAAAAAA/2LZ1crAwMgAwozMqfkZTEmpqGw2sCwHgw1TXjF7amlRfnFRMXNeagkDV0F+cUluYnFJahGKePk946kMDAUNDAwyCgycVg1g3QyaLBcYwAAQAAD//xmkpiFxAAAA
+;; SERVER: 85.119.243.4

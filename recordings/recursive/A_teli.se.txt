@@ -1,0 +1,278 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS se.
+;; opcode: QUERY, status: NOERROR, id: 58492
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 10, ADDITIONAL: 21
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: bd96e76f01c90ff60100000068ca72f6d91f445d706f1a1c
+
+;; QUESTION SECTION:
+;se.	IN	 NS
+
+;; AUTHORITY SECTION:
+se.	172800	IN	NS	x.ns.se.
+se.	172800	IN	NS	b.ns.se.
+se.	172800	IN	NS	i.ns.se.
+se.	172800	IN	NS	g.ns.se.
+se.	172800	IN	NS	a.ns.se.
+se.	172800	IN	NS	f.ns.se.
+se.	172800	IN	NS	z.ns.se.
+se.	172800	IN	NS	c.ns.se.
+se.	172800	IN	NS	m.ns.se.
+se.	172800	IN	NS	y.ns.se.
+
+;; ADDITIONAL SECTION:
+z.ns.se.	172800	IN	A	185.159.198.150
+y.ns.se.	172800	IN	A	185.159.197.150
+x.ns.se.	172800	IN	A	213.108.25.4
+m.ns.se.	172800	IN	A	194.0.11.112
+i.ns.se.	172800	IN	A	194.146.106.22
+g.ns.se.	172800	IN	A	130.239.5.114
+f.ns.se.	172800	IN	A	192.71.53.53
+c.ns.se.	172800	IN	A	192.36.135.107
+b.ns.se.	172800	IN	A	192.36.133.107
+a.ns.se.	172800	IN	A	192.36.144.107
+z.ns.se.	172800	IN	AAAA	2620:10a:80ab::150
+y.ns.se.	172800	IN	AAAA	2620:10a:80aa::150
+x.ns.se.	172800	IN	AAAA	2001:67c:124c:e000::4
+m.ns.se.	172800	IN	AAAA	2001:678:e:112::53
+i.ns.se.	172800	IN	AAAA	2001:67c:1010:5::53
+g.ns.se.	172800	IN	AAAA	2001:6b0:e:3::1
+f.ns.se.	172800	IN	AAAA	2a01:3f0:0:305::53
+c.ns.se.	172800	IN	AAAA	2001:67c:2554:301::53
+b.ns.se.	172800	IN	AAAA	2001:67c:254c:301::53
+a.ns.se.	172800	IN	AAAA	2a01:3f0:0:301::53
+
+;; GZPACK: H4sIAAAAAAAA/3pS08jAwMjAwMDFIMpUnMrAwMTACKMZmBYzMHAyVjDlFYOE0ISTsAtnYhdOxy6ciF04DbtwFXbhZOzCudiFK6HCcNMYGKFyLDvnH5sGl0cWPjoNHgoI4as5kixwSxDChxi4C+ChgCQ8KUsMHgoI4ab3rEVw7yKED7ibmsL9hSSs0p4ND3hk4dZseFAiC0/IRvhSBiosoKbAyNWwmgEKGAMQPkZVsgpJSQWGEgVGthohnwcwNUghgaykgoGPUQiqJBgRKiimCAgwsMKVpGNTsoGBj4EZ5hhEaMGVaDEyf2BgYEaYkozVItUQZka4kiTsSnyQlCTisgiuhIFBk+UCmCnDwMUgsXfa83zGk/zfQPIZp4q+3ZR3iS3Il5IBBAAA//9XWSOsZQMAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @130.239.5.114 NS teli.se.
+;; opcode: QUERY, status: NOERROR, id: 39025
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;teli.se.	IN	 NS
+
+;; AUTHORITY SECTION:
+teli.se.	86400	IN	NS	ns1.statisticz.net.
+teli.se.	86400	IN	NS	ns2.statisticz.net.
+
+;; GZPACK: H4sIAAAAAAAA/5pR2MjAwMjAwMDEwMhSkpqTyVScislhYAxsYBBhzis25CouSSzJLC7JTK5izkstYcCuzAhdGQODpgADBAACAAD//87R1pByAAAA
+;; SERVER: 130.239.5.114
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A net.
+;; opcode: QUERY, status: NOERROR, id: 43064
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: bd96e76f01c90ff60100000068ca72f6d91f445d706f1a1c
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUsUsCURwH8N87NSK0GhzCrp+Fk4UgFFlLU3tBawaVl1amotIe0X8Q7eXi0FJ7UGPR0NDiX9AQNAptoRl9X33h3XTv7nPv3r3vl2svnYgYEYnJZKgSNHsD833iiRGvJRI3xWixWS5kGkH9OKg3+nf/kj03OXCTgpvsu8mOm+y6SdlNAjfZdpOSmxy6ydF/wq714u0/Eb7PbSj7SBDpK2WvBrFwqyxXENk1ZZmBmLtWtgcgFmvKOghiNq+sgiBS88ryAhHdUlZAEMl1Zc0BkdhUVj8QM6PKSgEiMqQ0OX8gxqdNxNx8ys+RpSmilk4ONEsUdSiWAc3SRe3VzkGzpK25lx9As9StuYefQbMGWHN/tECzNlj6NQ6aNcNaiX8JmrXE2u+zCmjWGGslp++gWXssnZoaWE+ytEmWbq/8apF0+KU/8GVEJu4u3qrmcazb+/uXnurdTnI1X6sm/K8AAAD//7IqAQ0TBgAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A statisticz.net.
+;; opcode: QUERY, status: NOERROR, id: 11118
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;statisticz.net.	IN	 A
+
+;; AUTHORITY SECTION:
+statisticz.net.	172800	IN	NS	ns1.loopia.se.
+statisticz.net.	172800	IN	NS	ns2.loopia.se.
+
+;; GZPACK: H4sIAAAAAAAA/9LOa2RgYGRgYGBiYOQqLkksySwuyUyuYs5LLQGJY4oxMTAyMC1mYOBnzis2ZMvJzy/ITGQqTmXAq9AISSEDg6YAAwQAAgAA//83nTKufQAAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A se.
+;; opcode: QUERY, status: NOERROR, id: 39683
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 10, ADDITIONAL: 21
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: bd96e76f01c90ff60100000068ca72f6d91f445d706f1a1c
+
+;; QUESTION SECTION:
+;se.	IN	 A
+
+;; AUTHORITY SECTION:
+se.	172800	IN	NS	m.ns.se.
+se.	172800	IN	NS	i.ns.se.
+se.	172800	IN	NS	a.ns.se.
+se.	172800	IN	NS	f.ns.se.
+se.	172800	IN	NS	y.ns.se.
+se.	172800	IN	NS	c.ns.se.
+se.	172800	IN	NS	b.ns.se.
+se.	172800	IN	NS	g.ns.se.
+se.	172800	IN	NS	x.ns.se.
+se.	172800	IN	NS	z.ns.se.
+
+;; ADDITIONAL SECTION:
+z.ns.se.	172800	IN	A	185.159.198.150
+y.ns.se.	172800	IN	A	185.159.197.150
+x.ns.se.	172800	IN	A	213.108.25.4
+m.ns.se.	172800	IN	A	194.0.11.112
+i.ns.se.	172800	IN	A	194.146.106.22
+g.ns.se.	172800	IN	A	130.239.5.114
+f.ns.se.	172800	IN	A	192.71.53.53
+c.ns.se.	172800	IN	A	192.36.135.107
+b.ns.se.	172800	IN	A	192.36.133.107
+a.ns.se.	172800	IN	A	192.36.144.107
+z.ns.se.	172800	IN	AAAA	2620:10a:80ab::150
+y.ns.se.	172800	IN	AAAA	2620:10a:80aa::150
+x.ns.se.	172800	IN	AAAA	2001:67c:124c:e000::4
+m.ns.se.	172800	IN	AAAA	2001:678:e:112::53
+i.ns.se.	172800	IN	AAAA	2001:67c:1010:5::53
+g.ns.se.	172800	IN	AAAA	2001:6b0:e:3::1
+f.ns.se.	172800	IN	AAAA	2a01:3f0:0:305::53
+c.ns.se.	172800	IN	AAAA	2001:67c:2554:301::53
+b.ns.se.	172800	IN	AAAA	2001:67c:254c:301::53
+a.ns.se.	172800	IN	AAAA	2a01:3f0:0:301::53
+
+;; GZPACK: H4sIAAAAAAAA/5rN3MjAwMjAwMDFIMpUnApiM4JpJgZGBqbFDAycjLlMecUgITThTOzCidiF07ALV2IXTsYunIRdOB27cAV24SqoMJwB8jJYjmXn/GPT4E5CFj46DW4aQvhqjiQLPHAQwocYuAvggYMkPClLDO5ShHDTe9YieOAghA+4m5rCQwFJWKU9Gx4KyMKt2fCARxaekI3wpQxUWEBNgZGrYTUDFDAGIHyMqmQVkpIKDCUKjGw1Qj4PYGqQQgJZSQUDH6MQVEkwIlRQTBEQYGCFK0nHpmQDAx8DM8wxiNCCK9FiZP7AwMCMMCUZq0WqIcyMcCVJ2JX4IClJxGURXAkDgybLBTBThoGLQWLvtOf5jCf5v4HkM04Vfbsp7xJbkC8lAwgAAP//D4ligGUDAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @130.239.5.114 A loopia.se.
+;; opcode: QUERY, status: NOERROR, id: 33630
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;loopia.se.	IN	 A
+
+;; AUTHORITY SECTION:
+loopia.se.	86400	IN	NS	ns1.loopia.se.
+loopia.se.	86400	IN	NS	ns2.loopia.se.
+
+;; ADDITIONAL SECTION:
+ns1.loopia.se.	86400	IN	A	93.188.0.20
+ns2.loopia.se.	86400	IN	A	185.71.156.20
+ns1.loopia.se.	86400	IN	AAAA	2a02:250:ffff::20
+ns2.loopia.se.	86400	IN	AAAA	2a02:250:fffe::20
+
+;; GZPACK: H4sIAAAAAAAA/2qOa2RgYGRgYGBiYGXLyc8vyExkKk4FCTEic5lAAoENDPzMecWGSBK41BghSaBpAakCq2OJ3cMggqYWIbnTfY4Iuk4ZqKSAFhNTwP//DDCggG4KqsJ/CIUMDJoCUDYgAAD//w5uJ/z6AAAA
+;; SERVER: 130.239.5.114
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @93.188.0.20 A ns1.loopia.se.
+;; opcode: QUERY, status: NOERROR, id: 53046
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns1.loopia.se.	IN	 A
+
+;; ANSWER SECTION:
+ns1.loopia.se.	3600	IN	A	93.188.0.20
+
+;; GZPACK: H4sIAAAAAAAA/zpv1srAwMjAyMDAwMicV2zIlpOfX5CZyFScChbGIsTAwCfAwBK7h0GEgUGT5QIDGAACAAD//ynOA5BHAAAA
+;; SERVER: 93.188.0.20
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @93.188.0.20 A ns1.statisticz.net.
+;; opcode: QUERY, status: NOERROR, id: 58
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns1.statisticz.net.	IN	 A
+
+;; ANSWER SECTION:
+ns1.statisticz.net.	3600	IN	A	188.166.192.177
+
+;; GZPACK: H4sIAAAAAAAA/2KwamVgYGRgZGBgYGTOKzbkKi5JLMksLslMrmLOSy0By+ESZ2DgE2Bg2bPswEYGBk2WCwxgAAgAAP//6uZGrFEAAAA=
+;; SERVER: 93.188.0.20
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @188.166.192.177 NS teli.se.
+;; opcode: QUERY, status: NOERROR, id: 14064
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: bd96e76f01c90ff60100000068ca72f6c7536e485149db4e
+; EDE: 18 (Prohibited): ()
+
+;; QUESTION SECTION:
+;teli.se.	IN	 NS
+
+;; ANSWER SECTION:
+teli.se.	86400	IN	NS	ns2.statisticz.net.
+teli.se.	86400	IN	NS	ns1.statisticz.net.
+
+;; GZPACK: H4sIAAAAAAAA/zL70MrAwMjAxMDAwMhSkpqTyVScysDAhMZhYAxsYBBhzis24iouSSzJLC7JTK5izkstYcCuzBBdGQODJssFBhBQYuBikNg77Xk+40n+b4wMDAwZp4q+HQ/O8wj0vO3HwM/AxCAECAAA///U0J2ClAAAAA==
+;; SERVER: 188.166.192.177
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @188.166.192.177 A teli.se.
+;; opcode: QUERY, status: NOERROR, id: 58026
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: bd96e76f01c90ff60100000068ca72f6c7536e485149db4e
+
+;; QUESTION SECTION:
+;teli.se.	IN	 A
+
+;; ANSWER SECTION:
+teli.se.	86400	IN	A	185.53.177.20
+
+;; GZPACK: H4sIAAAAAAAA/3q0qpWBgZGBkYGBgZGlJDUnk6k4FSyAwmFgDGxgYNlpulGEgUGT5QIDCMgwcDFI7J32PJ/xJP83kP6MU0XfjgfneQR63vYDBAAA//848QXVVwAAAA==
+;; SERVER: 188.166.192.177
