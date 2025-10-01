@@ -1,0 +1,1493 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>resolver: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/linkdata/resolver/cache.go (98.1%)</option>
+				
+				<option value="file1">github.com/linkdata/resolver/cacheqtype.go (100.0%)</option>
+				
+				<option value="file2">github.com/linkdata/resolver/cookie.go (100.0%)</option>
+				
+				<option value="file3">github.com/linkdata/resolver/disable.go (100.0%)</option>
+				
+				<option value="file4">github.com/linkdata/resolver/extendedrcode.go (100.0%)</option>
+				
+				<option value="file5">github.com/linkdata/resolver/neterror.go (100.0%)</option>
+				
+				<option value="file6">github.com/linkdata/resolver/orderroots.go (100.0%)</option>
+				
+				<option value="file7">github.com/linkdata/resolver/query.go (84.4%)</option>
+				
+				<option value="file8">github.com/linkdata/resolver/recursive.go (100.0%)</option>
+				
+				<option value="file9">github.com/linkdata/resolver/timeroot.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package recursive
+
+import (
+        "context"
+        "math"
+        "net/netip"
+        "sync/atomic"
+        "time"
+
+        "github.com/miekg/dns"
+)
+
+const DefaultMinTTL = 10 * time.Second // ten seconds
+const DefaultMaxTTL = 6 * time.Hour    // six hours
+const DefaultNXTTL = time.Hour         // one hour
+const MaxQtype = 260
+
+type Cache struct {
+        MinTTL time.Duration // always cache responses for at least this long
+        MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
+        NXTTL  time.Duration // cache NXDOMAIN responses for this long
+        count  atomic.Uint64
+        hits   atomic.Uint64
+        cq     []*cacheQtype
+}
+
+var _ CachingResolver = &amp;Cache{}
+
+func NewCache() *Cache <span class="cov8" title="1">{
+        cq := make([]*cacheQtype, MaxQtype+1)
+        for i := range cq </span><span class="cov8" title="1">{
+                cq[i] = newCacheQtype()
+        }</span>
+        <span class="cov8" title="1">return &amp;Cache{
+                MinTTL: DefaultMinTTL,
+                MaxTTL: DefaultMaxTTL,
+                NXTTL:  DefaultNXTTL,
+                cq:     cq,
+        }</span>
+}
+
+// HitRatio returns the hit ratio as a percentage.
+func (cache *Cache) HitRatio() (n float64) <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                if count := cache.count.Load(); count &gt; 0 </span><span class="cov8" title="1">{
+                        n = float64(cache.hits.Load()*100) / float64(count)
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+// Entries returns the number of entries in the cache.
+func (cache *Cache) Entries() (n int) <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                for _, cq := range cache.cq </span><span class="cov8" title="1">{
+                        n += cq.entries()
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov8" title="1">{
+        if cache != nil &amp;&amp; msg != nil &amp;&amp; !msg.Zero &amp;&amp; len(msg.Question) == 1 </span><span class="cov8" title="1">{
+                if qtype := msg.Question[0].Qtype; qtype &lt;= MaxQtype </span><span class="cov8" title="1">{
+                        msg = msg.Copy()
+                        msg.Zero = true
+                        ttl := cache.NXTTL
+                        if msg.Rcode != dns.RcodeNameError </span><span class="cov8" title="1">{
+                                ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
+                                if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
+                                        ttl = min(cache.MaxTTL, ttl)
+                                }</span>
+                        }
+                        <span class="cov8" title="1">cache.cq[qtype].set(msg, ttl)</span>
+                }
+        }
+}
+
+func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                cache.count.Add(1)
+                if qtype &lt;= MaxQtype </span><span class="cov8" title="1">{
+                        if msg = cache.cq[qtype].get(qname); msg != nil </span><span class="cov8" title="1">{
+                                cache.hits.Add(1)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        msg = cache.DnsGet(qname, qtype)
+        return
+}</span>
+
+func (cache *Cache) Clear() <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                for _, cq := range cache.cq </span><span class="cov8" title="1">{
+                        cq.clear()
+                }</span>
+        }
+}
+
+func (cache *Cache) Clean() <span class="cov8" title="1">{
+        if cache != nil </span><span class="cov8" title="1">{
+                now := time.Now()
+                for _, cq := range cache.cq </span><span class="cov8" title="1">{
+                        cq.clean(now)
+                }</span>
+        }
+}
+
+func minDNSMsgTTL(msg *dns.Msg) (minTTL int) <span class="cov8" title="1">{
+        minTTL = math.MaxInt
+        if msg != nil </span><span class="cov8" title="1">{
+                for _, rr := range msg.Answer </span><span class="cov8" title="1">{
+                        if rr != nil </span><span class="cov8" title="1">{
+                                minTTL = min(minTTL, int(rr.Header().Ttl))
+                        }</span>
+                }
+                <span class="cov8" title="1">for _, rr := range msg.Ns </span><span class="cov8" title="1">{
+                        if rr != nil </span><span class="cov8" title="1">{
+                                minTTL = min(minTTL, int(rr.Header().Ttl))
+                        }</span>
+                }
+                <span class="cov8" title="1">for _, rr := range msg.Extra </span><span class="cov8" title="1">{
+                        if rr != nil </span><span class="cov8" title="1">{
+                                if rr.Header().Rrtype != dns.TypeOPT </span><span class="cov8" title="1">{
+                                        minTTL = min(minTTL, int(rr.Header().Ttl))
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">if minTTL == math.MaxInt </span><span class="cov0" title="0">{
+                minTTL = -1
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package recursive
+
+import (
+        "sync"
+        "time"
+
+        "github.com/miekg/dns"
+)
+
+type cacheQtype struct {
+        mu    sync.RWMutex
+        cache map[string]cacheValue
+}
+
+func newCacheQtype() *cacheQtype <span class="cov8" title="1">{
+        return &amp;cacheQtype{cache: make(map[string]cacheValue)}
+}</span>
+
+func (cq *cacheQtype) entries() (n int) <span class="cov8" title="1">{
+        cq.mu.RLock()
+        n = len(cq.cache)
+        cq.mu.RUnlock()
+        return
+}</span>
+
+func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) <span class="cov8" title="1">{
+        qname := msg.Question[0].Name
+        expires := time.Now().Add(ttl)
+        cq.mu.Lock()
+        cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
+        cq.mu.Unlock()
+}</span>
+
+func (cq *cacheQtype) get(qname string) *dns.Msg <span class="cov8" title="1">{
+        cq.mu.RLock()
+        cv := cq.cache[qname]
+        cq.mu.RUnlock()
+        if cv.Msg != nil </span><span class="cov8" title="1">{
+                if time.Since(cv.expires) &lt; 0 </span><span class="cov8" title="1">{
+                        return cv.Msg
+                }</span>
+                <span class="cov8" title="1">cq.mu.Lock()
+                delete(cq.cache, qname)
+                cq.mu.Unlock()</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (cq *cacheQtype) clear() <span class="cov8" title="1">{
+        cq.clean(time.Time{})
+}</span>
+
+func (cq *cacheQtype) clean(now time.Time) <span class="cov8" title="1">{
+        cq.mu.Lock()
+        defer cq.mu.Unlock()
+        for qname, cv := range cq.cache </span><span class="cov8" title="1">{
+                if now.IsZero() || now.After(cv.expires) </span><span class="cov8" title="1">{
+                        delete(cq.cache, qname)
+                }</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package recursive
+
+import (
+        crand "crypto/rand"
+        "encoding/binary"
+        "fmt"
+        rand "math/rand/v2"
+        "net/netip"
+        "sort"
+        "time"
+)
+
+var crandRead func(b []byte) (n int, err error) = crand.Read
+
+type srvCookie struct {
+        value string
+        ts    time.Time
+}
+
+func makeCookie() string <span class="cov8" title="1">{
+        var b [8]byte
+        n, _ := crandRead(b[:])
+        x := binary.LittleEndian.Uint64(b[:])
+        if n &lt; len(b) </span><span class="cov8" title="1">{
+                x ^= rand.Uint64() // #nosec G404
+        }</span>
+        <span class="cov8" title="1">return fmt.Sprintf("%016x", x)</span>
+}
+
+func maskCookie(s string) string <span class="cov8" title="1">{
+        if len(s) &gt; 5 </span><span class="cov8" title="1">{
+                return "..." + s[len(s)-5:]
+        }</span>
+        <span class="cov8" title="1">return s</span>
+}
+
+// ResetCookies generates a new DNS client cookie and clears the known DNS server cookies.
+func (r *Recursive) ResetCookies() <span class="cov8" title="1">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        r.clicookie = makeCookie()
+        clear(r.srvcookies)
+}</span>
+
+func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov8" title="1">{
+        cutoff := now.Add(-srvCookieTTL)
+        for addr, c := range r.srvcookies </span><span class="cov8" title="1">{
+                if c.ts.Before(cutoff) </span><span class="cov8" title="1">{
+                        delete(r.srvcookies, addr)
+                }</span>
+        }
+        <span class="cov8" title="1">if len(r.srvcookies) &lt;= maxSrvCookies </span><span class="cov8" title="1">{
+                return
+        }</span>
+        <span class="cov8" title="1">type ac struct {
+                addr netip.Addr
+                ts   time.Time
+        }
+        l := make([]ac, 0, len(r.srvcookies))
+        for addr, c := range r.srvcookies </span><span class="cov8" title="1">{
+                l = append(l, ac{addr: addr, ts: c.ts})
+        }</span>
+        <span class="cov8" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov8" title="1">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov8" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov8" title="1">{
+                delete(r.srvcookies, l[i].addr)
+        }</span>
+}
+
+func (r *Recursive) cleanupSrvCookies(now time.Time) <span class="cov8" title="1">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        r.cleanupSrvCookiesLocked(now)
+}</span>
+
+func (r *Recursive) getSrvCookieLocked(addr netip.Addr) (s string, found bool) <span class="cov8" title="1">{
+        c, ok := r.srvcookies[addr]
+        if ok &amp;&amp; time.Since(c.ts) &lt; srvCookieTTL </span><span class="cov8" title="1">{
+                s = c.value
+                found = true
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+
+func (r *Recursive) setSrvCookie(now time.Time, addr netip.Addr, val string) <span class="cov8" title="1">{
+        r.mu.Lock()
+        defer r.mu.Unlock()
+        r.srvcookies[addr] = srvCookie{value: val, ts: now}
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package recursive
+
+import (
+        "errors"
+        "net"
+        "strings"
+        "syscall"
+)
+
+func (r *Recursive) usingUDP() (yes bool) <span class="cov8" title="1">{
+        r.mu.RLock()
+        yes = r.useUDP
+        r.mu.RUnlock()
+        return
+}</span>
+
+func (r *Recursive) usingIPv6() (yes bool) <span class="cov8" title="1">{
+        r.mu.RLock()
+        yes = r.useIPv6
+        r.mu.RUnlock()
+        return
+}</span>
+
+func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov8" title="1">{
+                errstr := err.Error()
+                if errors.Is(err, syscall.ENETUNREACH) || errors.Is(err, syscall.EHOSTUNREACH) ||
+                        strings.Contains(errstr, "network is unreachable") || strings.Contains(errstr, "no route to host") </span><span class="cov8" title="1">{
+                        r.mu.Lock()
+                        defer r.mu.Unlock()
+                        if r.useIPv6 </span><span class="cov8" title="1">{
+                                r.useIPv6 = false
+                                disabled = true
+                                var idx int
+                                for i := range r.rootServers </span><span class="cov8" title="1">{
+                                        if r.rootServers[i].Is4() </span><span class="cov8" title="1">{
+                                                r.rootServers[idx] = r.rootServers[i]
+                                                idx++
+                                        }</span>
+                                }
+                                <span class="cov8" title="1">r.rootServers = r.rootServers[:idx]</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov8" title="1">{
+        var ne net.Error
+        if errors.As(err, &amp;ne) &amp;&amp; !ne.Timeout() </span><span class="cov8" title="1">{
+                errstr := (err).Error()
+                if errors.Is(err, syscall.ENOSYS) || errors.Is(err, syscall.EPROTONOSUPPORT) || strings.Contains(errstr, "network not implemented") </span><span class="cov8" title="1">{
+                        r.mu.Lock()
+                        disabled = r.useUDP
+                        r.useUDP = false
+                        r.mu.Unlock()
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package recursive
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net"
+        "os"
+
+        "github.com/miekg/dns"
+)
+
+// ExtendedRcode represents a DNS Extended Error code as defined in RFC 8914.
+
+type extendedErrorCodeError uint16
+
+func (e extendedErrorCodeError) Error() string <span class="cov8" title="1">{
+        return fmt.Sprintf("extended rcode %v", uint16(e))
+}</span>
+
+func (e extendedErrorCodeError) Is(err error) bool <span class="cov8" title="1">{
+        return err == ErrExtendedErrorCode
+}</span>
+
+var ErrExtendedErrorCode = extendedErrorCodeError(0)
+
+var rcodesToErrors = map[uint16]error{
+        dns.ExtendedErrorCodeOther:                io.EOF,
+        dns.ExtendedErrorCodeNotReady:             io.ErrNoProgress,
+        dns.ExtendedErrorCodeProhibited:           os.ErrPermission,
+        dns.ExtendedErrorCodeNoReachableAuthority: os.ErrDeadlineExceeded,
+        dns.ExtendedErrorCodeNetworkError:         net.ErrClosed,
+        dns.ExtendedErrorCodeInvalidData:          os.ErrInvalid,
+}
+
+// ExtendedErrorCodeFromError attempts to map a Go error to a DNS Extended Rcode.
+// The function understands well-known errors from the os, io, and net packages
+// (including their wrapper types) and returns dns.ExtendedErrorCodeOther if no mapping is known.
+func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov8" title="1">{
+        rcode = dns.ExtendedErrorCodeOther
+        if err != nil </span><span class="cov8" title="1">{
+                if rcodeErr, ok := err.(extendedErrorCodeError); ok </span><span class="cov8" title="1">{
+                        return uint16(rcodeErr)
+                }</span>
+
+                <span class="cov8" title="1">for code, sample := range rcodesToErrors </span><span class="cov8" title="1">{
+                        if errors.Is(err, sample) </span><span class="cov8" title="1">{
+                                return code
+                        }</span>
+                }
+
+                <span class="cov8" title="1">if errors.Is(err, os.ErrNotExist) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeNoReachableAuthority
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, os.ErrExist) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, os.ErrDeadlineExceeded) ||
+                        errors.Is(err, context.DeadlineExceeded) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeNoReachableAuthority
+                }</span>
+
+                <span class="cov8" title="1">if errors.Is(err, io.ErrShortBuffer) || errors.Is(err, io.ErrShortWrite) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, io.ErrClosedPipe) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeNetworkError
+                }</span>
+                <span class="cov8" title="1">if errors.Is(err, io.ErrUnexpectedEOF) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+
+                <span class="cov8" title="1">var unknownNet net.UnknownNetworkError
+                if errors.As(err, &amp;unknownNet) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeNetworkError
+                }</span>
+                <span class="cov8" title="1">var addrErr *net.AddrError
+                if errors.As(err, &amp;addrErr) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var invalidAddr net.InvalidAddrError
+                if errors.As(err, &amp;invalidAddr) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var parseErr *net.ParseError
+                if errors.As(err, &amp;parseErr) </span><span class="cov8" title="1">{
+                        return dns.ExtendedErrorCodeInvalidData
+                }</span>
+                <span class="cov8" title="1">var dnsErr *net.DNSError
+                if errors.As(err, &amp;dnsErr) </span><span class="cov8" title="1">{
+                        switch </span>{
+                        case dnsErr.IsTimeout, dnsErr.IsNotFound:<span class="cov8" title="1">
+                                return dns.ExtendedErrorCodeNoReachableAuthority</span>
+                        case dnsErr.IsTemporary:<span class="cov8" title="1">
+                                return dns.ExtendedErrorCodeNotReady</span>
+                        default:<span class="cov8" title="1">
+                                return dns.ExtendedErrorCodeNetworkError</span>
+                        }
+                }
+
+                <span class="cov8" title="1">var netErr net.Error
+                if errors.As(err, &amp;netErr) </span><span class="cov8" title="1">{
+                        switch </span>{
+                        case netErr.Timeout():<span class="cov8" title="1">
+                                return dns.ExtendedErrorCodeNoReachableAuthority</span>
+                        default:<span class="cov8" title="1">
+                                return dns.ExtendedErrorCodeNetworkError</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+// ErrorFromExtendedErrorCode returns the canonical Go error for the provided
+// Extended Error Code. It returns ErrExtendedErrorCode if there is no known mapping.
+func ErrorFromExtendedErrorCode(code uint16) (err error) <span class="cov8" title="1">{
+        var ok bool
+        if err, ok = rcodesToErrors[code]; !ok </span><span class="cov8" title="1">{
+                err = extendedErrorCodeError(code)
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package recursive
+
+import "time"
+
+type netError struct {
+        Err  error
+        When time.Time
+}
+
+func (ne netError) Error() string <span class="cov8" title="1">{
+        return ne.Err.Error()
+}</span>
+
+func (ne netError) Unwrap() error <span class="cov8" title="1">{
+        return ne.Err
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package recursive
+
+import (
+        "context"
+        "net/netip"
+        "sort"
+        "sync"
+        "time"
+)
+
+func (r *Recursive) OrderRoots(ctx context.Context) <span class="cov8" title="1">{
+        r.OrderRootsTimeout(ctx, time.Second)
+}</span>
+
+// OrderRootsTimeout sorts the root server list by their current latency and removes those that don't respond within cutoff.
+func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration) <span class="cov8" title="1">{
+        if _, ok := ctx.Deadline(); !ok </span><span class="cov8" title="1">{
+                newctx, cancel := context.WithTimeout(ctx, cutoff*2)
+                defer cancel()
+                ctx = newctx
+        }</span>
+        <span class="cov8" title="1">r.mu.Lock()
+        defer r.mu.Unlock()
+        var l []*rootRtt
+        var wg sync.WaitGroup
+        for _, addr := range r.rootServers </span><span class="cov8" title="1">{
+                rt := &amp;rootRtt{addr: addr}
+                l = append(l, rt)
+                wg.Add(1)
+                go timeRoot(ctx, r, &amp;wg, rt)
+        }</span>
+        <span class="cov8" title="1">wg.Wait()
+        sort.Slice(l, func(i, j int) bool </span><span class="cov8" title="1">{ return l[i].rtt &lt; l[j].rtt }</span>)
+        <span class="cov8" title="1">var newRootServers []netip.Addr
+        useIPv4 := false
+        useIPv6 := false
+        for _, rt := range l </span><span class="cov8" title="1">{
+                if rt.rtt &lt;= cutoff </span><span class="cov8" title="1">{
+                        useIPv4 = useIPv4 || rt.addr.Is4()
+                        useIPv6 = useIPv6 || rt.addr.Is6()
+                        newRootServers = append(newRootServers, rt.addr)
+                }</span>
+        }
+        <span class="cov8" title="1">if len(newRootServers) &gt; 0 </span><span class="cov8" title="1">{
+                r.rootServers = newRootServers
+                r.useIPv4 = useIPv4
+                r.useIPv6 = useIPv6
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package recursive
+
+import (
+        "context"
+        "fmt"
+        "io"
+        "net"
+        "net/netip"
+        "slices"
+        "sort"
+        "strings"
+        "time"
+
+        "github.com/miekg/dns"
+)
+
+type query struct {
+        *Recursive
+        cache Cacher
+        logw  io.Writer
+        start time.Time
+        depth int
+        steps int
+        glue  map[string][]netip.Addr
+}
+
+func (q *query) dive(format string, args ...any) (err error) <span class="cov8" title="1">{
+        err = ErrMaxSteps
+        if q.steps &lt; maxSteps </span><span class="cov8" title="1">{
+                q.steps++
+                err = ErrMaxDepth
+                if q.depth &lt; maxDepth </span><span class="cov8" title="1">{
+                        err = nil
+                        if format != "" </span><span class="cov8" title="1">{
+                                q.logf(format, args...)
+                        }</span>
+                        <span class="cov8" title="1">q.depth++</span>
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (q *query) surface() <span class="cov8" title="1">{
+        q.depth--
+}</span>
+
+func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        qname = dns.CanonicalName(qname)
+        servers := append([]netip.Addr(nil), q.rootServers...)
+        labels := dns.SplitDomainName(qname)
+
+        // Walk down: "." -&gt; "com." -&gt; "example.com."
+        for i := len(labels) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
+                zone := dns.Fqdn(strings.Join(labels[i:], "."))
+                var nsNames []string
+                var nsAddrs []netip.Addr
+
+                if nsNames, nsAddrs, resp, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov8" title="1">{
+                        q.logf("DELEGATION ERROR %q: %v\n", zone, err)
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if len(nsAddrs) &gt; 0 </span><span class="cov8" title="1">{
+                        servers = sortAddrs(nsAddrs)
+                }</span>
+
+                <span class="cov8" title="1">if zone == qname </span><span class="cov8" title="1">{
+                        break</span>
+                }
+
+                <span class="cov8" title="1">if len(nsNames) == 0 &amp;&amp; resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                        break</span>
+                }
+        }
+        <span class="cov8" title="1">return q.queryFinal(ctx, qname, qtype, servers)</span>
+}
+
+func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, nsAddr []netip.Addr) <span class="cov8" title="1">{
+        // extract delegation NS records
+        for _, rr := range m.Ns </span><span class="cov8" title="1">{
+                if ns, ok := rr.(*dns.NS); ok </span><span class="cov8" title="1">{
+                        if strings.EqualFold(ns.Hdr.Name, zone) </span><span class="cov8" title="1">{
+                                nsName := dns.CanonicalName(ns.Ns)
+                                if !slices.Contains(nsNames, nsName) </span><span class="cov8" title="1">{
+                                        nsNames = append(nsNames, nsName)
+                                }</span>
+                        }
+                }
+        }
+        // extract glue records
+        <span class="cov8" title="1">for _, rr := range m.Extra </span><span class="cov8" title="1">{
+                var addr netip.Addr
+                switch a := rr.(type) </span>{
+                case *dns.A:<span class="cov8" title="1">
+                        addr = ipToAddr(a.A)</span>
+                case *dns.AAAA:<span class="cov8" title="1">
+                        addr = ipToAddr(a.AAAA)</span>
+                }
+                <span class="cov8" title="1">if addr.IsValid() </span><span class="cov8" title="1">{
+                        hdrName := dns.CanonicalName(rr.Header().Name)
+                        if slices.Contains(nsNames, hdrName) </span><span class="cov8" title="1">{
+                                if !slices.Contains(q.glue[hdrName], addr) </span><span class="cov8" title="1">{
+                                        q.glue[hdrName] = append(q.glue[hdrName], addr)
+                                }</span>
+                        }
+                }
+        }
+        // build list of addresses belonging to nsNames
+        <span class="cov8" title="1">addrs := map[netip.Addr]struct{}{}
+        for _, nsName := range nsNames </span><span class="cov8" title="1">{
+                for _, addr := range q.glue[nsName] </span><span class="cov8" title="1">{
+                        addrs[addr] = struct{}{}
+                }</span>
+        }
+        <span class="cov8" title="1">for addr := range addrs </span><span class="cov8" title="1">{
+                nsAddr = append(nsAddr, addr)
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+
+// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
+// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, err error) <span class="cov8" title="1">{
+        if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil </span><span class="cov8" title="1">{
+                defer func() </span><span class="cov8" title="1">{
+                        q.surface()
+                        rcode := "UNKNOWN"
+                        if resp != nil </span><span class="cov8" title="1">{
+                                rcode = dns.RcodeToString[resp.Rcode]
+                        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
+                                rcode = err.Error()
+                        }</span>
+                        <span class="cov8" title="1">q.logf("DELEGATION ANSWER %q: %s with %d records\n", zone, rcode, len(nsNames))</span>
+                }()
+
+        <span class="cov8" title="1">retryWithoutQMIN:
+                for _, svr := range parentServers </span><span class="cov8" title="1">{
+                        if resp, err = q.exchange(ctx, zone, dns.TypeNS, svr); resp != nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                                if resp.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
+                                        if resp.Rcode != dns.RcodeNameError </span><span class="cov0" title="0">{
+                                                // probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
+                                                if zone != fullQname </span><span class="cov0" title="0">{
+                                                        q.logf("DELEGATION RETRY without QNAME minimization\n")
+                                                        zone = fullQname
+                                                        goto retryWithoutQMIN</span>
+                                                }
+                                        }
+                                        // NXDOMAIN at parent or we failed even without QMIN
+                                        <span class="cov8" title="1">return</span>
+                                }
+
+                                <span class="cov8" title="1">nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
+                                if len(nsNames) &gt; 0 </span><span class="cov8" title="1">{
+                                        if len(nsAddrs) == 0 </span><span class="cov8" title="1">{
+                                                nsAddrs = q.resolveNSAddrs(ctx, nsNames)
+                                        }</span>
+                                }
+                                <span class="cov8" title="1">if len(nsAddrs) &gt; 0 || resp.Authoritative </span><span class="cov8" title="1">{
+                                        return
+                                }</span>
+                        }
+                }
+
+                <span class="cov8" title="1">if resp == nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                        err = ErrNoResponse
+                }</span>
+        }
+
+        <span class="cov8" title="1">return</span>
+}
+
+// queryFinal asks the authoritative (or closest) servers for the target qname/qtype.
+// It also performs CNAME/DNAME chasing, with a loop bound controlled by depth.
+func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, authServers []netip.Addr) (resp *dns.Msg, svr netip.Addr, err error) <span class="cov8" title="1">{
+        if err = q.dive("QUERY %s %q from %d servers\n", dns.Type(qtype), qname, len(authServers)); err == nil </span><span class="cov8" title="1">{
+                defer func() </span><span class="cov8" title="1">{
+                        q.surface()
+                        q.logf("ANSWER @%s %s %q", svr, dns.Type(qtype), qname)
+                        q.logResponse(0, resp, err)
+                }</span>()
+                <span class="cov8" title="1">for _, svr = range authServers </span><span class="cov8" title="1">{
+                        if resp, err = q.exchange(ctx, qname, qtype, svr); resp != nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                                if resp.Rcode == dns.RcodeSuccess </span><span class="cov8" title="1">{
+                                        if !hasRRType(resp.Answer, qtype) </span><span class="cov8" title="1">{
+                                                if tgt := cnameTarget(resp, qname); tgt != "" </span><span class="cov8" title="1">{
+                                                        q.logf("CNAME @%s %s %q =&gt; %q\n", svr, dns.Type(qtype), qname, tgt)
+                                                        var msg *dns.Msg
+                                                        var origin netip.Addr
+                                                        msg, origin, err = q.resolve(ctx, tgt, qtype)
+                                                        if err == nil </span><span class="cov8" title="1">{
+                                                                msg = cloneIfCached(msg)
+                                                                prependRecords(msg, resp, qname, cnameChainRecords)
+                                                                resp = msg
+                                                                svr = origin
+                                                        }</span>
+                                                } else<span class="cov8" title="1"> if tgt := dnameSynthesize(resp, qname); tgt != "" </span><span class="cov0" title="0">{
+                                                        q.logf("DNAME @%s %s %q =&gt; %q\n", svr, dns.Type(qtype), qname, tgt)
+                                                        var msg *dns.Msg
+                                                        var origin netip.Addr
+                                                        msg, origin, err = q.resolve(ctx, tgt, qtype)
+                                                        if err == nil </span><span class="cov0" title="0">{
+                                                                msg = cloneIfCached(msg)
+                                                                prependRecords(msg, resp, qname, dnameRecords)
+                                                                resp = msg
+                                                                svr = origin
+                                                        }</span>
+                                                } else<span class="cov8" title="1"> if qtype == dns.TypeNS </span><span class="cov8" title="1">{
+                                                        answers := delegationRecords(resp, qname)
+                                                        if len(answers) &gt; 0 </span><span class="cov8" title="1">{
+                                                                // returning parent delegation
+                                                                resp = resp.Copy()
+                                                                resp.Zero = false
+                                                                resp.Answer = answers
+                                                                resp.Extra = nil
+                                                                resp.Ns = nil
+                                                        }</span>
+                                                }
+                                        }
+                                        <span class="cov8" title="1">return</span>
+                                }
+
+                                <span class="cov8" title="1">if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                                        return
+                                }</span>
+
+                                // got an unhandled RCODE, try the next server
+                        }
+                }
+
+                <span class="cov0" title="0">if resp == nil &amp;&amp; err == nil </span><span class="cov0" title="0">{
+                        err = ErrNoResponse
+                }</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+// resolveNSAddrs minimally resolves NS owner names to addresses by asking the roots when glue is missing
+func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []netip.Addr) <span class="cov8" title="1">{
+        if q.dive("GLUE QUERY %v\n", nsOwners) == nil </span><span class="cov8" title="1">{
+                defer func() </span><span class="cov8" title="1">{
+                        q.surface()
+                        q.logf("GLUE ANSWER %v\n", addrs)
+                }</span>()
+                <span class="cov8" title="1">resolved := map[netip.Addr]struct{}{}
+                for _, host := range nsOwners </span><span class="cov8" title="1">{
+                        if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeA); err == nil </span><span class="cov8" title="1">{
+                                for _, rr := range msg.Answer </span><span class="cov8" title="1">{
+                                        if a, ok := rr.(*dns.A); ok </span><span class="cov8" title="1">{
+                                                if addr := ipToAddr(a.A); addr.IsValid() </span><span class="cov8" title="1">{
+                                                        resolved[addr] = struct{}{}
+                                                }</span>
+                                        }
+                                }
+                        }
+                        <span class="cov8" title="1">if len(resolved) == 0 &amp;&amp; q.usingIPv6() </span><span class="cov0" title="0">{
+                                if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeAAAA); err == nil </span><span class="cov0" title="0">{
+                                        for _, rr := range msg.Answer </span><span class="cov0" title="0">{
+                                                if a, ok := rr.(*dns.AAAA); ok </span><span class="cov0" title="0">{
+                                                        if addr := ipToAddr(a.AAAA); addr.IsValid() </span><span class="cov0" title="0">{
+                                                                resolved[addr] = struct{}{}
+                                                        }</span>
+                                                }
+                                        }
+                                }
+                        }
+                }
+                <span class="cov8" title="1">for addr := range resolved </span><span class="cov8" title="1">{
+                        addrs = append(addrs, addr)
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (q *query) logf(format string, args ...any) <span class="cov8" title="1">{
+        if q.logw != nil </span><span class="cov8" title="1">{
+                _, _ = fmt.Fprintf(q.logw, "[%-5d %2d] %*s", time.Since(q.start).Milliseconds(), q.depth, q.depth, "")
+                _, _ = fmt.Fprintf(q.logw, format, args...)
+        }</span>
+}
+
+func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) <span class="cov8" title="1">{
+        if q.logw != nil </span><span class="cov8" title="1">{
+                if msg != nil </span><span class="cov8" title="1">{
+                        var elapsed string
+                        if rtt != 0 </span><span class="cov8" title="1">{
+                                elapsed = fmt.Sprintf("%v, ", rtt.Round(time.Millisecond))
+                        }</span>
+                        <span class="cov8" title="1">fmt.Fprintf(q.logw, " =&gt; %s [%v+%v+%v A/N/E] (%s%d bytes",
+                                dns.RcodeToString[msg.Rcode],
+                                len(msg.Answer), len(msg.Ns), len(msg.Extra),
+                                elapsed, msg.Len())
+                        if msg.MsgHdr.Truncated </span><span class="cov0" title="0">{
+                                fmt.Fprintf(q.logw, " TRNC")
+                        }</span>
+                        <span class="cov8" title="1">if msg.MsgHdr.Authoritative </span><span class="cov8" title="1">{
+                                fmt.Fprintf(q.logw, " AUTH")
+                        }</span>
+                        <span class="cov8" title="1">if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
+                                if er := uint16(opt.ExtendedRcode()); /*#nosec G115*/ er != 0 </span><span class="cov0" title="0">{
+                                        fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
+                                }</span>
+                        }
+                        <span class="cov8" title="1">fmt.Fprintf(q.logw, ")")</span>
+                }
+                <span class="cov8" title="1">if err != nil </span><span class="cov8" title="1">{
+                        fmt.Fprintf(q.logw, " ERROR: %v", err)
+                }</span>
+                <span class="cov8" title="1">fmt.Fprintln(q.logw)</span>
+        }
+}
+
+func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr) (resp *dns.Msg, err error) <span class="cov8" title="1">{
+        if q.cache != nil </span><span class="cov8" title="1">{
+                if resp = q.cache.DnsGet(qname, qtype); resp != nil </span><span class="cov8" title="1">{
+                        q.logf("CACHED: %s %q", dns.Type(qtype), qname)
+                        q.logResponse(0, resp, nil)
+                        return
+                }</span>
+        }
+        <span class="cov8" title="1">if q.usingUDP() </span><span class="cov8" title="1">{
+                if resp, err = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr); err != nil </span><span class="cov8" title="1">{
+                        if q.maybeDisableUdp(err) </span><span class="cov0" title="0">{
+                                err = nil
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">if err == nil &amp;&amp; (resp == nil || resp.Truncated) </span><span class="cov0" title="0">{
+                resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
+        }</span>
+        <span class="cov8" title="1">if resp != nil &amp;&amp; q.cache != nil </span><span class="cov8" title="1">{
+                q.cache.DnsSet(resp)
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+
+func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname string, qtype uint16, nsaddr netip.Addr) (msg *dns.Msg, err error) <span class="cov8" title="1">{
+        if err = q.getUsable(ctx, protocol, nsaddr); err == nil </span><span class="cov8" title="1">{
+                var network string
+                if nsaddr.Is4() </span><span class="cov8" title="1">{
+                        network = protocol + "4"
+                }</span> else<span class="cov0" title="0"> {
+                        network = protocol + "6"
+                }</span>
+
+                <span class="cov8" title="1">if q.rateLimiter != nil </span><span class="cov0" title="0">{
+                        select </span>{
+                        case &lt;-ctx.Done():<span class="cov0" title="0">
+                                err = ctx.Err()
+                                return</span>
+                        case &lt;-q.rateLimiter:<span class="cov0" title="0"></span>
+                        }
+                }
+
+                <span class="cov8" title="1">if q.logw != nil </span><span class="cov8" title="1">{
+                        var protostr string
+                        var dash6str string
+                        if protocol != "udp" </span><span class="cov0" title="0">{
+                                protostr = " +" + protocol
+                        }</span>
+                        <span class="cov8" title="1">if nsaddr.Is6() </span><span class="cov0" title="0">{
+                                dash6str = " -6"
+                        }</span>
+                        <span class="cov8" title="1">q.logf("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, dns.Type(qtype), qname)</span>
+                }
+
+                <span class="cov8" title="1">var nconn net.Conn
+                var rtt time.Duration
+
+                q.mu.RLock()
+                if q.Timeout &gt; 0 </span><span class="cov8" title="1">{
+                        ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
+                        defer cancel()
+                        ctx = ctx2
+                }</span>
+                <span class="cov8" title="1">clicookie := q.clicookie
+                srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
+                q.mu.RUnlock()
+
+                if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov8" title="1">{
+                        dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
+                        defer dnsconn.Close()
+
+                        m := new(dns.Msg)
+                        m.SetQuestion(qname, qtype)
+                        m.RecursionDesired = false
+                        opt := new(dns.OPT)
+                        opt.Hdr.Name = "."
+                        opt.Hdr.Rrtype = dns.TypeOPT
+                        opt.SetUDPSize(dns.DefaultMsgSize)
+
+                        // an existing but empty string for srvcookie means cookies are disabled for this server
+                        useCookies := !hasSrvCookie || srvcookie != ""
+                        if useCookies </span><span class="cov8" title="1">{
+                                opt.Option = append(opt.Option, &amp;dns.EDNS0_COOKIE{
+                                        Code:   dns.EDNS0COOKIE,
+                                        Cookie: clicookie + srvcookie,
+                                })
+                                if hasSrvCookie &amp;&amp; q.logw != nil </span><span class="cov8" title="1">{
+                                        fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
+                                }</span>
+                        }
+
+                        <span class="cov8" title="1">m.Extra = append(m.Extra, opt)
+                        c := dns.Client{UDPSize: dns.DefaultMsgSize}
+                        msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
+
+                        if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
+                                newsrvcookie := srvcookie
+                                if opt := msg.IsEdns0(); opt != nil </span><span class="cov8" title="1">{
+                                        for _, rr := range opt.Option </span><span class="cov8" title="1">{
+                                                switch rr := rr.(type) </span>{
+                                                case *dns.EDNS0_COOKIE:<span class="cov8" title="1">
+                                                        if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok </span><span class="cov8" title="1">{
+                                                                newsrvcookie = after
+                                                        }</span> else<span class="cov0" title="0"> {
+                                                                msg = nil
+                                                                err = ErrInvalidCookie
+                                                        }</span>
+                                                }
+                                        }
+                                }
+                                <span class="cov8" title="1">if err == nil &amp;&amp; newsrvcookie != "" </span><span class="cov8" title="1">{
+                                        if !hasSrvCookie || srvcookie != newsrvcookie </span><span class="cov8" title="1">{
+                                                if q.logw != nil </span><span class="cov8" title="1">{
+                                                        fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+                                                }</span>
+                                                <span class="cov8" title="1">q.setSrvCookie(q.start, nsaddr, newsrvcookie)</span>
+                                        }
+                                }
+                        }
+                }
+
+                <span class="cov8" title="1">isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
+                ipv6disabled := isIpv6Err &amp;&amp; q.maybeDisableIPv6(err)
+                udpDisabled := isUdpErr &amp;&amp; q.maybeDisableUdp(err)
+
+                if q.logw != nil </span><span class="cov8" title="1">{
+                        if ipv6disabled </span><span class="cov0" title="0">{
+                                fmt.Fprintf(q.logw, " (IPv6 disabled)")
+                        }</span>
+                        <span class="cov8" title="1">if udpDisabled </span><span class="cov0" title="0">{
+                                fmt.Fprintf(q.logw, " (UDP disabled)")
+                        }</span>
+                        <span class="cov8" title="1">q.logResponse(rtt, msg, err)</span>
+                }
+
+                <span class="cov8" title="1">if !hasSrvCookie &amp;&amp; msg != nil &amp;&amp; msg.Rcode == dns.RcodeFormatError </span><span class="cov0" title="0">{
+                        q.logf("got FORMERR, disabling cookies for %v and retrying\n", nsaddr)
+                        q.setSrvCookie(q.start, nsaddr, "")
+                        return q.exchangeWithNetwork(ctx, protocol, qname, qtype, nsaddr)
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) <span class="cov8" title="1">{
+        if err = ctx.Err(); err == nil </span><span class="cov8" title="1">{
+                var m map[netip.Addr]netError
+                switch protocol </span>{
+                case "udp", "udp4", "udp6":<span class="cov8" title="1">
+                        m = r.udperrs</span>
+                case "tcp", "tcp4", "tcp6":<span class="cov0" title="0">
+                        m = r.tcperrs</span>
+                }
+                <span class="cov8" title="1">err = net.ErrClosed
+                if m != nil </span><span class="cov8" title="1">{
+                        r.mu.RLock()
+                        ne, hasNetError := m[nsaddr]
+                        if !hasNetError </span><span class="cov8" title="1">{
+                                if (r.useIPv4 &amp;&amp; nsaddr.Is4()) || (r.useIPv6 &amp;&amp; nsaddr.Is6()) </span><span class="cov8" title="1">{
+                                        err = nil
+                                }</span>
+                        }
+                        <span class="cov8" title="1">r.mu.RUnlock()
+                        if hasNetError </span><span class="cov8" title="1">{
+                                err = ne
+                                if time.Since(ne.When) &gt; time.Minute </span><span class="cov0" title="0">{
+                                        err = nil
+                                        r.mu.Lock()
+                                        delete(m, nsaddr)
+                                        r.mu.Unlock()
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func sortAddrs(in []netip.Addr) []netip.Addr <span class="cov8" title="1">{
+        sort.Slice(in, func(i, j int) bool </span><span class="cov8" title="1">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+        <span class="cov8" title="1">return in</span>
+}
+
+func cnameTarget(resp *dns.Msg, owner string) (tgt string) <span class="cov8" title="1">{
+        for _, rr := range resp.Answer </span><span class="cov8" title="1">{
+                if c, ok := rr.(*dns.CNAME); ok &amp;&amp; strings.EqualFold(c.Hdr.Name, owner) </span><span class="cov8" title="1">{
+                        tgt = dns.CanonicalName(c.Target)
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+// dnameSynthesize finds a DNAME and synthesizes the new qname per RFC 6672.
+func dnameSynthesize(resp *dns.Msg, qname string) (tgt string) <span class="cov8" title="1">{
+        q := strings.ToLower(qname)
+        for _, rr := range resp.Answer </span><span class="cov0" title="0">{
+                if d, ok := rr.(*dns.DNAME); ok </span><span class="cov0" title="0">{
+                        owner := strings.ToLower(d.Hdr.Name)
+                        if strings.HasSuffix(q, owner) </span><span class="cov0" title="0">{
+                                prefix := strings.TrimSuffix(q, owner)
+                                // Avoid double dots when concatenating
+                                prefix = strings.TrimSuffix(prefix, ".")
+                                tgt = dns.CanonicalName(strings.Trim(prefix, ".") + "." + d.Target)
+                                break</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func hasRRType(rrs []dns.RR, t uint16) bool <span class="cov8" title="1">{
+        for _, rr := range rrs </span><span class="cov8" title="1">{
+                if rr.Header().Rrtype == t </span><span class="cov8" title="1">{
+                        return true
+                }</span>
+        }
+        <span class="cov8" title="1">return false</span>
+}
+
+func delegationRecords(m *dns.Msg, zone string) (out []dns.RR) <span class="cov8" title="1">{
+        if m != nil </span><span class="cov8" title="1">{
+                for _, rr := range m.Ns </span><span class="cov8" title="1">{
+                        if ns, ok := rr.(*dns.NS); ok </span><span class="cov8" title="1">{
+                                if strings.EqualFold(ns.Hdr.Name, zone) </span><span class="cov8" title="1">{
+                                        out = append(out, rr)
+                                }</span>
+                        }
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+func cnameChainRecords(rrs []dns.RR, owner string) []dns.RR <span class="cov8" title="1">{
+        var out []dns.RR
+        for _, rr := range rrs </span><span class="cov8" title="1">{
+                if cname, ok := rr.(*dns.CNAME); ok </span><span class="cov8" title="1">{
+                        if strings.EqualFold(cname.Hdr.Name, owner) </span><span class="cov8" title="1">{
+                                out = append(out, rr)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return out</span>
+}
+
+func dnameRecords(rrs []dns.RR, qname string) []dns.RR <span class="cov8" title="1">{
+        var out []dns.RR
+        for _, rr := range rrs </span><span class="cov8" title="1">{
+                if d, ok := rr.(*dns.DNAME); ok </span><span class="cov8" title="1">{
+                        if strings.HasSuffix(strings.ToLower(qname), strings.ToLower(d.Hdr.Name)) </span><span class="cov8" title="1">{
+                                out = append(out, rr)
+                        }</span>
+                }
+                <span class="cov8" title="1">if cname, ok := rr.(*dns.CNAME); ok </span><span class="cov8" title="1">{
+                        if strings.EqualFold(cname.Hdr.Name, qname) </span><span class="cov8" title="1">{
+                                out = append(out, rr)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return out</span>
+}
+
+func prependRecords(msg *dns.Msg, resp *dns.Msg, qname string, gather func([]dns.RR, string) []dns.RR) <span class="cov8" title="1">{
+        records := gather(resp.Answer, qname)
+        if len(msg.Question) &gt; 0 </span><span class="cov8" title="1">{
+                msg.Question[0].Name = qname
+        }</span>
+        <span class="cov8" title="1">if len(records) &gt; 0 </span><span class="cov8" title="1">{
+                msg.Answer = append(append([]dns.RR(nil), records...), msg.Answer...)
+        }</span>
+        <span class="cov8" title="1">if len(msg.Ns) == 0 </span><span class="cov0" title="0">{
+                if len(resp.Ns) &gt; 0 </span><span class="cov0" title="0">{
+                        msg.Ns = append([]dns.RR(nil), resp.Ns...)
+                }</span>
+        }
+        <span class="cov8" title="1">if len(resp.Extra) &gt; 0 </span><span class="cov8" title="1">{
+                extras := append([]dns.RR(nil), resp.Extra...)
+                msg.Extra = append(extras, msg.Extra...)
+        }</span>
+}
+
+func ipToAddr(ip net.IP) (addr netip.Addr) <span class="cov8" title="1">{
+        if ip != nil </span><span class="cov8" title="1">{
+                if v4 := ip.To4(); v4 != nil </span><span class="cov8" title="1">{
+                        addr = netip.AddrFrom4([4]byte(v4))
+                }</span> else<span class="cov8" title="1"> if v6 := ip.To16(); v6 != nil </span><span class="cov8" title="1">{
+                        addr = netip.AddrFrom16([16]byte(v6))
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) <span class="cov8" title="1">{
+        clone = msg
+        if msg.Zero </span><span class="cov8" title="1">{
+                clone = msg.Copy()
+                clone.Zero = false
+        }</span>
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// package recursive provides a minimal iterative DNS resolver with QNAME minimization
+// using github.com/miekg/dns for wire format and transport.
+package recursive
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net"
+        "net/netip"
+        "os"
+        "strings"
+        "sync"
+        "syscall"
+        "time"
+
+        "github.com/miekg/dns"
+        "golang.org/x/net/proxy"
+)
+
+//go:generate go run ./cmd/genhints roothints.gen.go
+
+const (
+        maxSrvCookies = 8192
+        srvCookieTTL  = 24 * time.Hour
+        maxDepth      = 16   // max recursion depth
+        maxSteps      = 4096 // max steps to take for a query
+)
+
+type Recursive struct {
+        proxy.ContextDialer // context dialer to use
+        Cacher              // cache to use for DnsResolve
+        Timeout             time.Duration
+        DNSPort             uint16
+        rateLimiter         &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
+        mu                  sync.RWMutex    // protects following
+        useIPv4             bool
+        useIPv6             bool
+        useUDP              bool
+        rootServers         []netip.Addr
+        clicookie           string
+        srvcookies          map[netip.Addr]srvCookie
+        udperrs             map[netip.Addr]netError
+        tcperrs             map[netip.Addr]netError
+}
+
+func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        return r.ResolveWithOptions(ctx, r.Cacher, nil, qname, qtype)
+}</span>
+
+var _ Resolver = &amp;Recursive{}
+
+var (
+        // ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
+        ErrInvalidCookie = errors.New("invalid cookie")
+        // ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
+        ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
+        // ErrMaxSteps is returned when resolving exceeds the step limit.
+        ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
+        // ErrNoResponse is returned when no authoritative server could be successfully queried.
+        // It is equivalent to SERVFAIL.
+        ErrNoResponse = errors.New("no authoritative response")
+
+        DefaultCache          = NewCache()
+        DefaultTimeout        = time.Second * 3
+        DefaultDNSPort uint16 = 53
+)
+
+// NewWithOptions returns a new Recursive resolver using the given ContextDialer and
+// using the given Cacher as the cache when calling DnsResolve. It does not call OrderRoots.
+//
+// Passing nil for dialer will use a net.Dialer.
+// Passing nil for the roots will use the default set of roots.
+// Passing nil for the rateLimiter means no rate limiting
+func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []netip.Addr, rateLimiter &lt;-chan struct{}) *Recursive <span class="cov8" title="1">{
+        if dialer == nil </span><span class="cov8" title="1">{
+                dialer = &amp;net.Dialer{}
+        }</span>
+        <span class="cov8" title="1">if roots4 == nil </span><span class="cov8" title="1">{
+                roots4 = Roots4
+        }</span>
+        <span class="cov8" title="1">if roots6 == nil </span><span class="cov8" title="1">{
+                roots6 = Roots6
+        }</span>
+
+        <span class="cov8" title="1">var roots []netip.Addr
+        roots = append(roots, roots4...)
+        roots = append(roots, roots6...)
+
+        return &amp;Recursive{
+                ContextDialer: dialer,
+                Cacher:        cache,
+                DNSPort:       DefaultDNSPort,
+                Timeout:       DefaultTimeout,
+                rateLimiter:   rateLimiter,
+                useUDP:        true,
+                useIPv4:       len(roots4) &gt; 0,
+                useIPv6:       len(roots6) &gt; 0,
+                rootServers:   roots,
+                clicookie:     makeCookie(),
+                srvcookies:    make(map[netip.Addr]srvCookie),
+                udperrs:       make(map[netip.Addr]netError),
+                tcperrs:       make(map[netip.Addr]netError),
+        }</span>
+}
+
+// New returns a new Recursive resolver using the given ContextDialer and
+// has DefaultCache as it's cache.
+//
+// It calls OrderRoots before returning.
+func New(dialer proxy.ContextDialer) *Recursive <span class="cov8" title="1">{
+        r := NewWithOptions(dialer, DefaultCache, nil, nil, nil)
+        r.OrderRoots(context.Background())
+        return r
+}</span>
+
+// ResolveWithOptions performs iterative resolution with QNAME minimization for qname/qtype.
+func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw io.Writer, qname string, qtype uint16) (msg *dns.Msg, origin netip.Addr, err error) <span class="cov8" title="1">{
+        now := time.Now()
+        r.cleanupSrvCookies(now)
+        qry := query{
+                Recursive: r,
+                cache:     cache,
+                logw:      logw,
+                start:     now,
+                glue:      make(map[string][]netip.Addr),
+        }
+        msg, origin, err = qry.resolve(ctx, dns.CanonicalName(qname), qtype)
+        return
+}</span>
+
+// GetRoots returns the current set of root servers in use.
+func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) <span class="cov8" title="1">{
+        r.mu.RLock()
+        defer r.mu.RUnlock()
+        for _, addr := range r.rootServers </span><span class="cov8" title="1">{
+                if addr.Is4() </span><span class="cov8" title="1">{
+                        root4 = append(root4, addr)
+                }</span>
+                <span class="cov8" title="1">if addr.Is6() </span><span class="cov8" title="1">{
+                        root6 = append(root6, addr)
+                }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
+
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) <span class="cov8" title="1">{
+        if err != nil </span><span class="cov8" title="1">{
+                isIpv6err = nsaddr.Is6()
+                var ne net.Error
+                ok := errors.Is(err, io.EOF)
+                if errors.As(err, &amp;ne) </span><span class="cov8" title="1">{
+                        ok = true
+                }</span>
+                <span class="cov8" title="1">ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
+                ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+                errstr := err.Error()
+                ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
+                if ok </span><span class="cov8" title="1">{
+                        var m map[netip.Addr]netError
+                        switch protocol </span>{
+                        case "udp":<span class="cov8" title="1">
+                                isUdpErr = true
+                                m = r.udperrs</span>
+                        case "tcp":<span class="cov8" title="1">
+                                m = r.tcperrs</span>
+                        }
+                        <span class="cov8" title="1">if m != nil </span><span class="cov8" title="1">{
+                                r.mu.Lock()
+                                m[nsaddr] = netError{Err: err, When: time.Now()}
+                                r.mu.Unlock()
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package recursive
+
+import (
+        "context"
+        "net/netip"
+        "sync"
+        "time"
+)
+
+type rootRtt struct {
+        addr netip.Addr
+        rtt  time.Duration
+}
+
+func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt) <span class="cov8" title="1">{
+        defer wg.Done()
+        const numProbes = 3
+        network := "tcp4"
+        if rt.addr.Is6() </span><span class="cov8" title="1">{
+                network = "tcp6"
+        }</span>
+        <span class="cov8" title="1">rt.rtt = time.Hour
+        var rtt time.Duration
+        for i := 0; i &lt; numProbes; i++ </span><span class="cov8" title="1">{
+                now := time.Now()
+                conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
+                if err != nil </span><span class="cov8" title="1">{
+                        return
+                }</span>
+                <span class="cov8" title="1">rtt += time.Since(now)
+                _ = conn.Close()</span>
+        }
+        <span class="cov8" title="1">rt.rtt = rtt / numProbes</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
