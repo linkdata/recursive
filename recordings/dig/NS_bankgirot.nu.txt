@@ -1,0 +1,119 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS bankgirot.nu
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 28079
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510671	IN	NS	d.root-servers.net.
+.			510671	IN	NS	e.root-servers.net.
+.			510671	IN	NS	f.root-servers.net.
+.			510671	IN	NS	g.root-servers.net.
+.			510671	IN	NS	h.root-servers.net.
+.			510671	IN	NS	i.root-servers.net.
+.			510671	IN	NS	j.root-servers.net.
+.			510671	IN	NS	k.root-servers.net.
+.			510671	IN	NS	l.root-servers.net.
+.			510671	IN	NS	m.root-servers.net.
+.			510671	IN	NS	a.root-servers.net.
+.			510671	IN	NS	b.root-servers.net.
+.			510671	IN	NS	c.root-servers.net.
+.			510671	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510671	IN	A	198.41.0.4
+a.root-servers.net.	510671	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510671	IN	A	170.247.170.2
+b.root-servers.net.	510671	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510671	IN	A	192.33.4.12
+c.root-servers.net.	510671	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510671	IN	A	199.7.91.13
+d.root-servers.net.	510671	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510671	IN	A	192.203.230.10
+e.root-servers.net.	510671	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510671	IN	A	192.5.5.241
+f.root-servers.net.	510671	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510671	IN	A	192.112.36.4
+g.root-servers.net.	510671	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510671	IN	A	198.97.190.53
+h.root-servers.net.	510671	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510671	IN	A	192.36.148.17
+i.root-servers.net.	510671	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510671	IN	A	192.58.128.30
+j.root-servers.net.	510671	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510671	IN	A	193.0.14.129
+k.root-servers.net.	510671	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510671	IN	A	199.7.83.42
+l.root-servers.net.	510671	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510671	IN	A	202.12.27.33
+m.root-servers.net.	510671	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 36321
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;bankgirot.nu.			IN	NS
+
+;; AUTHORITY SECTION:
+nu.			172800	IN	NS	a.ns.nu.
+nu.			172800	IN	NS	c.ns.nu.
+nu.			172800	IN	NS	d.ns.nu.
+nu.			172800	IN	NS	m.ns.nu.
+nu.			172800	IN	NS	y.ns.nu.
+nu.			172800	IN	NS	z.ns.nu.
+nu.			86400	IN	DS	41209 13 2 46159142140BBF89ECB41E202F88DA8C7D8A51B584AA5EA4A28CEAAA F9091185
+nu.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . ZN4Rr4tHq4CQ5PeCCKyHSoGUAOVhtyirW9IGW7/gBRO3bCVx8TtEDkg9 pOz6ePCVnm9ZIT4qd2P8GbcMLurcGO+nDpd5XDI1aM2x5GbLcd8TqdbA j+JJh9gRmpV1+CHchFqvB0IRm6J82GEj3NntPyCrshpmJSiCbXu9xUtM ItE1ImPpHndxe3IipovxT/5cuCnlDwxGCS/tTrUEjoHuzMRBiCwEreZl kvxhh53CVC0U+VTAA69Kj9CUL2MtqtDSZcKJadWLt43PMVIbso7RT52b WxEV9Su2j3utH09+Zmz3HGPqDZ7En4cJ1/VePrqJLSpxUkyptLKsjE5Y uy5Vqg==
+
+;; ADDITIONAL SECTION:
+a.ns.nu.		172800	IN	A	194.146.106.22
+a.ns.nu.		172800	IN	AAAA	2001:67c:1010:5::53
+c.ns.nu.		172800	IN	A	192.36.144.107
+c.ns.nu.		172800	IN	AAAA	2a01:3f0:0:301::53
+d.ns.nu.		172800	IN	A	213.108.25.4
+d.ns.nu.		172800	IN	AAAA	2001:67c:124c:e000::4
+m.ns.nu.		172800	IN	A	194.0.11.112
+m.ns.nu.		172800	IN	AAAA	2001:678:e:112::53
+y.ns.nu.		172800	IN	A	185.159.197.150
+y.ns.nu.		172800	IN	AAAA	2620:10a:80aa::150
+z.ns.nu.		172800	IN	A	185.159.198.150
+z.ns.nu.		172800	IN	AAAA	2620:10a:80ab::150
+
+;; Query time: 1 msec
+;; SERVER: 192.5.5.241#53(f.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:40 CEST 2025
+;; MSG SIZE  rcvd: 739
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 60820
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1452
+; COOKIE: 04f0c26f35f2fd83d0ab58eb68ca9208ca3ab4f412abe1af (good)
+;; QUESTION SECTION:
+;bankgirot.nu.			IN	NS
+
+;; AUTHORITY SECTION:
+bankgirot.nu.		86400	IN	NS	sem1.eun.net.
+bankgirot.nu.		86400	IN	NS	sem2.eun.net.
+bankgirot.nu.		86400	IN	NS	sem3.eun.net.
+bankgirot.nu.		7200	IN	NSEC	bankhunt.nu. NS RRSIG NSEC
+bankgirot.nu.		7200	IN	RRSIG	NSEC 13 2 7200 20250930132856 20250916115856 61041 nu. vmqxOrmfNHEHsJgVcm2dtDAXsBoY5mOh3kwfxyCnIwOx4wXgIc1tXF58 OxNFtZkTiauPnlWllnJzFm0RXV5ydA==
+
+couldn't get address for 'sem1.eun.net': not found
+couldn't get address for 'sem2.eun.net': not found
+couldn't get address for 'sem3.eun.net': not found

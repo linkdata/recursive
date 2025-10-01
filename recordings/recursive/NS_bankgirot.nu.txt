@@ -1,0 +1,418 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 NS nu.
+;; opcode: QUERY, status: NOERROR, id: 3032
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;nu.	IN	 NS
+
+;; AUTHORITY SECTION:
+nu.	172800	IN	NS	a.ns.nu.
+nu.	172800	IN	NS	c.ns.nu.
+nu.	172800	IN	NS	d.ns.nu.
+nu.	172800	IN	NS	m.ns.nu.
+nu.	172800	IN	NS	y.ns.nu.
+nu.	172800	IN	NS	z.ns.nu.
+
+;; ADDITIONAL SECTION:
+a.ns.nu.	172800	IN	A	194.146.106.22
+a.ns.nu.	172800	IN	AAAA	2001:67c:1010:5::53
+c.ns.nu.	172800	IN	A	192.36.144.107
+c.ns.nu.	172800	IN	AAAA	2a01:3f0:0:301::53
+d.ns.nu.	172800	IN	A	213.108.25.4
+d.ns.nu.	172800	IN	AAAA	2001:67c:124c:e000::4
+m.ns.nu.	172800	IN	A	194.0.11.112
+m.ns.nu.	172800	IN	AAAA	2001:678:e:112::53
+y.ns.nu.	172800	IN	A	185.159.197.150
+y.ns.nu.	172800	IN	AAAA	2620:10a:80aa::150
+z.ns.nu.	172800	IN	A	185.159.198.150
+z.ns.nu.	172800	IN	AAAA	2620:10a:80ab::150
+
+;; GZPACK: H4sIAAAAAAAA/+K+0cjAwMjAwMDGwMuUV8rAwMTACKMZmBYzMHAyJjLlFYOE0ISTsQunYBfOxS5ciV24CioMt5uBESrHcmhSlhhCWAYqLKDAyFYjIMDAygABwXDnIXQeUJmQjRCG69RiZP7AwMDMCNeZgqHzao4kC0IYxU4hnwdQjQwscE8iuZaBuwAhjKyzgoGPUQhuZyWGzp3zj05DCMN1qikwcjWsglnJGAAPKmSdx6YhhFF1rkboZGDQZD0A4QACAAD//ymJDq8FAgAA
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @185.159.197.150 NS bankgirot.nu.
+;; opcode: QUERY, status: NOERROR, id: 51995
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;bankgirot.nu.	IN	 NS
+
+;; AUTHORITY SECTION:
+bankgirot.nu.	86400	IN	NS	sem1.eun.net.
+bankgirot.nu.	86400	IN	NS	sem3.eun.net.
+bankgirot.nu.	86400	IN	NS	sem2.eun.net.
+
+;; GZPACK: H4sIAAAAAAAA/zot3cjAwMjAwMDMwMiZlJiXnZ5ZlF/ClFfKwMCETYSBMbCBgY+lODXXkDm1NI85L7WEAZ8qY6JUGcFVMTBoslxgAANAAAAA//8vSH3WmwAAAA==
+;; SERVER: 185.159.197.150
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 A net.
+;; opcode: QUERY, status: NOERROR, id: 4013
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTzy4zYRTH8fNM33lj0WLRFXWQrkqaTEI0Nm6BxBYJOupPNU3b2Iu4AzdANxYsuILaW9q4Bom9nbRD/A6/5MxqxLefPJPnnIn7c5EgIgWZzrXS3vCPkL1EEiTqixTDbr7Ra9ar3bRzlna6o//+Tvb8ZN9P6n6S+smBnzT85NBPjvzk2E9O/KTpJ6d/E3Zvw+sd/eLfIP6vtCh9FZNzIc7drkn2RJKwSwZvflxpYbzyDHhkIsCb2lJaGO/iTb6fhI0PeLMbSgv05LIFHpk18PI7Sgv0otI1eGQwwSsvKS3M974UwSNTDN7CttLCeO998MjIg7fSVlqY7x17Bo/sB3iLd0oLc77VJ/DIMoGXrCstzPnaV+CRzQNv+VFpYc5XqIJH1hS8yo3Swszfaw08stPg1TaVFuiFh48fT6QSD7L3zwAAAP//j8qrcPcFAAA=
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eun.net.
+;; opcode: QUERY, status: NOERROR, id: 8893
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	172800	IN	NS	ns1.eurovoice.com.
+eun.net.	172800	IN	NS	ns2.eurovoice.com.
+eun.net.	172800	IN	NS	ns3.eurovoice.com.
+
+;; GZPACK: H4sIAAAAAAAA/1La28jAwMjAwMDMwMicWprHnJdaAhJA4jAxMDIwLWZgEGbOKzbkTC0tyi/Lz0xOZU7Oz2XArsqIKFXGaKoYGDQFGCAAEAAA//9JnCX8lgAAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 A com.
+;; opcode: QUERY, status: NOERROR, id: 5285
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTv0rDUBTH8XMTIw6tOGTSelQ6VSkEFIuLr6DgqoK2sf5pa2mLu4hv4AtoERxc9Anq7ujiMwjubhKj+Lv6g5MphW8/3HDPiW/PRZyIFGUmrJ+2sx8ufwnESTAUid1eoTloNar9tHeW9vphJx3I32TfTup20rCT1E4O7KRpJ4d2cmQnx3ZyYictO2n/T9i9Zdf79Y+xUTSutCh9F1PzLgrv1iV/AknYJYO3MKm08LzyLHhkIsCb3lZaeN7Fm/w8CRsf8OY2lRboyWUHPDJr4BV2lRboBaVr8MhggldeVlp43/sSg0emGLzFHaWF570PwSMjD95qV2nhfe/EM3hkP8BbuldaeOdbewKPLBN4yYbSwjtf9wo8snngrTwqLbzzFavgkTUFr3KjtPDm77UGHtlp8GpbSgv03MPHrydSiUb5+2cAAAD//5OK30b3BQAA
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eurovoice.com.
+;; opcode: QUERY, status: NOERROR, id: 36477
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 4
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eurovoice.com.	IN	 A
+
+;; AUTHORITY SECTION:
+eurovoice.com.	172800	IN	NS	ns1.eurovoice.com.
+eurovoice.com.	172800	IN	NS	ns2.eurovoice.com.
+eurovoice.com.	172800	IN	NS	ns3.eurovoice.com.
+
+;; ADDITIONAL SECTION:
+ns1.eurovoice.com.	172800	IN	A	45.76.42.7
+ns2.eurovoice.com.	172800	IN	A	45.32.207.9
+ns3.eurovoice.com.	172800	IN	A	45.32.102.254
+
+;; GZPACK: H4sIAAAAAAAA/+qrbWRgYGRgYGBmYOFMLS3KL8vPTE5lTs7PBQkzogsxMTAyMC1mYBBmzis2RJPEp9aIBLXGaJJYrAI5DayeRddHix2L+UgKFM5zYjEUWUHaPwYGTQEGCAAEAAD//9pDk4gRAQAA
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @45.32.102.254 A ns1.eurovoice.com.
+;; opcode: QUERY, status: NOERROR, id: 48192
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns1.eurovoice.com.	IN	 A
+
+;; ANSWER SECTION:
+ns1.eurovoice.com.	300	IN	A	45.76.42.7
+
+;; GZPACK: H4sIAAAAAAAA/9rj0MrAwMjAyMDAwMicV2zImVpalF+Wn5mcypycnwuWwiHMwMCow8Ci66PFzsCgyXKBAQwAAQAA//+g3LXOTwAAAA==
+;; SERVER: 45.32.102.254
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @45.76.42.7 A sem1.eun.net.
+;; opcode: QUERY, status: NXDOMAIN, id: 54855
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;sem1.eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	300	IN	SOA	ns1.eurovoice.com. registry.eurovoice.com. 2025091000 900 300 1209600 300
+
+;; GZPACK: H4sIAAAAAAAA/7rm3srMwMjAwMDIwMhSnJpryJxamsecl1oCFkFw2ECKGHUY7Jnzig05U0uL8svyM5NTmZPzcxk4ilLTM4tLiirRxCu25O9gYGBuAWsUKmUA0wyaLBcYwAAQAAD//5jG5np7AAAA
+;; SERVER: 45.76.42.7
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 A net.
+;; opcode: QUERY, status: NOERROR, id: 39797
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTPy97cRTH8fO9/d1fDK0YOlEH6VTS5CZEY/EUSKxI0Kv+VNO0ZRfxDGwmuhgsPILajRaPQWK3SXuJz+GTnDtd8e4r35vvOden5yJBRAoylWulveEfIXuJJEjUFymGnXyj16xXu2nnLO10R//9nez6yZ6f1P0k9ZN9P2n4yYGfHPrJkZ8c+0nTT07+Juzehtc7+sW/QfxfaVH6KiZmQ5y7W5XsiSRhlwze3LjSwnjlafDIRIA3uam0MN7Fm3w/CRsf8GbWlRboyWULPDJr4OW3lRboRaUb8MhggldeVFqY730pgkemGLz5LaWF8d774JGRB2+5rbQw3zv2DB7ZD/AW7pUW5nwrT+CRZQIvWVNamPO1r8Ajmwfe0qPSwpyvUAWPrCl4lVulhZm/1xp4ZKfBq20oLdALDx8/nkglHmTvnwEAAP//da9C7/cFAAA=
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eun.net.
+;; opcode: QUERY, status: NOERROR, id: 4847
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	172800	IN	NS	ns1.eurovoice.com.
+eun.net.	172800	IN	NS	ns2.eurovoice.com.
+eun.net.	172800	IN	NS	ns3.eurovoice.com.
+
+;; GZPACK: H4sIAAAAAAAA/xJ638jAwMjAwMDMwMicWprHnJdaAhJA4jAxMDIwLWZgEGbOKzbkTC0tyi/Lz0xOZU7Oz2XArsqIKFXGaKoYGDQFGCAAEAAA///e7PLFlgAAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @45.32.102.254 A sem2.eun.net.
+;; opcode: QUERY, status: NXDOMAIN, id: 13678
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;sem2.eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	300	IN	SOA	ns1.eurovoice.com. registry.eurovoice.com. 2025091000 900 300 1209600 300
+
+;; GZPACK: H4sIAAAAAAAA/zLNa2VmYGRgYGBkYGQpTs01Yk4tzWPOSy0BiyA4bCBFjDoM9sx5xYacqaVF+WX5mcmpzMn5uQwcRanpmcUlRZVo4hVb8ncwMDC3gDUKlTKAaQZNlgsMYAAIAAD//zz7OUB7AAAA
+;; SERVER: 45.32.102.254
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 A net.
+;; opcode: QUERY, status: NOERROR, id: 36859
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTvUozURDG8Tmbd18sErFIpXFUUkUJLCgGG29BwVYFNWv8iCEkwV7E2sYb0DQWNnoFsbe08RoEe7GRZBWf0QdmqxX/+XGWM3P5cSYSRKQgU7lW2hv+EbKXSIJEfZFi2Mk3es16tZt2TtNOd/Tf38mun+z5Sd1PUj/Z95OGnxz4yaGfHPnJsZ80/eTkb8LubXi9o1/8G8T/lRalr2JiNsS521XJnkgSdsngzY0rLYxXngaPTAR4k5tKC+Odv8r3k7DxAW9mXWmBnly0wCOzBl5+W2mBXlS6Bo8MJnjlRaWF+d7nInhkisGb31JaGO+tDx4ZefCW20oL871jT+CR/QBv4U5pYc638ggeWSbwkjWlhTlf+wo8snngLT0oLcz5ClXwyJqCV7lRWpj5e6mBR3YavNqG0gK9cP/+44lU4kH2/hkAAP//pd90OPcFAAA=
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A eun.net.
+;; opcode: QUERY, status: NOERROR, id: 11512
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	172800	IN	NS	ns1.eurovoice.com.
+eun.net.	172800	IN	NS	ns2.eurovoice.com.
+eun.net.	172800	IN	NS	ns3.eurovoice.com.
+
+;; GZPACK: H4sIAAAAAAAA/9L50cjAwMjAwMDMwMicWprHnJdaAhJA4jAxMDIwLWZgEGbOKzbkTC0tyi/Lz0xOZU7Oz2XArsqIKFXGaKoYGDQFGCAAEAAA//8dja0IlgAAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @45.32.102.254 A sem3.eun.net.
+;; opcode: QUERY, status: NXDOMAIN, id: 22202
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;sem3.eun.net.	IN	 A
+
+;; AUTHORITY SECTION:
+eun.net.	300	IN	SOA	ns1.eurovoice.com. registry.eurovoice.com. 2025091000 900 300 1209600 300
+
+;; GZPACK: H4sIAAAAAAAA/wrb1crMwMjAwMDIwMhSnJprzJxamsecl1oCFkFw2ECKGHUY7Jnzig05U0uL8svyM5NTmZPzcxk4ilLTM4tLiirRxCu25O9gYGBuAWsUKmUA0wyaLBcYwAAQAAD//8O55NN7AAAA
+;; SERVER: 45.32.102.254

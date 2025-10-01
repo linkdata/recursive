@@ -1,0 +1,146 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A m.hkirc.net.hk
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 50224
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510670	IN	NS	k.root-servers.net.
+.			510670	IN	NS	l.root-servers.net.
+.			510670	IN	NS	m.root-servers.net.
+.			510670	IN	NS	a.root-servers.net.
+.			510670	IN	NS	b.root-servers.net.
+.			510670	IN	NS	c.root-servers.net.
+.			510670	IN	NS	d.root-servers.net.
+.			510670	IN	NS	e.root-servers.net.
+.			510670	IN	NS	f.root-servers.net.
+.			510670	IN	NS	g.root-servers.net.
+.			510670	IN	NS	h.root-servers.net.
+.			510670	IN	NS	i.root-servers.net.
+.			510670	IN	NS	j.root-servers.net.
+.			510670	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510670	IN	A	198.41.0.4
+a.root-servers.net.	510670	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510670	IN	A	170.247.170.2
+b.root-servers.net.	510670	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510670	IN	A	192.33.4.12
+c.root-servers.net.	510670	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510670	IN	A	199.7.91.13
+d.root-servers.net.	510670	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510670	IN	A	192.203.230.10
+e.root-servers.net.	510670	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510670	IN	A	192.5.5.241
+f.root-servers.net.	510670	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510670	IN	A	192.112.36.4
+g.root-servers.net.	510670	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510670	IN	A	198.97.190.53
+h.root-servers.net.	510670	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510670	IN	A	192.36.148.17
+i.root-servers.net.	510670	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510670	IN	A	192.58.128.30
+j.root-servers.net.	510670	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510670	IN	A	193.0.14.129
+k.root-servers.net.	510670	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510670	IN	A	199.7.83.42
+l.root-servers.net.	510670	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510670	IN	A	202.12.27.33
+m.root-servers.net.	510670	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17086
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 11, ADDITIONAL: 19
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: ad3b6bbd2c1e26d30100000068ca9209cc5f9758c77be6e4 (good)
+;; QUESTION SECTION:
+;m.hkirc.net.hk.			IN	A
+
+;; AUTHORITY SECTION:
+hk.			172800	IN	NS	u.hkirc.net.hk.
+hk.			172800	IN	NS	m.hkirc.net.hk.
+hk.			172800	IN	NS	v.hkirc.net.hk.
+hk.			172800	IN	NS	c.hkirc.net.hk.
+hk.			172800	IN	NS	z.hkirc.net.hk.
+hk.			172800	IN	NS	x.hkirc.net.hk.
+hk.			172800	IN	NS	y.hkirc.net.hk.
+hk.			172800	IN	NS	t.hkirc.net.hk.
+hk.			172800	IN	NS	d.hkirc.net.hk.
+hk.			86400	IN	DS	52069 8 2 B834325AACD5B3555F37BDA585F9D6B877691AC4D07F40F8C6C1866D 7CA125F8
+hk.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . JgEDoujpLMvwLdZWqUrN31kzPEDfUahy4euZEpuDEle+Xdv5EG+caP9p PoFCjQR7QbGEvipxkJuJjGH+YysGYLsz36A2qSX3e8VTwx798UI4e99O jywTOpOsTCL0HPgMSAsXpQQWkhnIfhKA8pxqKnwQIRgLd5WCsUmTj9td TbnXgNEComTYJUD/hwL1i2xbU80jMs73Wko/RZXEcrhZX1dagRyIfU9s h5gB4sk+tpIjE5t9LmwOBWiDQYpfsXJoKmD8ZAaOxqBhZKalAqO+HS7k LNTdATwgnnOo+7E3r1B0W/GtBTVl6+xqlCcXb3Mrw9OjORv9TR+WI3W5 hpTm1A==
+
+;; ADDITIONAL SECTION:
+m.hkirc.net.hk.		172800	IN	A	125.208.49.10
+z.hkirc.net.hk.		172800	IN	A	194.146.106.70
+y.hkirc.net.hk.		172800	IN	A	137.189.6.21
+x.hkirc.net.hk.		172800	IN	A	202.45.188.39
+v.hkirc.net.hk.		172800	IN	A	204.61.216.46
+u.hkirc.net.hk.		172800	IN	A	210.201.138.58
+t.hkirc.net.hk.		172800	IN	A	202.12.31.53
+d.hkirc.net.hk.		172800	IN	A	203.119.87.218
+c.hkirc.net.hk.		172800	IN	A	203.119.2.218
+m.hkirc.net.hk.		172800	IN	AAAA	2001:dc7:feff::10
+z.hkirc.net.hk.		172800	IN	AAAA	2001:67c:1010:17::53
+y.hkirc.net.hk.		172800	IN	AAAA	2405:3000:3:6::15
+x.hkirc.net.hk.		172800	IN	AAAA	2405:3001:1:3a::27
+v.hkirc.net.hk.		172800	IN	AAAA	2001:500:14:6046:ad::1
+u.hkirc.net.hk.		172800	IN	AAAA	2404:0:10a0::58
+t.hkirc.net.hk.		172800	IN	AAAA	2001:dd8:12::53
+d.hkirc.net.hk.		172800	IN	AAAA	2001:dca:2000::cb77:57da
+c.hkirc.net.hk.		172800	IN	AAAA	2001:dca:4000::cb77:2da
+
+;; Query time: 23 msec
+;; SERVER: 192.33.4.12#53(c.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 946
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 18350
+;; flags: qr aa; QUERY: 1, ANSWER: 2, AUTHORITY: 5, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+; COOKIE: ad3b6bbd2c1e26d3b187b2fb68ca92091cd9d5aabe212b90 (good)
+;; QUESTION SECTION:
+;m.hkirc.net.hk.			IN	A
+
+;; ANSWER SECTION:
+m.hkirc.net.hk.		28800	IN	A	125.208.49.10
+m.hkirc.net.hk.		28800	IN	RRSIG	A 8 4 28800 20251016190046 20250916180046 23685 hkirc.net.hk. Vv1MsNNdIMap6HorJjli+2TrmDEwxqv7sAWrlENOusZ9vJlzWrz/fhMf DBA7z6bFT+rajn2F82YlwyxPEQMKNCaQ2bEtYPYf/0S+krwjpCIqZYk4 fnjmbvrzfmTlGUTGz5TOqDH6RtCch3yTUWRUjTygCO4cLW4wssDIwv2B DDs=
+
+;; AUTHORITY SECTION:
+hkirc.net.hk.		172800	IN	NS	ns7.hkirc.net.hk.
+hkirc.net.hk.		172800	IN	NS	z.hkirc.net.hk.
+hkirc.net.hk.		172800	IN	NS	hk-ns.pch.net.
+hkirc.net.hk.		172800	IN	NS	ns8.hkirc.net.hk.
+hkirc.net.hk.		172800	IN	RRSIG	NS 8 3 172800 20251016190046 20250916180046 23685 hkirc.net.hk. QtnlXtBprRIN6bhCjR8yuhXhOCOYysC6E9VCI7jV5xTOvP0t50nJlzDQ QIlyuQT2itq7AYwkUJQbjxUyo6p4tZRvWhthdT5vSJ6bX3O0NMpkIzL2 AI/c7TGIH3UNxDVTE1P/MDbEK4F7wOcRem4RJiJkt6mbUBzMxEFw91e+ AC4=
+
+;; ADDITIONAL SECTION:
+z.hkirc.net.hk.		28800	IN	A	194.146.106.70
+ns7.hkirc.net.hk.	28800	IN	A	203.119.2.172
+ns8.hkirc.net.hk.	28800	IN	A	203.119.87.172
+z.hkirc.net.hk.		28800	IN	AAAA	2001:67c:1010:17::53
+ns7.hkirc.net.hk.	28800	IN	AAAA	2001:dca:4000::cb77:2ac
+ns8.hkirc.net.hk.	28800	IN	AAAA	2001:dca:2000::cb77:57ac
+z.hkirc.net.hk.		28800	IN	RRSIG	A 8 4 28800 20251016190046 20250916180046 23685 hkirc.net.hk. aR2CQLQ21VexzIXCzcb3rf6gy0DhrjYbBjUsrDVMRjmgFGKgeElhkdWJ hq4+fTztbxZT/FIDYRvswj/hvICzwsBQU+CKjvQxLF5knNOynJGD2mwY dqqhCelBxxQJ3fR8MMhntzP+FoU4qSiKqVq2vkZmsehCo2FlQhW8EojW fmA=
+z.hkirc.net.hk.		28800	IN	RRSIG	AAAA 8 4 28800 20251016190046 20250916180046 23685 hkirc.net.hk. GClvEtQhqCToHlFqgE68CYj68atnBR0aTNoI7KHU53+FP6ezC9mHkNEc v1E0k2QFD5HZWvISGSxhEsKouPaHnI5GrGmr3OTi3E84LHN0eNTVWDDF 0+rNgBX53k2AQDs198dXK/p7oWMPcmd+gV6XczLUbffYFTu8nm71qUUs jTs=
+ns7.hkirc.net.hk.	28800	IN	RRSIG	A 8 4 28800 20251016190046 20250916180046 23685 hkirc.net.hk. p6rkTiQH9dtuNKKBEiJzH/IO5hdaxpCGK5ysNXPiYAfF7PuZCzNSQfzX osn2sRt5ofdDbRSbbPnKbXhS0ksM3gYA/ibLT3XcoU/EgZ5kt0ew5Tjc /eZIn2PkUTdqcxYXkizVzKFthbdvUNkij+4vY+1M76qAXWmhyPch4Nb3 Q6Y=
+
+;; Query time: 22 msec
+;; SERVER: 204.61.216.46#53(v.hkirc.net.hk) (UDP)
+;; WHEN: Wed Sep 17 12:48:41 CEST 2025
+;; MSG SIZE  rcvd: 1158
+

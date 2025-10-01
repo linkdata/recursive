@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/linkdata/rate"
-	"github.com/linkdata/recursive"
+	recursive "github.com/linkdata/resolver"
 	"github.com/miekg/dns"
 )
 
@@ -25,17 +25,17 @@ var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
 var flagTimeout = flag.Int("timeout", 60, "individual query timeout in seconds")
 var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in milliseconds")
-var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
 var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
-var flag4 = flag.Bool("4", true, "use IPv4")
-var flag6 = flag.Bool("6", false, "use IPv6")
 var flagDebug = flag.Bool("debug", false, "print debug output")
 var flagRecord = flag.Bool("record", false, "write a record of all queries made")
+var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
+var flag4 = flag.Bool("4", true, "use IPv4")
+var flag6 = flag.Bool("6", false, "use IPv6")
 
-func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
-	fmt.Println(";;; ----------------------------------------------------------------------")
-	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, recursive.DnsTypeToString(qtype), qname)
+func recordFn(_ *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
+	fmt.Println("\n;;; ----------------------------------------------------------------------")
+	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, dns.Type(qtype), qname)
 	if m == nil && err != nil {
 		m = new(dns.Msg)
 		m.SetQuestion(qname, qtype)
@@ -49,7 +49,6 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 			ExtraText: err.Error(),
 		})
 		m.Extra = append(m.Extra, opt)
-		err = nil
 	}
 	if m != nil {
 		fmt.Println(m)
@@ -61,9 +60,6 @@ func recordFn(rec *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname s
 					fmt.Printf(";; GZPACK: %s\n", base64.StdEncoding.EncodeToString(buf.Bytes()))
 				}
 			}
-		}
-		if err != nil {
-			fmt.Printf(";; ERROR: %v\n", err)
 		}
 	}
 	if nsaddr.IsValid() {
@@ -93,17 +89,18 @@ func main() {
 		}
 	}
 
-	if len(qnames) == 0 {
-		fmt.Println("missing one or more names to query")
-		return
-	}
-
-	var roots4, roots6 []netip.Addr
+	roots4 := []netip.Addr{}
+	roots6 := []netip.Addr{}
 	if *flag4 {
 		roots4 = recursive.Roots4
 	}
-	if *flag6 {
+	if *flag6 || true {
 		roots6 = recursive.Roots6
+	}
+
+	if len(qnames) == 0 {
+		fmt.Println("missing one or more names to query")
+		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
@@ -118,10 +115,6 @@ func main() {
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	rec.OrderRoots(ctx)
 
-	if *flagRecord {
-		rec.RecordFn = recordFn
-	}
-
 	var dbgout io.Writer
 	if *flagDebug {
 		dbgout = os.Stderr
@@ -134,16 +127,14 @@ func main() {
 		for _, qname := range qnames {
 			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
 			retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype)
-			if !*flagDebug && !*flagRecord {
+			if !*flagRecord {
 				recordFn(rec, srv, qtype, qname, retv, err)
 			}
 			cancel()
 		}
 	}
 
-	if !*flagRecord {
-		fmt.Printf(";;; cache size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
-	}
+	fmt.Printf(";; CACHE: size %d, hit ratio %.2f%%\n", recursive.DefaultCache.Entries(), recursive.DefaultCache.HitRatio())
 
 	if *flagMemprofile != "" {
 		f, err := os.Create(*flagMemprofile)

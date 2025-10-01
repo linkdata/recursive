@@ -1,0 +1,85 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS tw.
+;; opcode: QUERY, status: NOERROR, id: 17688
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 9, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;tw.	IN	 NS
+
+;; AUTHORITY SECTION:
+tw.	172800	IN	NS	a.dns.tw.
+tw.	172800	IN	NS	b.dns.tw.
+tw.	172800	IN	NS	c.dns.tw.
+tw.	172800	IN	NS	d.dns.tw.
+tw.	172800	IN	NS	e.dns.tw.
+tw.	172800	IN	NS	f.dns.tw.
+tw.	172800	IN	NS	g.dns.tw.
+tw.	172800	IN	NS	h.dns.tw.
+tw.	172800	IN	NS	anytld.apnic.net.
+
+;; ADDITIONAL SECTION:
+a.dns.tw.	172800	IN	A	203.73.24.25
+a.dns.tw.	172800	IN	AAAA	2001:45b1:0:5::25
+b.dns.tw.	172800	IN	A	210.201.138.58
+b.dns.tw.	172800	IN	AAAA	2404:0:10a0::58
+c.dns.tw.	172800	IN	A	203.66.87.201
+c.dns.tw.	172800	IN	AAAA	2001:b020:0:77::1
+d.dns.tw.	172800	IN	A	60.199.165.186
+d.dns.tw.	172800	IN	AAAA	2001:4541:9010:7::186
+e.dns.tw.	172800	IN	A	211.20.231.11
+e.dns.tw.	172800	IN	AAAA	2001:b000:1e0:c000::11
+f.dns.tw.	172800	IN	A	40.65.125.222
+g.dns.tw.	172800	IN	A	34.141.111.176
+h.dns.tw.	172800	IN	A	204.61.216.119
+h.dns.tw.	172800	IN	AAAA	2001:500:14:6119:ad::1
+anytld.apnic.net.	172800	IN	A	202.12.31.53
+anytld.apnic.net.	172800	IN	AAAA	2001:dd8:12::53
+
+;; GZPACK: H4sIAAAAAAAA/3KVaGRgYGRgYOBkEGQqKWdgYGJghNEMTIsZGLgYE5lT8opBYmjiSTjEk3GIp+AQT8UhnoZDPB2HeAZWcSG2xLzKkpwU1sSCvMxk5rzUEgaEjxgYoapYTntKSCKJy0DFBRQYXTcyMDCwMkCAKsLXCL2XTnZZIYnD9aqwMDAILGCAgQhEyCDZ6xR+Ekkcyd4NCgwMDOVQvYyI0EPotTm+dBeSOLKbHScIMLBDtbYhQhih97LIc24kcWR7GRgfHIC5WRARCwi9Go619xCxgBBX6s3fgIgFhPgZ2xvlSOJIdrEyMIgkSjKshTgUM6YQZpzikTfFIo9kFu8NBiF4WAczMGiyQn0BCAAA//+PMg564wIAAA==
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @34.141.111.176 NS org.tw.
+;; opcode: QUERY, status: NOERROR, id: 28710
+;; flags: qr aa rd; QUERY: 1, ANSWER: 10, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: f789ac4e656748620100000068ca731030bf3557996268ff
+
+;; QUESTION SECTION:
+;org.tw.	IN	 NS
+
+;; ANSWER SECTION:
+org.tw.	3600	IN	NS	e.twnic.net.tw.
+org.tw.	3600	IN	NS	h.dns.tw.
+org.tw.	3600	IN	NS	c.twnic.net.tw.
+org.tw.	3600	IN	NS	b.twnic.net.tw.
+org.tw.	3600	IN	NS	a.twnic.net.tw.
+org.tw.	3600	IN	NS	anytld.apnic.net.
+org.tw.	3600	IN	NS	g.twnic.net.tw.
+org.tw.	3600	IN	NS	d.twnic.net.tw.
+org.tw.	3600	IN	NS	h.twnic.net.tw.
+org.tw.	3600	IN	NS	f.twnic.net.tw.
+
+;; GZPACK: H4sIAAAAAAAA/ypQa2VgYGTgYmBgYGTOL0pnKilnYGBCZTMw8AkwCDCmspaU52UmM+elloBkMFRwMWYwp+QVY5UTYEwmoFuAMYmgikQCKoTYEvMqS3JSWBMLoMqwmZJO0J4UgioyCKpIQ1XBwKDJcoEBBGQYuBgkvneu8UtN90hiZGBgyDhVLGCw3zR8ZlLGf0AAAAD//+JBc3+PAQAA
+;; SERVER: 34.141.111.176
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @202.12.31.53 NS seb.org.tw.
+;; opcode: QUERY, status: NXDOMAIN, id: 21631
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: f789ac4e656748620100000068ca7310fd98340807a0b6b7
+
+;; QUESTION SECTION:
+;seb.org.tw.	IN	 NS
+
+;; AUTHORITY SECTION:
+org.tw.	900	IN	SOA	a.twnic.net.tw. snw.twnic.net.tw. 1999635493 6600 900 604800 900
+
+;; GZPACK: H4sIAAAAAAAA/wqpb2VmYGRgYGBkYGQuTk1izi9KZyopZ2BgYmCEs9lAKphbGMwYE1lLyvMyk5nzUktAMszFeeWoIuUGLKoMDJInwOo5rRrANIMmywUGEJBh4GKQ+N65xi813SMJZGvGqWKBvzNMONgXbNsOCAAA///7Tm2jiwAAAA==
+;; SERVER: 202.12.31.53

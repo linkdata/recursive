@@ -1,0 +1,123 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS wetrgijrotigj.bet.ar
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 38162
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510623	IN	NS	h.root-servers.net.
+.			510623	IN	NS	i.root-servers.net.
+.			510623	IN	NS	j.root-servers.net.
+.			510623	IN	NS	k.root-servers.net.
+.			510623	IN	NS	l.root-servers.net.
+.			510623	IN	NS	m.root-servers.net.
+.			510623	IN	NS	a.root-servers.net.
+.			510623	IN	NS	b.root-servers.net.
+.			510623	IN	NS	c.root-servers.net.
+.			510623	IN	NS	d.root-servers.net.
+.			510623	IN	NS	e.root-servers.net.
+.			510623	IN	NS	f.root-servers.net.
+.			510623	IN	NS	g.root-servers.net.
+.			510623	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510623	IN	A	198.41.0.4
+a.root-servers.net.	510623	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510623	IN	A	170.247.170.2
+b.root-servers.net.	510623	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510623	IN	A	192.33.4.12
+c.root-servers.net.	510623	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510623	IN	A	199.7.91.13
+d.root-servers.net.	510623	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510623	IN	A	192.203.230.10
+e.root-servers.net.	510623	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510623	IN	A	192.5.5.241
+f.root-servers.net.	510623	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510623	IN	A	192.112.36.4
+g.root-servers.net.	510623	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510623	IN	A	198.97.190.53
+h.root-servers.net.	510623	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510623	IN	A	192.36.148.17
+i.root-servers.net.	510623	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510623	IN	A	192.58.128.30
+j.root-servers.net.	510623	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510623	IN	A	193.0.14.129
+k.root-servers.net.	510623	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510623	IN	A	199.7.83.42
+l.root-servers.net.	510623	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510623	IN	A	202.12.27.33
+m.root-servers.net.	510623	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 27779
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 11
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 0d2baa2261be01130100000068ca92380dda1e0e689136b4 (good)
+;; QUESTION SECTION:
+;wetrgijrotigj.bet.ar.		IN	NS
+
+;; AUTHORITY SECTION:
+ar.			172800	IN	NS	a.lactld.org.
+ar.			172800	IN	NS	f.dns.ar.
+ar.			172800	IN	NS	d.dns.ar.
+ar.			172800	IN	NS	c.dns.ar.
+ar.			172800	IN	NS	e.dns.ar.
+ar.			86400	IN	DS	19606 8 2 4415CF1A2CF10DE94B92BC020F21D1BF4163B2E90F2A6F6A5D2A1740 339D566C
+ar.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . ly7z8XktbomOQSNLI66yUnSzCU6piIj7EqVCFQXPy/jEz5l3HVtcqobv oiqHyrgjFN15+IpjSXdrEzov8mOMKz7twH4MW55xmStHgymTVol3LjGA JC+vnzccyEMtCAiD7o1FIR9FBMM4+a+mGeeyXzW10jftw6qEXQGOwaoe cANhiORS5hfQiHs3FQchy6bJn6nWER/iNeEIUoKIaI2SHInK2O4tdQO3 PkpQEGmd9BQEhoOR/4lIv17oyp39ErHA/lqIpXK1PfebH0C/tSKNMh0S h0kwGMYqysvi8Jy6Y/NfTEq5xUSZmwE7JRgtP7c1TfvfzcAGx0dLnRot OwBdBQ==
+
+;; ADDITIONAL SECTION:
+f.dns.ar.		172800	IN	A	130.59.31.20
+e.dns.ar.		172800	IN	A	170.238.66.50
+d.dns.ar.		172800	IN	A	192.140.126.50
+c.dns.ar.		172800	IN	A	200.108.148.50
+a.lactld.org.		172800	IN	A	200.0.68.10
+f.dns.ar.		172800	IN	AAAA	2001:620:0:ff::20
+e.dns.ar.		172800	IN	AAAA	2801:140:eeee::50
+d.dns.ar.		172800	IN	AAAA	2801:140:dddd::50
+c.dns.ar.		172800	IN	AAAA	2801:140:10::10
+a.lactld.org.		172800	IN	AAAA	2801:14:a000::10
+
+;; Query time: 30 msec
+;; SERVER: 192.112.36.4#53(g.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 730
+
+;; Truncated, retrying in TCP mode.
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NXDOMAIN, id: 5693
+;; flags: qr aa; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+; COOKIE: 0d2baa2261be01130100000068ca92390fbbd8cddc1561f8 (good)
+;; QUESTION SECTION:
+;wetrgijrotigj.bet.ar.		IN	NS
+
+;; AUTHORITY SECTION:
+mdffe987hictvehckiof9220qicjmi8t.bet.ar. 7200 IN NSEC3 1 0 10 - MVIJSF847S3VQOOLD3H30FUM4U5ECK2F NS
+mdffe987hictvehckiof9220qicjmi8t.bet.ar. 7200 IN RRSIG NSEC3 8 3 7200 20251014055658 20250914090445 65358 bet.ar. H+6+hV8zSYq9Sg1YgpiqTE5OHsTM71xwxuUvAQtuRhZh1J5TRymmOmcA ANz2MvL34d2N2yK4ny3iw6tEMCpYmUFYN3VpjYa7NpyuORpNCkWEGDJI 41STzHJOB+To/zCdpw/usVTUR1QvrqzB9Ya62MITIUovP1LOKV2Yl+Y6 Rkl0FtVlKD2WwQXlVkzmSOemB4iM0z6vZD50DfG0ZyrTbYisybBbFcl9 UYnTGHW2WevuCz3szTFuPIUIKJHLTTMmjshK4XNjCfd41Ym549D27F+S NJT+R8MnIVPZJOSkwYf1EWCRS0UZei263Ppjcabu2FBmZRL5weya1G2y WlraOg==
+h78jbbc1s2flb0cuicnt7597a3bnl744.bet.ar. 7200 IN NSEC3 1 0 10 - HB8HVO1I9CEES5VF9EEPTMH32M3JQBJ4 NS SOA TXT RRSIG DNSKEY NSEC3PARAM
+h78jbbc1s2flb0cuicnt7597a3bnl744.bet.ar. 7200 IN RRSIG NSEC3 8 3 7200 20251002142117 20250903010504 65358 bet.ar. M+Hyf2jhnByXTvQ+DDb51Nr9kfdhsRQZYPc0nGy62fvvmlgVGR5dDmba Zdju1OXUgtQrNdNBM2G2GIqQzgW6Lkxw21NKHjoPBgqiPMiwKhiwqRhd mc8ROTbPiadJCzABOlXHKYdYSiVFfaZBpygboI7tuKiyCo/1BGZGN8c2 63KBqlTA8a5PEPav0ENHHp/WWcwTabPFd0xmpisdLi2sp5vAK9SDNIuq MPOu0K1eEqleXOAmRDqxCVI/OtI0XEwjB93jBD5FwTbWuHMFz2WsuMo2 ZEt1xqLvu8uMFute0zpgwOtk8/ivAQucK8h8XUioSWOke5MvMtznnurF eg3vBw==
+9kdn00bl1e39tpgoa8q12rtg6b5jrejf.bet.ar. 7200 IN NSEC3 1 0 10 - 9SA5UK1CE8RHJ3RH55HIOTHV4HIMPQH4 NS
+9kdn00bl1e39tpgoa8q12rtg6b5jrejf.bet.ar. 7200 IN RRSIG NSEC3 8 3 7200 20251014060456 20250914100505 65358 bet.ar. F3riWSl/NHO32kNzSH6GPM9baMG+Txi9ShBiejccQ+FxhZJyACm9paym E922Vjtk2WPVl8UHF1ityrZydhqZwdvNhQC8l+dK3jcASMLp8Mc+obSB YhhDEvsEUqtRnmvJfnarznS0Xjyj6LTTB73zkgbXOSvnhtFu23HS63nW 9ba2jnMgf2LvyISeY23RhbuyhAFWGPdmiWqMvIidpDz792pn53FSBQZR DG/vstIKzlOi8tzz9Pqo8WaTixpXf0dllpQwm3cbucaYvzvbiy80WTi+ rsdPt1Lgf/krDjD3upyEBg6YA4bBRER0KeHbXnyEEThTXyzmqVeWqxre N3wMVA==
+bet.ar.			7200	IN	SOA	e.dns.ar. noc.nic.gob.ar. 2025091707 600 300 1728000 7200
+bet.ar.			7200	IN	RRSIG	SOA 8 2 7200 20251016164906 20250917090445 65358 bet.ar. oitrzoVT9PMMjcy4wy4n/oZ/8iEU5yb+m90FWtYZ72eDM9q7E9r5UL4v ZQX2hGpTuiQC/7cShGAZet12D9XhIYin/GXSavMvf9qUMGSJ7TBeWmIG pKGEIl0jYX5oZmaNLBA/JlGc8Avg6SMZDwydnTwrEAquOGds5ad8uv9H BtawIHGNmMkldpW8KTKWXNTrFpiNzhY+xbhf8F46F36UsQsFRYl0ZJW0 cEmQU/ZrFEgRGEd9C1zgyY2qxY9xu3VY+uHQD0TMz25D39pK4l+YytGr nw+jYgcJxBQgsWgEs4xu5Dpg2YnrQOd8lmgrwqeyDKfaQkzcLZE7KTyA 0PjSxA==
+
+;; Query time: 34 msec
+;; SERVER: 200.0.68.10#53(a.lactld.org) (TCP)
+;; WHEN: Wed Sep 17 12:49:28 CEST 2025
+;; MSG SIZE  rcvd: 1535
+

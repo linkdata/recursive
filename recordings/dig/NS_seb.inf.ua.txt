@@ -1,0 +1,147 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS seb.inf.ua
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 927
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510638	IN	NS	c.root-servers.net.
+.			510638	IN	NS	d.root-servers.net.
+.			510638	IN	NS	e.root-servers.net.
+.			510638	IN	NS	f.root-servers.net.
+.			510638	IN	NS	g.root-servers.net.
+.			510638	IN	NS	h.root-servers.net.
+.			510638	IN	NS	i.root-servers.net.
+.			510638	IN	NS	j.root-servers.net.
+.			510638	IN	NS	k.root-servers.net.
+.			510638	IN	NS	l.root-servers.net.
+.			510638	IN	NS	m.root-servers.net.
+.			510638	IN	NS	a.root-servers.net.
+.			510638	IN	NS	b.root-servers.net.
+.			510638	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510638	IN	A	198.41.0.4
+a.root-servers.net.	510638	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510638	IN	A	170.247.170.2
+b.root-servers.net.	510638	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510638	IN	A	192.33.4.12
+c.root-servers.net.	510638	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510638	IN	A	199.7.91.13
+d.root-servers.net.	510638	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510638	IN	A	192.203.230.10
+e.root-servers.net.	510638	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510638	IN	A	192.5.5.241
+f.root-servers.net.	510638	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510638	IN	A	192.112.36.4
+g.root-servers.net.	510638	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510638	IN	A	198.97.190.53
+h.root-servers.net.	510638	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510638	IN	A	192.36.148.17
+i.root-servers.net.	510638	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510638	IN	A	192.58.128.30
+j.root-servers.net.	510638	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510638	IN	A	193.0.14.129
+k.root-servers.net.	510638	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510638	IN	A	199.7.83.42
+l.root-servers.net.	510638	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510638	IN	A	202.12.27.33
+m.root-servers.net.	510638	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:13 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 10173
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 10, ADDITIONAL: 17
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1472
+;; QUESTION SECTION:
+;seb.inf.ua.			IN	NS
+
+;; AUTHORITY SECTION:
+ua.			172800	IN	NS	bg.ns.ua.
+ua.			172800	IN	NS	cz.ns.ua.
+ua.			172800	IN	NS	nn.ns.ua.
+ua.			172800	IN	NS	ho1.ns.ua.
+ua.			172800	IN	NS	in1.ns.ua.
+ua.			172800	IN	NS	pch.ns.ua.
+ua.			172800	IN	NS	rcz.ns.ua.
+ua.			86400	IN	DS	51024 13 2 1BDCA65B3BA927EFB64909637C10ADF90763EA7AB5D0AC1597C66CD6 C6CAEB6C
+ua.			86400	IN	DS	51024 13 4 61195CABB323F940314D1BBEC97F4EBA54D2D7BA49AA244948C8C298 44E43A42293EE100841009FBFE85F1AB7CEFFACF
+ua.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . Ihywtxp25n25kMtWtTLpc49bcfVz6W4gFdbUwIY1rpAxxv/Qznz25Zj2 W+iNQrxTtTufYepEpcB+YSowsVnT0rZ6XxnTdCpK/33hx9y+dq0/CIHe I9qSPye0fUrhFZCiwXvLTOGux/t8bm9gHzicrCDxOH9iRvjyGc8Dwo4P MF7vIN3j+f0+eCXaarX596+XlM9QdwHVOU4+8pbJGBwSf98ayP4PQ0I3 z/u2XQDR0D9GpqRWoP12cAAf/wF9+sl7AvDCIMgXlkSiAZcfn1j6n9gc yFarDDsn4WGJ0PaEmO9E6L8Nhau8ELawmky4yCGwXyplRO/y17t9vd4h SsEnBA==
+
+;; ADDITIONAL SECTION:
+bg.ns.ua.		172800	IN	A	185.136.96.185
+bg.ns.ua.		172800	IN	A	185.136.97.185
+bg.ns.ua.		172800	IN	AAAA	2a06:fb00:1::2:185
+bg.ns.ua.		172800	IN	AAAA	2a06:fb00:1::4:185
+cz.ns.ua.		172800	IN	A	185.43.134.15
+cz.ns.ua.		172800	IN	AAAA	2001:148f:fffd::15
+nn.ns.ua.		172800	IN	A	194.58.197.4
+nn.ns.ua.		172800	IN	AAAA	2a01:3f1:c001::53
+ho1.ns.ua.		172800	IN	A	195.47.253.1
+ho1.ns.ua.		172800	IN	AAAA	2001:67c:258::1
+in1.ns.ua.		172800	IN	A	74.123.224.40
+in1.ns.ua.		172800	IN	AAAA	2604:ee00:0:101::40
+pch.ns.ua.		172800	IN	A	204.61.216.12
+pch.ns.ua.		172800	IN	AAAA	2001:500:14:6012:ad::1
+rcz.ns.ua.		172800	IN	A	193.46.128.10
+rcz.ns.ua.		172800	IN	AAAA	2a02:850:ffe0::10
+
+;; Query time: 2 msec
+;; SERVER: 192.5.5.241#53(f.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:13 CEST 2025
+;; MSG SIZE  rcvd: 916
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46014
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1400
+;; QUESTION SECTION:
+;seb.inf.ua.			IN	NS
+
+;; AUTHORITY SECTION:
+inf.ua.			10801	IN	NS	ns1.1gb.ua.
+inf.ua.			10801	IN	NS	ns2.1gbua.com.
+inf.ua.			10801	IN	NS	ns3.1gbua.net.
+dg2jhm8fvfsa91hji6tmnmilm7gkh950.ua. 2020 IN NSEC3 1 0 0 - DG3U3MLHFPTG2NQVJOMT0NFM8NUVT1V8 NS
+dg2jhm8fvfsa91hji6tmnmilm7gkh950.ua. 2020 IN RRSIG NSEC3 13 2 2020 20251002121828 20250828104828 11232 ua. 20AcENaR3FgkSQtBaTsLsGC9Z4O4LEOuGFVfZto76Hoo2fNEyhpbYNsB fHasowdXbfXuKu+GrsvPj+5UScum+A==
+
+;; Query time: 1 msec
+;; SERVER: 193.46.128.10#53(rcz.ns.ua) (UDP)
+;; WHEN: Wed Sep 17 12:49:13 CEST 2025
+;; MSG SIZE  rcvd: 287
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 34817
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;seb.inf.ua.			IN	NS
+
+;; AUTHORITY SECTION:
+seb.inf.ua.		3600	IN	NS	u1.1gb.ua.
+
+;; Query time: 49 msec
+;; SERVER: 195.234.5.20#53(ns2.1gbua.com) (UDP)
+;; WHEN: Wed Sep 17 12:49:13 CEST 2025
+;; MSG SIZE  rcvd: 60
+
+;; communications error to 195.234.4.19#53: timed out
+;; communications error to 195.234.4.19#53: timed out
+;; communications error to 195.234.4.19#53: timed out
+;; no servers could be reached

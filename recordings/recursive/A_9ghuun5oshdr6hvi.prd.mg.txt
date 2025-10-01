@@ -1,0 +1,151 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.5.241 NS mg.
+;; opcode: QUERY, status: NOERROR, id: 32400
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 8
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;mg.	IN	 NS
+
+;; AUTHORITY SECTION:
+mg.	172800	IN	NS	ns.nic.mg.
+mg.	172800	IN	NS	pch.nic.mg.
+mg.	172800	IN	NS	ns-mg.afrinic.net.
+mg.	172800	IN	NS	ns-mg.malagasy.com.
+mg.	172800	IN	NS	dns-tld.ird.fr.
+
+;; ADDITIONAL SECTION:
+ns.nic.mg.	172800	IN	A	196.192.42.153
+pch.nic.mg.	172800	IN	A	204.61.216.121
+pch.nic.mg.	172800	IN	AAAA	2001:500:14:6121:ad::1
+ns-mg.afrinic.net.	172800	IN	A	196.216.168.35
+ns-mg.afrinic.net.	172800	IN	AAAA	2001:43f8:120::35
+ns-mg.malagasy.com.	172800	IN	A	51.178.182.212
+dns-tld.ird.fr.	172800	IN	A	13.39.116.127
+
+;; GZPACK: H4sIAAAAAAAA/6qb0MjAwMjAwMDKwMGUm87AwMTACKMZmBYzMHAz5RUz52UmgwRRJHiYC5IzsMoIs+YV6+amsyemFWXmZSYz56WWoCoQgSjgyE3MSUxPLK5kTs7PRVUhwJ6SV6xbkpPCnFmUwpRWxIDkCgZGqCKWIwe0ZiK7AiFzxvZGJYqMDMxgBUZWBgaRREWGtQwgwIjFrUgW3FihjE0BkmnOPxgVGGDAFJvHEMYZb9p2Bd1jCFle9ZJ6BgZN1gMQswABAAD//yjevVSaAQAA
+;; SERVER: 192.5.5.241
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @13.39.116.127 NS prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 56986
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+; COOKIE: ddc30557fabae7990100000068ca7314f69f3333fe81d63e
+
+;; QUESTION SECTION:
+;prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/7o3q5GJgZEBBBiZC4pSmHLTGRjAIpoCYFEGGQYuBom7h1nDf+16PhOkMuNUsci3+cbG/xqv2QECAAD//6o6UXM/AAAA
+;; SERVER: 13.39.116.127
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @51.178.182.212 NS prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 50317
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ddc30557fabae7990100000068ca7314eb806b4c62993327
+
+;; QUESTION SECTION:
+;prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/zrS28jEwMgAAozMBUUpTLnpDAxgEU2WC2BhGQYuBom7h1nDf+16PhOkMuNUscjrhmyfpJnG6oAAAAD//7nxGhA/AAAA
+;; SERVER: 51.178.182.212
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @196.192.42.153 NS prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 45014
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/1p/rZGJgZEBBBiZC4pSmHLTGRjAIpoCDBAACAAA///Add4zIwAAAA==
+;; SERVER: 196.192.42.153
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @196.216.168.35 NS prd.mg.
+;; opcode: QUERY, status: NOERROR, id: 6696
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;prd.mg.	IN	 NS
+
+;; AUTHORITY SECTION:
+prd.mg.	86400	IN	NS	pch.nic.mg.
+prd.mg.	86400	IN	NS	ns.nic.mg.
+prd.mg.	86400	IN	NS	ns.dts.mg.
+prd.mg.	86400	IN	NS	dns-tld.ird.fr.
+
+;; ADDITIONAL SECTION:
+ns.nic.mg.	86400	IN	A	196.192.42.153
+ns.dts.mg.	86400	IN	A	196.192.32.2
+
+;; GZPACK: H4sIAAAAAAAA/5LSaGRgYGRgYGBhYGYuKEphyk1nYGBiYERmMzAGNjDwMBckZzDnZSaDRDFkuZnyivFLppQUY5UUYE/JK9YtyUlhzixKYUorYkAyCaQErIjlyAGtmUimIEsoMDEwaLJcYAADQAAAAP//lxOuyM8AAAA=
+;; SERVER: 196.216.168.35
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @13.39.116.127 NS 9ghuun5oshdr6hvi.prd.mg.
+;; SERVER: 13.39.116.127
+;; ERROR: read udp4 172.16.10.241:54777->13.39.116.127:53: i/o timeout
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @13.39.116.127 NS 9ghuun5oshdr6hvi.prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 31052
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+; COOKIE: ddc30557fabae7990100000068ca7317cbd1f6787b87080f
+
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/6r0aWRiYGQAAUYBy/SM0tI80/zijJQis4yyTOaCohSm3HQGBrASTQGwMgYZBi4GibuHWcN/7Xo+E6Q141Sx+OmL3yqq2zn4AQEAAP//9QJTv1AAAAA=
+;; SERVER: 13.39.116.127
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @196.192.32.2 NS 9ghuun5oshdr6hvi.prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 41984
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/1rC0MjEwMgAAowClukZpaV5pvnFGSlFZhllmcwFRSlMuekMDGAlmgIMEAAIAAD//4luIVs0AAAA
+;; SERVER: 196.192.32.2
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @196.192.42.153 NS 9ghuun5oshdr6hvi.prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 7297
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/5JpbGRiYGQAAUYBy/SM0tI80/zijJQis4yyTOaCohSm3HQGBrASTQEGCAAEAAD//37kEjA0AAAA
+;; SERVER: 196.192.42.153
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @204.61.216.121 NS 9ghuun5oshdr6hvi.prd.mg.
+;; opcode: QUERY, status: SERVFAIL, id: 59579
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+; COOKIE: ddc30557fabae7992a7524e468ca7317a6a2d93176765356
+
+;; QUESTION SECTION:
+;9ghuun5oshdr6hvi.prd.mg.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/3qxu5GJgZEBBBgFLNMzSkvzTPOLM1KKzDLKMpkLilKYctMZGMBKNAXAyhhkGLgYJO4eZg3/tev5TK1SlScZp4rFly26aVhWFhwGCAAA//8XQp3XUAAAAA==
+;; SERVER: 204.61.216.121

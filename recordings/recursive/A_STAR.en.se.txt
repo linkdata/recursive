@@ -1,0 +1,198 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @198.41.0.4 NS se.
+;; opcode: QUERY, status: NOERROR, id: 40808
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 10, ADDITIONAL: 21
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;se.	IN	 NS
+
+;; AUTHORITY SECTION:
+se.	172800	IN	NS	f.ns.se.
+se.	172800	IN	NS	i.ns.se.
+se.	172800	IN	NS	b.ns.se.
+se.	172800	IN	NS	z.ns.se.
+se.	172800	IN	NS	x.ns.se.
+se.	172800	IN	NS	g.ns.se.
+se.	172800	IN	NS	m.ns.se.
+se.	172800	IN	NS	c.ns.se.
+se.	172800	IN	NS	a.ns.se.
+se.	172800	IN	NS	y.ns.se.
+
+;; ADDITIONAL SECTION:
+f.ns.se.	172800	IN	A	192.71.53.53
+f.ns.se.	172800	IN	AAAA	2a01:3f0:0:305::53
+i.ns.se.	172800	IN	A	194.146.106.22
+i.ns.se.	172800	IN	AAAA	2001:67c:1010:5::53
+b.ns.se.	172800	IN	A	192.36.133.107
+b.ns.se.	172800	IN	AAAA	2001:67c:254c:301::53
+z.ns.se.	172800	IN	A	185.159.198.150
+z.ns.se.	172800	IN	AAAA	2620:10a:80ab::150
+x.ns.se.	172800	IN	A	213.108.25.4
+x.ns.se.	172800	IN	AAAA	2001:67c:124c:e000::4
+g.ns.se.	172800	IN	A	130.239.5.114
+g.ns.se.	172800	IN	AAAA	2001:6b0:e:3::1
+m.ns.se.	172800	IN	A	194.0.11.112
+m.ns.se.	172800	IN	AAAA	2001:678:e:112::53
+c.ns.se.	172800	IN	A	192.36.135.107
+c.ns.se.	172800	IN	AAAA	2001:67c:2554:301::53
+a.ns.se.	172800	IN	A	192.36.144.107
+a.ns.se.	172800	IN	AAAA	2a01:3f0:0:301::53
+y.ns.se.	172800	IN	A	185.159.197.150
+y.ns.se.	172800	IN	AAAA	2620:10a:80aa::150
+
+;; GZPACK: H4sIAAAAAAAA/5qf0cjAwMjAwMDFIMpUnMrAwMTACKMZmBYzMHAypjHlFYOE0IQzsQsnYReuwi5cgV04HbtwLnbhZOzCidiFK6HCcH8xMELlWA64m5oihGWgwgJajMwfGBiYWRkgIBjudYTOQ5OyxBDCcJ0KjGw1AgIMCJ1JmHaqtGYjhFF0qvowM8J1VmHo3Dn/2DSEMFynmgIjV8NqqD4GxgB4GCN0Xs2RZEEIo9gp5PMAppUFHg0InU3vWYsQwsg6NzDwMTDDLIXHFFIIMXAXIISRdVYw8DEKwf2ZjCWE2rMRwqghFIIUQolYdE7IRgijxydCZyWWsD06DSGMGrarEGHLwKApAOUAAgAA//+s5rusSQMAAA==
+;; SERVER: 198.41.0.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @130.239.5.114 NS en.se.
+;; opcode: QUERY, status: NOERROR, id: 20189
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;en.se.	IN	 NS
+
+;; AUTHORITY SECTION:
+en.se.	86400	IN	NS	ns1.sedoparking.com.
+en.se.	86400	IN	NS	ns2.sedoparking.com.
+
+;; GZPACK: H4sIAAAAAAAA//K728jAwMjAwMDEwMiUmsdUnIrOZGAMbGAQZc4rNuQuTk3JL0gsys7MS2dOzs9lwKbKCEMVA4OmAAMEAAIAAP//o222A24AAAA=
+;; SERVER: 130.239.5.114
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @198.41.0.4 A com.
+;; opcode: QUERY, status: NOERROR, id: 17418
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTP0uCURTH8XOfJyNCw8Gp7FQ4WQgPFElLU3tBawWlN/ujJirtEb2D3kC5NLTUK6i9saXXELS3hfVEv5s/OE5X+Prhyj1nY/JCxIlITmbi2llr+MX9HCJxEg1ECq6ZbfSb9UrPd899txe3fV/+Jyd2cmQndTs5sJNDOzm1k5adHNtJw0727aRmJ340Ye82fN7vX4w9lW+VFsW0yM+7jLxV5feTsEcGL9lUWqAXda7BIxMB3mpHaRF4Ey/gkfEBb25LaRH836s2eGTWwFuYUlqgF5dmUy2ShA0meKVlpUXgvRbgfmSKwVt5VFoEXq4CHhl58KrbSgv03MMneGQ/wFu6V1oE91t7Bo8sE3iLu0qLwPsYgEc2D7zMuNIi8O7W4X3JmoI3vaO0CLzLd7gf2WnwsntKi2A/ijd/nkg5n56/AgAA//8nSXmm9wUAAA==
+;; SERVER: 198.41.0.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A sedoparking.com.
+;; opcode: QUERY, status: NOERROR, id: 60413
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;sedoparking.com.	IN	 A
+
+;; AUTHORITY SECTION:
+sedoparking.com.	172800	IN	NS	ns-48.awsdns-06.com.
+sedoparking.com.	172800	IN	NS	ns-802.awsdns-36.net.
+sedoparking.com.	172800	IN	NS	ns-1057.awsdns-04.org.
+sedoparking.com.	172800	IN	NS	ns-1830.awsdns-36.co.uk.
+
+;; ADDITIONAL SECTION:
+ns-48.awsdns-06.com.	172800	IN	A	205.251.192.48
+
+;; GZPACK: H4sIAAAAAAAA/3r9t5GBgZGBgYGFgYm7ODUlvyCxKDszL505OT8XJMGIKcjEwMjAtJiBQZQ1r1jXxIIzsbw4Ja9Y18AMLI1bvRhbXrGuhYERTIOxGXNeagkeDeLsecW6hgam5nArTJjzi9Lx6JAE67AwNkDYwZScz1SazYDVrSD/gfWxnP19wICBQVOAAQIAAQAA//8Ig2T8FgEAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @205.251.192.48 A ns1.sedoparking.com.
+;; opcode: QUERY, status: NOERROR, id: 31694
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ns1.sedoparking.com.	IN	 A
+
+;; ANSWER SECTION:
+ns1.sedoparking.com.	3600	IN	A	91.195.241.8
+ns1.sedoparking.com.	3600	IN	A	3.130.216.63
+
+;; AUTHORITY SECTION:
+sedoparking.com.	172800	IN	NS	ns-1057.awsdns-04.org.
+sedoparking.com.	172800	IN	NS	ns-1830.awsdns-36.co.uk.
+sedoparking.com.	172800	IN	NS	ns-48.awsdns-06.com.
+sedoparking.com.	172800	IN	NS	ns-802.awsdns-36.net.
+
+;; GZPACK: H4sIAAAAAAAA/6o+18rAwMjAxMDCwMicV2zIXZyakl+QWJSdmZfOnJyfC5LELcHAwCfAwBJ9+CMHASXMTTfsMaWZQDYvZmAQZ88r1jU0MDXnTCwvTskr1jUwYc4vSmfArUMSrMPC2ACmw9iMKTmfqTQbjx5R1rxiXRMLuB1mYGnc6sXY8op1LQyMEFYw56WWMDAwaAowQAAgAAD//6I5EK49AQAA
+;; SERVER: 205.251.192.48
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @3.130.216.63 NS *.en.se.
+;; opcode: QUERY, status: NOERROR, id: 51365
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;*.en.se.	IN	 NS
+
+;; ANSWER SECTION:
+*.en.se.	86400	IN	NS	ns1.sedoparking.com.
+*.en.se.	86400	IN	NS	ns2.sedoparking.com.
+
+;; GZPACK: H4sIAAAAAAAA/zqxtJWBgZGBiYGBgZFRiyk1j6k4lYGBCY3DwBjYwCDKnFdsyF2cmpJfkFiUnZmXzpycn8uAXZ0RhjoGBk2WCwxgAAgAAP//imAlmnQAAAA=
+;; SERVER: 3.130.216.63
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @3.130.216.63 A *.en.se.
+;; opcode: QUERY, status: NOERROR, id: 46546
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;*.en.se.	IN	 A
+
+;; ANSWER SECTION:
+*.en.se.	14399	IN	A	64.190.63.222
+
+;; GZPACK: H4sIAAAAAAAA/9p6qZWBgZGBkYGBgZFRiyk1j6k4FSyAwmFgsLBnYHHYZ3+PgUGT5QIDGAACAAD//4uc/2o7AAAA
+;; SERVER: 3.130.216.63

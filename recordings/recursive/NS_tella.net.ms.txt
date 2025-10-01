@@ -1,0 +1,345 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS ms.
+;; opcode: QUERY, status: NOERROR, id: 63127
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 8
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 4b147ba2b0e49fba0100000068ca731a62b3148009ab2ca0
+
+;; QUESTION SECTION:
+;ms.	IN	 NS
+
+;; AUTHORITY SECTION:
+ms.	172800	IN	NS	ms-ns.anycast.pch.net.
+ms.	172800	IN	NS	a.lactld.org.
+ms.	172800	IN	NS	ns1.anycastdns.cz.
+ms.	172800	IN	NS	ns2.anycastdns.cz.
+
+;; ADDITIONAL SECTION:
+ms-ns.anycast.pch.net.	172800	IN	A	204.61.216.33
+ns2.anycastdns.cz.	172800	IN	A	185.28.194.194
+ns1.anycastdns.cz.	172800	IN	A	185.38.108.108
+a.lactld.org.	172800	IN	A	200.0.68.10
+ms-ns.anycast.pch.net.	172800	IN	AAAA	2001:500:14:6033:ad::1
+ns1.anycastdns.cz.	172800	IN	AAAA	2a00:fea0:dead::beef
+a.lactld.org.	172800	IN	AAAA	2801:14:a000::10
+
+;; GZPACK: H4sIAAAAAAAA//o2vZGBgZGBgYGFgYMpt5iBgYmBEUYzMC1mYBBnzS3WzStmT8yrTE4sLmEuSM5gzkstYUBRxMeYyJaTmFySk8KcX5SOKifMnFdsyAXVnpJXzJRchanACE0BDksZGKF6WM7Y3lDEog+hYKfMoUNYbEZSoJaTg+pshNwJBhcuXE6QgSoSUGBkZWAQSTBmWMsAAozYbIMr1mL4t+AeRCEDA8O+92g2w9VpMDKILGCAAwEGBk2WC2CmDAMXg4S3SPWiDU/m7wLFWMapYqmkzSINnKt1FgACAAD///5LkmLHAQAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @185.28.194.194 NS net.ms.
+;; opcode: QUERY, status: SERVFAIL, id: 63569
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1480
+
+;; QUESTION SECTION:
+;net.ms.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA//oR2MjEwMgAAozMeaklTLnFDAxgEU3WE2BhBkAAAAD//8duy50jAAAA
+;; SERVER: 185.28.194.194
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @185.38.108.108 NS net.ms.
+;; opcode: QUERY, status: SERVFAIL, id: 23287
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1480
+
+;; QUESTION SECTION:
+;net.ms.	IN	 NS
+
+;; GZPACK: H4sIAAAAAAAA/4r63sjEwMgAAozMeaklTLnFDAxgEU3WE2BhBkAAAAD//7D5kzIjAAAA
+;; SERVER: 185.38.108.108
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @200.0.68.10 NS net.ms.
+;; opcode: QUERY, status: NOERROR, id: 35595
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 4b147ba2b0e49fba0100000068ca731be1b390dff9662513
+
+;; QUESTION SECTION:
+;net.ms.	IN	 NS
+
+;; AUTHORITY SECTION:
+net.ms.	86400	IN	NS	ns1.idnscan.net.
+net.ms.	86400	IN	NS	ns6.idnscan.net.
+
+;; GZPACK: H4sIAAAAAAAA/+rmbmRgYGRgYGBiYGTOSy1hyi3GYDMwBjYwCDLnFRuyZ6bkFScn5oFkGbAqMUNRwsCgyXKBAQRkGLgYJLxFqhdteDJ/F8i+jFPF0g83T7j/M01VGBAAAP//UzEkFIUAAAA=
+;; SERVER: 200.0.68.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A net.
+;; opcode: QUERY, status: NOERROR, id: 355
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 4b147ba2b0e49fba0100000068ca731b54c0c7778506d5a1
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUv0t6URgG8Pdcf/Dli0aDQ6S9FU4WglAkLf0DDQU1VlB608pEVGpoivA/aA91aWioxiabgmhoqKG9LWhvC29Gz6kHjpOH+7kvh/d5uKZwLGJEJC7JUNVv9g/m648nRryuSML4sVKzUsw2/PqBX28ET3+TXTfZc5OKm5TcZMtNdtxk202KblJ2k3032XSTwl/CJvfjDd4I9/IryhYOItNRlhqI2Wtl0YPILSnbNojpC2VrAjFXU5Y7iKl1ZYGBSM8o6zGI2IayREGMLyvbM4jRNWX1AzE5pCxOEJGo0uRSAzE8YSLm6kO+fzmaImp5yYNmiaIOxbOgWbqovdopaJa0NXv+FjRL3Zr97wE0a4A1+70LmrXB0k8J0KwZ1k1SbdCsJda+W1XQrDHWTU7eQLP2WDo9NrCe5GiTLH2+8KNFMuHH4JCS/zKymDjqXL6e3fS//uX7RnK1d3fYij63PwMAAP//clplHRMGAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A idnscan.net.
+;; opcode: QUERY, status: NOERROR, id: 46191
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;idnscan.net.	IN	 A
+
+;; AUTHORITY SECTION:
+idnscan.net.	172800	IN	NS	ns1.domainers.de.
+idnscan.net.	172800	IN	NS	ns2.domainers.de.
+idnscan.net.	172800	IN	NS	ns3.domainers.de.
+idnscan.net.	172800	IN	NS	ns4.domainers.de.
+
+;; GZPACK: H4sIAAAAAAAA/9qS38jAwMjAwMDCwMiemZJXnJyYx5yXWgISRBNgYmBkYFrMwCDEnFdsyJmSn5uYmZdaVMyUksqAW6ERsQqNiVVogqqQgUFTgAECAAEAAP//wyBARcwAAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A de.
+;; opcode: QUERY, status: NOERROR, id: 63018
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 4b147ba2b0e49fba0100000068ca731b54c0c7778506d5a1
+
+;; QUESTION SECTION:
+;de.	IN	 A
+
+;; AUTHORITY SECTION:
+de.	172800	IN	NS	f.nic.de.
+de.	172800	IN	NS	z.nic.de.
+de.	172800	IN	NS	n.de.net.
+de.	172800	IN	NS	s.de.net.
+de.	172800	IN	NS	a.nic.de.
+de.	172800	IN	NS	l.de.net.
+
+;; ADDITIONAL SECTION:
+z.nic.de.	172800	IN	A	194.246.96.1
+s.de.net.	172800	IN	A	195.243.137.26
+n.de.net.	172800	IN	A	194.146.107.6
+l.de.net.	172800	IN	A	77.67.63.105
+f.nic.de.	172800	IN	A	81.91.164.5
+a.nic.de.	172800	IN	A	194.0.0.53
+z.nic.de.	172800	IN	AAAA	2a02:568:fe02::de
+s.de.net.	172800	IN	AAAA	2003:8:14::53
+n.de.net.	172800	IN	AAAA	2001:67c:1011:1::53
+l.de.net.	172800	IN	AAAA	2001:668:1f:11::105
+f.nic.de.	172800	IN	AAAA	2a02:568:0:2::53
+a.nic.de.	172800	IN	AAAA	2001:678:2::53
+
+;; GZPACK: H4sIAAAAAAAA//qm1cjAwMjAwMDGwMuUkgpiM4JpJgZGBqbFDAxcjGnMeZnJIDE08Soc4nlMKanMeakl6OLFOMQTcZiTA1OPsAnkOrAsy6FvCYwIExHihz93SiFcgKR+UjYbwkSEuK+zfSbChwjxwOglrAiXIZnDwGCK5B4ZqLiAFhNrxj8mBhi4h+Q2uBoFZgYOBhG4mmAkdyLUMLLVCAiCYwSiJgermgwGeQZBiBJGViT3o7iHARSaMHMSMdUoMLJVMCDcHMzAoMlyAcyUYeBikPAWqV604cn8XSC3ZJwqlg45cLy8le3qQkAAAAD//0m9eGIzAgAA
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @77.67.63.105 A domainers.de.
+;; opcode: QUERY, status: NOERROR, id: 11909
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 8
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1452
+
+;; QUESTION SECTION:
+;domainers.de.	IN	 A
+
+;; AUTHORITY SECTION:
+domainers.de.	86400	IN	NS	ns1.domainers.de.
+domainers.de.	86400	IN	NS	ns2.domainers.de.
+domainers.de.	86400	IN	NS	ns3.domainers.de.
+domainers.de.	86400	IN	NS	ns4.domainers.de.
+
+;; ADDITIONAL SECTION:
+ns1.domainers.de.	86400	IN	A	95.130.16.246
+ns1.domainers.de.	86400	IN	AAAA	2a02:2940:0:a0d1::246
+ns2.domainers.de.	86400	IN	A	95.130.17.218
+ns2.domainers.de.	86400	IN	AAAA	2a02:2940:0:a0d2::218
+ns3.domainers.de.	86400	IN	A	217.146.22.194
+ns4.domainers.de.	86400	IN	A	144.76.91.137
+ns4.domainers.de.	86400	IN	AAAA	2a01:4f8:192:2187::2
+
+;; GZPACK: H4sIAAAAAAAA/9JrbWRgYGRgYGBh4OBMyc9NzMxLLSpmSkkFiTKiiTCBxAIbGISY84oNUeXwqDQiWqUx0SpNUOUw3QNSC1bNEt8k8A2LvAxUXkCLSdOBgWHBRQYwYHLDdDGyWYK3sMijm3UJapYEpp8QZt2cJHYI0ycI+Qk+0Z1Y5BF2MbL8YJyk2M4AtYyBQZN1DYQNCAAA///yzJYg1QEAAA==
+;; SERVER: 77.67.63.105
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @95.130.16.246 A ns1.domainers.de.
+;; opcode: QUERY, status: NOERROR, id: 61516
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1680
+
+;; QUESTION SECTION:
+;ns1.domainers.de.	IN	 A
+
+;; ANSWER SECTION:
+ns1.domainers.de.	3600	IN	A	95.130.16.246
+
+;; GZPACK: H4sIAAAAAAAA//rg08rAwMjAyMDAwMicV2zImZKfm5iZl1pUzJSSCpbBLsrAwCfAwBLfJPCNgUGTbQIDGAACAAD//5ftVshNAAAA
+;; SERVER: 95.130.16.246
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @95.130.16.246 A ns1.idnscan.net.
+;; opcode: QUERY, status: NOERROR, id: 58550
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1680
+
+;; QUESTION SECTION:
+;ns1.idnscan.net.	IN	 A
+
+;; ANSWER SECTION:
+ns1.idnscan.net.	3600	IN	A	95.130.17.35
+
+;; GZPACK: H4sIAAAAAAAA/3qyrZWBgZGBkYGBgZE5r9iQPTMlrzg5MY85L7UELIFVkIGBT4CBJb5JUJmBQZNtAgMYAAIAAP//IA07JEsAAAA=
+;; SERVER: 95.130.16.246
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @95.130.17.35 NS tella.net.ms.
+;; SERVER: 95.130.17.35
+;; ERROR: read udp4 172.16.10.241:50219->95.130.17.35:53: read: connection refused
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @95.130.17.35 NS tella.net.ms.
+;; SERVER: 95.130.17.35
+;; ERROR: dial tcp4 95.130.17.35:53: connect: connection refused
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A net.
+;; opcode: QUERY, status: NOERROR, id: 35709
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 4b147ba2b0e49fba0100000068ca731b54c0c7778506d5a1
+
+;; QUESTION SECTION:
+;net.	IN	 A
+
+;; AUTHORITY SECTION:
+net.	172800	IN	NS	h.gtld-servers.net.
+net.	172800	IN	NS	m.gtld-servers.net.
+net.	172800	IN	NS	l.gtld-servers.net.
+net.	172800	IN	NS	g.gtld-servers.net.
+net.	172800	IN	NS	b.gtld-servers.net.
+net.	172800	IN	NS	i.gtld-servers.net.
+net.	172800	IN	NS	a.gtld-servers.net.
+net.	172800	IN	NS	e.gtld-servers.net.
+net.	172800	IN	NS	c.gtld-servers.net.
+net.	172800	IN	NS	d.gtld-servers.net.
+net.	172800	IN	NS	j.gtld-servers.net.
+net.	172800	IN	NS	k.gtld-servers.net.
+net.	172800	IN	NS	f.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+
+;; GZPACK: H4sIAAAAAAAA/4TUvy9DURwF8O99/RGRVgwdROuLdCpp0oRoLP4BAwkjEvRpUU3TNgxiEOlktUvbxWDAaKpJIgYDg90msdukVXEuJ7lvejfv8+775p6Td3p0LGJEJCrxQMmvdRbm+8YTI15LJGYKkXytmEtX/cq+X6l2n/4le25SdJO8m2y4ybabrLuJ7yabbpJzkx032XWTrf+EhdKJt/tGsJ1dUpYJiFRT2adBTN8omx9EZkFZICAmL5U1DMRMWVk1QEysKjsBEMkpZZGCiKwpiwvE6KKyzEEMryhrKIjxAWXtAxEKK00u0RODYyZkrj/l58rQFFHLaxY0SxR1IJoGzdJF7ZXPQLOkrb1n70Cz1K29+x5BswZYe3+0QLM2WPo5Bpo1w5ok0QDNWmKdd70EmjXGmuTkHTRrj6WTIz3rSYY2ydIXc79aJBV86i4S0i9D87HD5tXb+W3n7194qMaX2/cH9fBL4ysAAP//5naN7xMGAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A idnscan.net.
+;; opcode: QUERY, status: NOERROR, id: 38734
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 4, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;idnscan.net.	IN	 A
+
+;; AUTHORITY SECTION:
+idnscan.net.	172800	IN	NS	ns1.domainers.de.
+idnscan.net.	172800	IN	NS	ns2.domainers.de.
+idnscan.net.	172800	IN	NS	ns3.domainers.de.
+idnscan.net.	172800	IN	NS	ns4.domainers.de.
+
+;; GZPACK: H4sIAAAAAAAA/5ru18jAwMjAwMDCwMiemZJXnJyYx5yXWgISRBNgYmBkYFrMwCDEnFdsyJmSn5uYmZdaVMyUksqAW6ERsQqNiVVogqqQgUFTgAECAAEAAP//3EVaFMwAAAA=
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @95.130.16.246 A ns6.idnscan.net.
+;; opcode: QUERY, status: NOERROR, id: 5915
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1680
+
+;; QUESTION SECTION:
+;ns6.idnscan.net.	IN	 A
+
+;; ANSWER SECTION:
+ns6.idnscan.net.	3600	IN	A	95.130.17.35
+
+;; GZPACK: H4sIAAAAAAAA/xKXbmVgYGRgZGBgYGTOKzZjz0zJK05OzGPOSy0BS2AVZGDgE2BgiW8SVGZg0GSbwAAGgAAAAP//aFF6HUsAAAA=
+;; SERVER: 95.130.16.246

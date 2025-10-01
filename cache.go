@@ -2,6 +2,7 @@ package recursive
 
 import (
 	"context"
+	"math"
 	"net/netip"
 	"sync/atomic"
 	"time"
@@ -14,9 +15,6 @@ const DefaultMaxTTL = 6 * time.Hour    // six hours
 const DefaultNXTTL = time.Hour         // one hour
 const MaxQtype = 260
 
-var _ Cacher = (*Cache)(nil)
-var _ Resolver = (*Cache)(nil)
-
 type Cache struct {
 	MinTTL time.Duration // always cache responses for at least this long
 	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
@@ -25,6 +23,8 @@ type Cache struct {
 	hits   atomic.Uint64
 	cq     []*cacheQtype
 }
+
+var _ CachingResolver = &Cache{}
 
 func NewCache() *Cache {
 	cq := make([]*cacheQtype, MaxQtype+1)
@@ -66,7 +66,7 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 			msg.Zero = true
 			ttl := cache.NXTTL
 			if msg.Rcode != dns.RcodeNameError {
-				ttl = max(cache.MinTTL, time.Duration(MinTTL(msg))*time.Second)
+				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
 				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
 					ttl = min(cache.MaxTTL, ttl)
 				}
@@ -108,4 +108,31 @@ func (cache *Cache) Clean() {
 			cq.clean(now)
 		}
 	}
+}
+
+func minDNSMsgTTL(msg *dns.Msg) (minTTL int) {
+	minTTL = math.MaxInt
+	if msg != nil {
+		for _, rr := range msg.Answer {
+			if rr != nil {
+				minTTL = min(minTTL, int(rr.Header().Ttl))
+			}
+		}
+		for _, rr := range msg.Ns {
+			if rr != nil {
+				minTTL = min(minTTL, int(rr.Header().Ttl))
+			}
+		}
+		for _, rr := range msg.Extra {
+			if rr != nil {
+				if rr.Header().Rrtype != dns.TypeOPT {
+					minTTL = min(minTTL, int(rr.Header().Ttl))
+				}
+			}
+		}
+	}
+	if minTTL == math.MaxInt {
+		minTTL = -1
+	}
+	return
 }

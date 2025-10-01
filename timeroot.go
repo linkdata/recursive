@@ -23,7 +23,7 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
 	var rtt time.Duration
 	for i := 0; i < numProbes; i++ {
 		now := time.Now()
-		conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, r.DNSPort).String())
+		conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
 		if err != nil {
 			return
 		}

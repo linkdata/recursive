@@ -1,0 +1,223 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 NS cn.
+;; opcode: QUERY, status: NOERROR, id: 55358
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 12
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;cn.	IN	 NS
+
+;; AUTHORITY SECTION:
+cn.	172800	IN	NS	a.dns.cn.
+cn.	172800	IN	NS	b.dns.cn.
+cn.	172800	IN	NS	c.dns.cn.
+cn.	172800	IN	NS	d.dns.cn.
+cn.	172800	IN	NS	e.dns.cn.
+cn.	172800	IN	NS	ns.cernet.net.
+
+;; ADDITIONAL SECTION:
+a.dns.cn.	172800	IN	A	203.119.25.1
+a.dns.cn.	172800	IN	AAAA	2001:dc7::1
+b.dns.cn.	172800	IN	A	203.119.26.1
+b.dns.cn.	172800	IN	AAAA	2001:dc7:1::1
+c.dns.cn.	172800	IN	A	203.119.27.1
+c.dns.cn.	172800	IN	AAAA	2001:dc7:2::1
+d.dns.cn.	172800	IN	A	203.119.28.1
+d.dns.cn.	172800	IN	AAAA	2001:dc7:1000::1
+e.dns.cn.	172800	IN	A	203.119.29.1
+e.dns.cn.	172800	IN	AAAA	2001:dc7:3::1
+ns.cernet.net.	172800	IN	A	202.112.0.44
+
+;; GZPACK: H4sIAAAAAAAA/3TQQQrCMBCF4TeJdiGK3aoV3AqewbtoMttBbMG1Z/Ei7gS9gMcRsTKTknRT+Jg/GfLeXwECUGHqggAO9P/D3YAJHXyU9msDPxY8FDwWnLM+d9JWgc/CnRfuoGuA+pHR67Ig403v9YZmD+hHuqptl9bTlkwbcu3Keto608Zc21hP2truzLl2bT2912s7eDo94HnCDtiO77/BTwAAAP//Bd01Ov0BAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @202.112.0.44 NS tw.cn.
+;; opcode: QUERY, status: NOERROR, id: 43763
+;; flags: qr aa rd; QUERY: 1, ANSWER: 6, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: c9f1af3c8b03e4f30100000068ca72ecee23a489e0fad780
+
+;; QUESTION SECTION:
+;tw.cn.	IN	 NS
+
+;; ANSWER SECTION:
+tw.cn.	86400	IN	NS	c.dns.cn.
+tw.cn.	86400	IN	NS	b.dns.cn.
+tw.cn.	86400	IN	NS	a.dns.cn.
+tw.cn.	86400	IN	NS	cns.cernet.net.
+tw.cn.	86400	IN	NS	e.dns.cn.
+tw.cn.	86400	IN	NS	d.dns.cn.
+
+;; GZPACK: H4sIAAAAAAAA/1r1uZWBgZGBjYGBgZGppJwpOY+BgQmFycAY2MDAxZjMnJJXDBLDlErCLZWIS0qAOTmvmC05tSgvtYQ5L7UEi95U3MamwKQYGDRZLjCAgAwDF4PEyY/rbbqZn3xmZGBgyDhV9Oad8pLOB7+uNwACAAD//zDz5dDmAAAA
+;; SERVER: 202.112.0.44
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @203.119.25.1 NS google.tw.cn.
+;; opcode: QUERY, status: NOERROR, id: 20028
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;google.tw.cn.	IN	 NS
+
+;; AUTHORITY SECTION:
+google.tw.cn.	86400	IN	NS	joyce.ns.cloudflare.com.
+google.tw.cn.	86400	IN	NS	louis.ns.cloudflare.com.
+
+;; GZPACK: H4sIAAAAAAAA//KzaWRgYGRgYGBiYGRLz89Pz0llKilnSs7DIcLAGNjAIMmalV+ZnMqUV8yVnJNfmpKWk1iUypycn8uAU0NOfmlmMRYNDAyaAgwQAAgAAP//IO2xW4sAAAA=
+;; SERVER: 203.119.25.1
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.203.230.10 A com.
+;; opcode: QUERY, status: NOERROR, id: 1322
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 13, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1472
+
+;; QUESTION SECTION:
+;com.	IN	 A
+
+;; AUTHORITY SECTION:
+com.	172800	IN	NS	a.gtld-servers.net.
+com.	172800	IN	NS	b.gtld-servers.net.
+com.	172800	IN	NS	c.gtld-servers.net.
+com.	172800	IN	NS	d.gtld-servers.net.
+com.	172800	IN	NS	e.gtld-servers.net.
+com.	172800	IN	NS	f.gtld-servers.net.
+com.	172800	IN	NS	g.gtld-servers.net.
+com.	172800	IN	NS	h.gtld-servers.net.
+com.	172800	IN	NS	i.gtld-servers.net.
+com.	172800	IN	NS	j.gtld-servers.net.
+com.	172800	IN	NS	k.gtld-servers.net.
+com.	172800	IN	NS	l.gtld-servers.net.
+com.	172800	IN	NS	m.gtld-servers.net.
+
+;; ADDITIONAL SECTION:
+a.gtld-servers.net.	172800	IN	A	192.5.6.30
+a.gtld-servers.net.	172800	IN	AAAA	2001:503:a83e::2:30
+b.gtld-servers.net.	172800	IN	A	192.33.14.30
+b.gtld-servers.net.	172800	IN	AAAA	2001:503:231d::2:30
+c.gtld-servers.net.	172800	IN	A	192.26.92.30
+c.gtld-servers.net.	172800	IN	AAAA	2001:503:83eb::30
+d.gtld-servers.net.	172800	IN	A	192.31.80.30
+d.gtld-servers.net.	172800	IN	AAAA	2001:500:856e::30
+e.gtld-servers.net.	172800	IN	A	192.12.94.30
+e.gtld-servers.net.	172800	IN	AAAA	2001:502:1ca1::30
+f.gtld-servers.net.	172800	IN	A	192.35.51.30
+f.gtld-servers.net.	172800	IN	AAAA	2001:503:d414::30
+g.gtld-servers.net.	172800	IN	A	192.42.93.30
+g.gtld-servers.net.	172800	IN	AAAA	2001:503:eea3::30
+h.gtld-servers.net.	172800	IN	A	192.54.112.30
+h.gtld-servers.net.	172800	IN	AAAA	2001:502:8cc::30
+i.gtld-servers.net.	172800	IN	A	192.43.172.30
+i.gtld-servers.net.	172800	IN	AAAA	2001:503:39c1::30
+j.gtld-servers.net.	172800	IN	A	192.48.79.30
+j.gtld-servers.net.	172800	IN	AAAA	2001:502:7094::30
+k.gtld-servers.net.	172800	IN	A	192.52.178.30
+k.gtld-servers.net.	172800	IN	AAAA	2001:503:d2d::30
+l.gtld-servers.net.	172800	IN	A	192.41.162.30
+l.gtld-servers.net.	172800	IN	AAAA	2001:500:d937::30
+m.gtld-servers.net.	172800	IN	A	192.55.83.30
+m.gtld-servers.net.	172800	IN	AAAA	2001:501:b1f9::30
+
+;; GZPACK: H4sIAAAAAAAA/4TTP0oDQRTH8Te7rlgkYpFK41NJlUhgQTHYeAUFWxU0GeOfJIYk2It4Ay+gaSxs9ASxt7TxDIK9ncRV/I3+4G21gW8+zDLvJZULEScieZmL62ft8Q+XvUTiJBqKFNx+rjloNap93zv3vX7c8QP5mxzYSd1OGnbi7eTQTpp2cmQnx3ZyYiendtKyk/b/hN3b+Hq//jExSiaVFsXvYmbRJfHdhmRPJCm7ZPCWppUWgVeaB49MBHizO0qLwLt8k58nZeMD3sKW0gI9ueqAR2YNvNye0gK9qHgDHhlM8EorSovge18K4JEpBq+yq7QIvPcheGTkwVvrKi2C7516Bo/sB3jL90qL4HzrT+CRZQIv3VRaBOfrXoNHNg+81UelRXC+fBU8sqbglW+VFsH8vdbAIzsNXm1baYGee/j49UTKySh7/wwAAP//q7pBSPcFAAA=
+;; SERVER: 192.203.230.10
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.5.6.30 A cloudflare.com.
+;; opcode: QUERY, status: NOERROR, id: 63372
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 21
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;cloudflare.com.	IN	 A
+
+;; AUTHORITY SECTION:
+cloudflare.com.	172800	IN	NS	ns3.cloudflare.com.
+cloudflare.com.	172800	IN	NS	ns5.cloudflare.com.
+cloudflare.com.	172800	IN	NS	ns4.cloudflare.com.
+cloudflare.com.	172800	IN	NS	ns6.cloudflare.com.
+cloudflare.com.	172800	IN	NS	ns7.cloudflare.com.
+
+;; ADDITIONAL SECTION:
+ns3.cloudflare.com.	172800	IN	A	162.159.0.33
+ns3.cloudflare.com.	172800	IN	A	162.159.7.226
+ns3.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:21
+ns3.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:7e2
+ns5.cloudflare.com.	172800	IN	A	162.159.2.9
+ns5.cloudflare.com.	172800	IN	A	162.159.9.55
+ns5.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:209
+ns5.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:937
+ns4.cloudflare.com.	172800	IN	A	162.159.1.33
+ns4.cloudflare.com.	172800	IN	A	162.159.8.55
+ns4.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:121
+ns4.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:837
+ns6.cloudflare.com.	172800	IN	A	162.159.3.11
+ns6.cloudflare.com.	172800	IN	A	162.159.5.6
+ns6.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:30b
+ns6.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:506
+ns7.cloudflare.com.	172800	IN	A	162.159.4.8
+ns7.cloudflare.com.	172800	IN	A	162.159.6.6
+ns7.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:408
+ns7.cloudflare.com.	172800	IN	AAAA	2400:cb00:2049:1::a29f:606
+
+;; GZPACK: H4sIAAAAAAAA//re08jAwMjAwMDKIMqVnJNfmpKWk1iUypycnwsSZ8QQY2JgZGBazMAgwpxXbIwui1e1KUmqTUhSbUaSanN0WWx+AfkerINl0XwGRUIq2B9hVSEDVSGgwnCaQcETHNIMOM3DoRpsNkboIdvOxElIBac5VhU4bMRhHg7VYLMx4gvZdkZFQio4sJuBw0Yc5uFQDTYbI4Ug287MTUgFKxtWFThsxGEeDtVgszHSJLLtLByEVLBhNwOHjTjMw6GajY2BQVOAAQIAAQAA///rgYB5MQQAAA==
+;; SERVER: 192.5.6.30
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @162.159.0.33 A ns.cloudflare.com.
+;; opcode: QUERY, status: NOERROR, id: 12882
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;ns.cloudflare.com.	IN	 A
+
+;; ANSWER SECTION:
+ns.cloudflare.com.	86353	IN	A	173.245.58.100
+ns.cloudflare.com.	86353	IN	A	173.245.59.100
+
+;; GZPACK: H4sIAAAAAAAA/zIKamVgYGRgYmBgYGTKK+ZKzskvTUnLSSxKZU7OzwVJ4RJmYAwMZGBZ+9UqhYAC6xQGBk2WCwxgAAgAAP//zJlk7HAAAAA=
+;; SERVER: 162.159.0.33
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @162.159.0.33 A joyce.ns.cloudflare.com.
+;; opcode: QUERY, status: NOERROR, id: 52481
+;; flags: qr aa rd; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;joyce.ns.cloudflare.com.	IN	 A
+
+;; ANSWER SECTION:
+joyce.ns.cloudflare.com.	86353	IN	A	108.162.194.14
+joyce.ns.cloudflare.com.	86353	IN	A	172.64.34.14
+joyce.ns.cloudflare.com.	86353	IN	A	162.159.38.14
+
+;; GZPACK: H4sIAAAAAAAA/zrL2MrAwMjAzMDAwMialV+ZnMqUV8yVnJNfmpKWk1iUypycnwtSgF+SgTEwkIElZ9EhPiKUrXFQIkbZovlqfAwMmiwXGMAAEAAA///sca1UqQAAAA==
+;; SERVER: 162.159.0.33
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @162.159.38.14 NS google.tw.cn.
+;; opcode: QUERY, status: NOERROR, id: 18748
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+
+;; QUESTION SECTION:
+;google.tw.cn.	IN	 NS
+
+;; ANSWER SECTION:
+google.tw.cn.	86400	IN	NS	joyce.ns.cloudflare.com.
+google.tw.cn.	86400	IN	NS	louis.ns.cloudflare.com.
+
+;; GZPACK: H4sIAAAAAAAA//K0aWVgYGRgYmBgYGRLz89Pz0llKilnSs5jYGDCJsLAGNjAIMmalV+ZnMqUV8yVnJNfmpKWk1iUypycn8uAU0NOfmlmMRYNDAyaLBcYwAAQAAD//6x1vTaLAAAA
+;; SERVER: 162.159.38.14

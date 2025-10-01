@@ -1,0 +1,171 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 NS sy.
+;; opcode: QUERY, status: NOERROR, id: 26086
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 6
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ac9d0b76d83908a50100000068ca731877bd7e0eff9679e8
+
+;; QUESTION SECTION:
+;sy.	IN	 NS
+
+;; AUTHORITY SECTION:
+sy.	172800	IN	NS	sy.cctld.authdns.ripe.net.
+sy.	172800	IN	NS	pch.anycast.tld.sy.
+sy.	172800	IN	NS	ns1.tld.sy.
+
+;; ADDITIONAL SECTION:
+pch.anycast.tld.sy.	172800	IN	A	204.61.216.71
+ns1.tld.sy.	172800	IN	A	82.137.200.85
+sy.cctld.authdns.ripe.net.	172800	IN	A	193.0.9.113
+pch.anycast.tld.sy.	172800	IN	AAAA	2001:500:14:6071:ad::1
+sy.cctld.authdns.ripe.net.	172800	IN	AAAA	2001:67c:e0::113
+
+;; GZPACK: H4sIAAAAAAAA/0p91sjAwMjAwMDMwMZUXMnAwMTACKMZmBYzMEgzFVeyJieX5KSwJ5aWZKTkFbMUZRakMuelljCgKBRhLkjOYE/Mq0xOLC5hLslJAcmiqOBhzis2hMlgU83ACFXJcsb2hjuyaoRMUOeJUDxOQig8yMBZiNUSGagKAQVGVgYGkYRChrUMIMCIz1gkTWw1DA8YoIBRmIFBk+UCmC3DwMUgsWYud9kNS46loCDNOFUsUb63ju//tMoXgAAAAP//6XpgQ2gBAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @82.137.200.85 NS mil.sy.
+;; opcode: QUERY, status: NOERROR, id: 45567
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;mil.sy.	IN	 NS
+
+;; AUTHORITY SECTION:
+mil.sy.	86400	IN	NS	suspend2.tld.sy.
+mil.sy.	86400	IN	NS	suspend1.tld.sy.
+
+;; GZPACK: H4sIAAAAAAAA/9r4v5GBgZGBgYGJgZE5NzOHqbgSg83AGNjAIMhRXFpckJqXYsRckpMCksKtxBCmhIFBU4ABAgABAAD//3n1sUppAAAA
+;; SERVER: 82.137.200.85
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A sy.
+;; opcode: QUERY, status: NOERROR, id: 40140
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 6
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ac9d0b76d83908a50100000068ca731877bd7e0eff9679e8
+
+;; QUESTION SECTION:
+;sy.	IN	 A
+
+;; AUTHORITY SECTION:
+sy.	172800	IN	NS	pch.anycast.tld.sy.
+sy.	172800	IN	NS	sy.cctld.authdns.ripe.net.
+sy.	172800	IN	NS	ns1.tld.sy.
+
+;; ADDITIONAL SECTION:
+pch.anycast.tld.sy.	172800	IN	A	204.61.216.71
+ns1.tld.sy.	172800	IN	A	82.137.200.85
+sy.cctld.authdns.ripe.net.	172800	IN	A	193.0.9.113
+pch.anycast.tld.sy.	172800	IN	AAAA	2001:500:14:6071:ad::1
+sy.cctld.authdns.ripe.net.	172800	IN	AAAA	2001:67c:e0::113
+
+;; GZPACK: H4sIAAAAAAAA/5pzppGBgZGBgYGZgY2puBLEZgTTTAyMDEyLGRhEmAuSM9gT8yqTE4tLmEtyUkCyKCqkmYorWZOTS3JS2BNLSzJS8opZijILUpnzUktQFfIw5xUbwozAZizIcrBKljO2N9yRVSNkgjpPhOKxEKHwIANnIVZLZKAqBBQYWRkYRBIKGdYygAAjPmORNLHVMDxggAJGYQYGTZYLYLYMAxeDxJq53GU3LDmWgoI041SxRPneOr7/0ypfAAIAAP//fIHcPmgBAAA=
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @82.137.200.85 A tld.sy.
+;; opcode: QUERY, status: NOERROR, id: 62047
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;tld.sy.	IN	 A
+
+;; AUTHORITY SECTION:
+tld.sy.	86400	IN	NS	ns4.tld.sy.
+tld.sy.	86400	IN	NS	ns3.tld.sy.
+
+;; ADDITIONAL SECTION:
+ns3.tld.sy.	86400	IN	A	82.137.200.82
+ns4.tld.sy.	86400	IN	A	185.216.132.4
+
+;; GZPACK: H4sIAAAAAAAA//oU38jAwMjAwMDEwMxckpPCVFwJ4jPC2UwgXmADAw9zXrEJTBSrrDFcFokNkgerYAnqPBGEbAZCZueNFhYGBk0BBggABAAA//+N86vOkwAAAA==
+;; SERVER: 82.137.200.85
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @82.137.200.82 A suspend1.tld.sy.
+;; opcode: QUERY, status: NXDOMAIN, id: 24856
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ac9d0b76d83908a50100000068ca73d8f180c2f44644d60c
+
+;; QUESTION SECTION:
+;suspend1.tld.sy.	IN	 A
+
+;; AUTHORITY SECTION:
+tld.sy.	300	IN	SOA	ns4.tld.sy. webmaster.tld.sy. 2025032000 10800 3600 2592000 38400
+
+;; GZPACK: H4sIAAAAAAAA/0qUaGVmYGRgYGBkYOQoLi0uSM1LMWQuyUlhKq4EC8LZbCBljDoMRsx5xSYwUc7y1KTcxOKS1CKYSMXmTgcGBi0DBgY+AQb1XgYGhmkMDAyaLBcYQECGgYtBYs1c7rIblhxLQdZmnCq+8bHh0Bc3l2s8gAAAAP//7cTpaIwAAAA=
+;; SERVER: 82.137.200.82
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @192.36.148.17 A sy.
+;; opcode: QUERY, status: NOERROR, id: 60313
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 3, ADDITIONAL: 6
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ac9d0b76d83908a50100000068ca731877bd7e0eff9679e8
+
+;; QUESTION SECTION:
+;sy.	IN	 A
+
+;; AUTHORITY SECTION:
+sy.	172800	IN	NS	ns1.tld.sy.
+sy.	172800	IN	NS	pch.anycast.tld.sy.
+sy.	172800	IN	NS	sy.cctld.authdns.ripe.net.
+
+;; ADDITIONAL SECTION:
+pch.anycast.tld.sy.	172800	IN	A	204.61.216.71
+ns1.tld.sy.	172800	IN	A	82.137.200.85
+sy.cctld.authdns.ripe.net.	172800	IN	A	193.0.9.113
+pch.anycast.tld.sy.	172800	IN	AAAA	2001:500:14:6071:ad::1
+sy.cctld.authdns.ripe.net.	172800	IN	AAAA	2001:67c:e0::113
+
+;; GZPACK: H4sIAAAAAAAA/3o9s5GBgZGBgYGZgY2puBLEZgTTTAyMDEyLGRh4mPOKDZlLclJAoigyIswFyRnsiXmVyYnFJVhVSDMVV7ImJ5fkpLAnlpZkpOQVsxRlFqQy56WWMGDTDLIcrJHljO0Nd2SLETJBnSdC8RiLUHiQgbMQqyUyUBUCCoysDAwiCYUMaxlAgBGfsUia2GoYHjBAAaMwA4MmywUwW4aBi0FizVzushuWHEtBQZpxqliifG8d3/9plS8AAQAA//9kbN2IaAEAAA==
+;; SERVER: 192.36.148.17
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @82.137.200.85 A tld.sy.
+;; opcode: QUERY, status: NOERROR, id: 28335
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;tld.sy.	IN	 A
+
+;; AUTHORITY SECTION:
+tld.sy.	86400	IN	NS	ns4.tld.sy.
+tld.sy.	86400	IN	NS	ns3.tld.sy.
+
+;; ADDITIONAL SECTION:
+ns3.tld.sy.	86400	IN	A	82.137.200.82
+ns4.tld.sy.	86400	IN	A	185.216.132.4
+
+;; GZPACK: H4sIAAAAAAAA/8pb38jAwMjAwMDEwMxckpPCVFwJ4jPC2UwgXmADAw9zXrEJTBSrrDFcFokNkgerYAnqPBGEbAZCZueNFhYGBk0BBggABAAA//+O8sTBkwAAAA==
+;; SERVER: 82.137.200.85
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @82.137.200.82 A suspend2.tld.sy.
+;; opcode: QUERY, status: NXDOMAIN, id: 37376
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: ac9d0b76d83908a50100000068ca73d8f180c2f44644d60c
+
+;; QUESTION SECTION:
+;suspend2.tld.sy.	IN	 A
+
+;; AUTHORITY SECTION:
+tld.sy.	300	IN	SOA	ns4.tld.sy. webmaster.tld.sy. 2025032000 10800 3600 2592000 38400
+
+;; GZPACK: H4sIAAAAAAAA/5rE0MrMwMjAwMDIwMhRXFpckJqXYsRckpPCVFwJFoSz2UDKGHUYjJjzik1gopzlqUm5icUlqUUwkYrNnQ4MDFoGDAx8AgzqvQwMDNMYGBg0WS4wgIAMAxeDxJq53GU3LDmWgqzNOFV842PDoS9uLtd4AAEAAP//PG1S4owAAAA=
+;; SERVER: 82.137.200.82

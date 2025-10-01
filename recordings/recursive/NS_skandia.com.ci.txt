@@ -1,0 +1,65 @@
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @198.41.0.4 NS ci.
+;; opcode: QUERY, status: NOERROR, id: 19711
+;; flags: qr rd; QUERY: 1, ANSWER: 0, AUTHORITY: 5, ADDITIONAL: 10
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 4096
+
+;; QUESTION SECTION:
+;ci.	IN	 NS
+
+;; AUTHORITY SECTION:
+ci.	172800	IN	NS	any.nic.ci.
+ci.	172800	IN	NS	ci.hosting.nic.fr.
+ci.	172800	IN	NS	phloem.uoregon.edu.
+ci.	172800	IN	NS	ns.nic.ci.
+ci.	172800	IN	NS	ns-ci.afrinic.net.
+
+;; ADDITIONAL SECTION:
+any.nic.ci.	172800	IN	A	204.61.216.120
+any.nic.ci.	172800	IN	AAAA	2001:500:14:6120:ad::1
+ci.hosting.nic.fr.	172800	IN	A	192.134.0.49
+ci.hosting.nic.fr.	172800	IN	AAAA	2001:660:3006:1::1:1
+phloem.uoregon.edu.	172800	IN	A	128.223.32.35
+phloem.uoregon.edu.	172800	IN	AAAA	2001:468:d01:20::80df:2023
+ns.nic.ci.	172800	IN	A	196.49.0.84
+ns-ci.afrinic.net.	172800	IN	A	196.216.168.30
+ns-ci.afrinic.net.	172800	IN	AAAA	2001:43f8:120::30
+
+;; GZPACK: H4sIAAAAAAAA//L538jAwMjAwMDKwMWUnMnAwMTACKMZmBYzMPAwJ+ZVMudlJoNEUWSEmZIz2TPyi0sy89LBCtKKUBWIsBVk5OSn5rKX5helpufnMaemlKKq4GbKK8ZuNmtesW5yJntiWlFmXmYyc15qCQOyQxgYoQpZztjeqECRkYHKCCgwsjIwiCQqMKxlAAFGLM5FGHOgjcEQmwIk09gSDNjAQQXWhs1vCOMa7isoY1WBZB5LBi8jgwLIOJBqpJBAGHPEkCEES0ggKbixQg6bAiRrnH8wgi0BAwMGBk0BKBsQAAD//xGvNgv7AQAA
+;; SERVER: 198.41.0.4
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @128.223.32.35 NS com.ci.
+;; opcode: QUERY, status: NOERROR, id: 26559
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 54dc4d8728d202a30100000068ca72efb6b1a3b0129c41e1
+
+;; QUESTION SECTION:
+;com.ci.	IN	 NS
+
+;; AUTHORITY SECTION:
+ci.	7200	IN	SOA	ns.nic.ci. hostmaster.ns.nic.ci. 2384164256 480 300 1209600 7200
+
+;; GZPACK: H4sIAAAAAAAA/0rf38rAwMgAwozMyfm5TMmZDAxMDIxgmg0kI6PAYMqUV8ycl5kMEuTKyC8uyU0sLkktQhLtky5dwMDA+ICBgVGHQaiUAayNQZPlAgMIyDBwMUiE3PFt17jEtBhkWcapovfbNi7eIDTH8SEgAAD//+bUKI+CAAAA
+;; SERVER: 128.223.32.35
+;;; ----------------------------------------------------------------------
+; <<>> recursive <<>> @128.223.32.35 NS skandia.com.ci.
+;; opcode: QUERY, status: NXDOMAIN, id: 57409
+;; flags: qr aa rd; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version 0; flags:; udp: 1232
+; COOKIE: 54dc4d8728d202a30100000068ca72efb6b1a3b0129c41e1
+
+;; QUESTION SECTION:
+;skandia.com.ci.	IN	 NS
+
+;; AUTHORITY SECTION:
+ci.	7200	IN	SOA	ns.nic.ci. hostmaster.ns.nic.ci. 2384164256 480 300 1209600 7200
+
+;; GZPACK: H4sIAAAAAAAA/3rg2MrMwMjAwMDIwMhenJ2Yl5KZyJycn8uUnMnAwMTACKbZQCpkFBhMmfKKmfMyk0GCXBn5xSW5icUlqUVIon3SpQsYGBgfMDAw6jAIlTKAtTFoslxgAAEZBi4GiZA7vu0al5gWgyzNOFX0ftvGxRuE5jg+BAQAAP//9NoC+ooAAAA=
+;; SERVER: 128.223.32.35

@@ -1,17 +1,16 @@
-module github.com/linkdata/recursive
+module github.com/linkdata/resolver
 
 go 1.24
 
 require (
-	github.com/linkdata/rate v1.14.1
 	github.com/miekg/dns v1.1.68
-	golang.org/x/net v0.43.0
+	golang.org/x/net v0.40.0
 )
 
 require (
-	github.com/linkdata/dnstest v0.0.0-20250912074453-1d516f2ea934
+	github.com/linkdata/rate v1.14.1
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
 )

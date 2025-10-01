@@ -1,0 +1,120 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all NS tella.net.ms
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 64020
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510621	IN	NS	k.root-servers.net.
+.			510621	IN	NS	l.root-servers.net.
+.			510621	IN	NS	m.root-servers.net.
+.			510621	IN	NS	a.root-servers.net.
+.			510621	IN	NS	b.root-servers.net.
+.			510621	IN	NS	c.root-servers.net.
+.			510621	IN	NS	d.root-servers.net.
+.			510621	IN	NS	e.root-servers.net.
+.			510621	IN	NS	f.root-servers.net.
+.			510621	IN	NS	g.root-servers.net.
+.			510621	IN	NS	h.root-servers.net.
+.			510621	IN	NS	i.root-servers.net.
+.			510621	IN	NS	j.root-servers.net.
+.			510621	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510621	IN	A	198.41.0.4
+a.root-servers.net.	510621	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510621	IN	A	170.247.170.2
+b.root-servers.net.	510621	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510621	IN	A	192.33.4.12
+c.root-servers.net.	510621	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510621	IN	A	199.7.91.13
+d.root-servers.net.	510621	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510621	IN	A	192.203.230.10
+e.root-servers.net.	510621	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510621	IN	A	192.5.5.241
+f.root-servers.net.	510621	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510621	IN	A	192.112.36.4
+g.root-servers.net.	510621	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510621	IN	A	198.97.190.53
+h.root-servers.net.	510621	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510621	IN	A	192.36.148.17
+i.root-servers.net.	510621	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510621	IN	A	192.58.128.30
+j.root-servers.net.	510621	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510621	IN	A	193.0.14.129
+k.root-servers.net.	510621	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510621	IN	A	199.7.83.42
+l.root-servers.net.	510621	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510621	IN	A	202.12.27.33
+m.root-servers.net.	510621	IN	AAAA	2001:dc3::35
+
+;; Query time: 0 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 24102
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 8
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;tella.net.ms.			IN	NS
+
+;; AUTHORITY SECTION:
+ms.			172800	IN	NS	a.lactld.org.
+ms.			172800	IN	NS	ns1.anycastdns.cz.
+ms.			172800	IN	NS	ns2.anycastdns.cz.
+ms.			172800	IN	NS	ms-ns.anycast.pch.net.
+ms.			86400	IN	DS	50317 8 2 A32757D135853B428CC7825F0BB88FA79F73A2FE497FB4E9F69611CC 1687572A
+ms.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . SxkqeyUWRrYTcvg8vSpAG/Qt4QqOKSzrEHN35ITFcH/jEjG3uReYML7m sfiiXql5R297gA59ZbBg56OKSI7/nU2hzK+TkQ3xByRkzouy50XctOPG nuq+d1mHmx8pTm8fx2fxpuEC074Mijft0aBcgwHMU0oBWEdiXizcw6Vb 42kJh1+HfNK1XD1b33oUvL5do4oYhqjIQQKgjQfYn7hGop4ql4Mb5jTG WM+QoKBPxqGEKKbyfgBELr1iQloRNvujrfKs9qUT8DxZa/6tay6hXw5R EoxI0q1P0gFhionUeogiVIIpdK5hufCZgLXeuK8QzNdVBsnhgNU1GvTj 8h3NgA==
+
+;; ADDITIONAL SECTION:
+a.lactld.org.		172800	IN	A	200.0.68.10
+ns1.anycastdns.cz.	172800	IN	A	185.38.108.108
+ns2.anycastdns.cz.	172800	IN	A	185.28.194.194
+ms-ns.anycast.pch.net.	172800	IN	A	204.61.216.33
+a.lactld.org.		172800	IN	AAAA	2801:14:a000::10
+ns1.anycastdns.cz.	172800	IN	AAAA	2a00:fea0:dead::beef
+ms-ns.anycast.pch.net.	172800	IN	AAAA	2001:500:14:6033:ad::1
+
+;; Query time: 22 msec
+;; SERVER: 193.0.14.129#53(k.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 634
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 32426
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 6, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 4096
+; COOKIE: cbf328b8500c55254125fe6268ca923af6ad02f0f48c8c2a (good)
+;; QUESTION SECTION:
+;tella.net.ms.			IN	NS
+
+;; AUTHORITY SECTION:
+net.ms.			86400	IN	NS	ns6.idnscan.net.
+net.ms.			86400	IN	NS	ns1.idnscan.net.
+e3tej3mg1ojoiefiqdn1747146si7ivs.ms. 38400 IN NSEC3 1 1 0 - EBURPH8BQM1T760BIIQ3MHG4LS5UEHD5 NS SOA TXT RRSIG DNSKEY NSEC3PARAM ZONEMD
+e3tej3mg1ojoiefiqdn1747146si7ivs.ms. 38400 IN RRSIG NSEC3 8 2 38400 20251005033811 20250915020811 61764 ms. ihLn/pZkCiYWlAT00bmZvGpVLajpc4qHc+fS1tyTdMuMrh5tP3lcJRv0 AE4DI27LZxUMGNM757LnypH056Pz8FOKAj7jjQBshzHZTNi6A8KGwq4I RtL+taGaNZk2ecJy0yU8LQCFtjEwg4BRqt02oueczgJO+ZTbZxHUNsRg QVx9G06Nwo79PSF1BSp4JafTUZy5f4oWoHAJQdE/1tVJ51Cuoiy6187E ouFBm2IRCcFKhC33uNAlGyxgze5WwY0IPMTTMPxBK1xhc412g35P1cil CE2+IZORiHa2icT274M5qJ4EDLsAKzw6F1+vfTbMwdBldRhI7kTAgIBl ihk1gQ==
+65ngsut0f4vhk7jvj71l3g7d4rshgnuj.ms. 38400 IN NSEC3 1 1 0 - 9URCASISTGUS8K54PM873LGLNF86N45U NS DS RRSIG
+65ngsut0f4vhk7jvj71l3g7d4rshgnuj.ms. 38400 IN RRSIG NSEC3 8 2 38400 20251005033811 20250915020811 61764 ms. AAPmMGpLFKtxW8LI/5wx9duyEJaIroHdWtPEeN/oRJWS4bO/AEzQHpio nee5FJrbzXY4v+K6YLl35lw8KEjRbm/7hIW4bAaGLgFmwUSk0veY+BVQ ugbQu40BFz+jMOlgFLGKMF/x+BZP89Jfvcny3F9+BOG5RXyEbULVR/07 d6mWs0wmFpSwojwvPAt/kU7ORrEaicE/UvNLxDY1gB4jyvScbbGtPIjT 9WTO9zSg9LTBHfZrkJBUgRs3NA6YgxnxnX7pJ9pQuhmfsHW+928xaTcm 7QEh2iyZ6OzaPrx1rEIZICy/gIMztgQloo394SNpyv7v1HPlOwNkPPlJ BWMhGQ==
+
+;; Query time: 20 msec
+;; SERVER: 204.61.216.33#53(ms-ns.anycast.pch.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 858
+
+;; communications error to 95.130.17.35#53: connection refused
+;; communications error to 95.130.17.35#53: connection refused
+;; communications error to 95.130.17.35#53: connection refused
+;; communications error to 95.130.17.35#53: timed out
+;; no servers could be reached

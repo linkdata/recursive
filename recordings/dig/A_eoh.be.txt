@@ -1,0 +1,139 @@
+
+; <<>> DiG 9.20.10 <<>> +trace +noidn +all A eoh.be
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 43183
+;; flags: qr rd ra; QUERY: 1, ANSWER: 14, AUTHORITY: 0, ADDITIONAL: 27
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;.				IN	NS
+
+;; ANSWER SECTION:
+.			510621	IN	NS	m.root-servers.net.
+.			510621	IN	NS	a.root-servers.net.
+.			510621	IN	NS	b.root-servers.net.
+.			510621	IN	NS	c.root-servers.net.
+.			510621	IN	NS	d.root-servers.net.
+.			510621	IN	NS	e.root-servers.net.
+.			510621	IN	NS	f.root-servers.net.
+.			510621	IN	NS	g.root-servers.net.
+.			510621	IN	NS	h.root-servers.net.
+.			510621	IN	NS	i.root-servers.net.
+.			510621	IN	NS	j.root-servers.net.
+.			510621	IN	NS	k.root-servers.net.
+.			510621	IN	NS	l.root-servers.net.
+.			510621	IN	RRSIG	NS 8 0 518400 20250930050000 20250917040000 46441 . NSulB9ZkVIiqsUQn2A+ePZacU4N734SBtBM0swTr27G77Z7Qf2Hb/6/w QiW4wDGLBCT59wnOS1bVvyNUVfZSF3RHhdeBY0zWwx+HkZv41UR3Lawf qsZTpxzcVYL+cPaLD5wjqf++YnmBb3u3JXDAc0ei1d03fIKPFLqEvzlX aB+7DSlEnuQU7Aq55nQAOvTEpAKpshjyLqLVDvnoI9yw3WSw7dXIohdu XoPRpkuLrjdgsXc//CSU1xWwui2J5lVgAgC27Bm7cd6+qXSzTodR6Zd3 8RGIa7molWZo7CZNFpcxJKn+W6XZhar38NpHtbuthzFNobb8eWbV40XS Ox8UxQ==
+
+;; ADDITIONAL SECTION:
+a.root-servers.net.	510621	IN	A	198.41.0.4
+a.root-servers.net.	510621	IN	AAAA	2001:503:ba3e::2:30
+b.root-servers.net.	510621	IN	A	170.247.170.2
+b.root-servers.net.	510621	IN	AAAA	2801:1b8:10::b
+c.root-servers.net.	510621	IN	A	192.33.4.12
+c.root-servers.net.	510621	IN	AAAA	2001:500:2::c
+d.root-servers.net.	510621	IN	A	199.7.91.13
+d.root-servers.net.	510621	IN	AAAA	2001:500:2d::d
+e.root-servers.net.	510621	IN	A	192.203.230.10
+e.root-servers.net.	510621	IN	AAAA	2001:500:a8::e
+f.root-servers.net.	510621	IN	A	192.5.5.241
+f.root-servers.net.	510621	IN	AAAA	2001:500:2f::f
+g.root-servers.net.	510621	IN	A	192.112.36.4
+g.root-servers.net.	510621	IN	AAAA	2001:500:12::d0d
+h.root-servers.net.	510621	IN	A	198.97.190.53
+h.root-servers.net.	510621	IN	AAAA	2001:500:1::53
+i.root-servers.net.	510621	IN	A	192.36.148.17
+i.root-servers.net.	510621	IN	AAAA	2001:7fe::53
+j.root-servers.net.	510621	IN	A	192.58.128.30
+j.root-servers.net.	510621	IN	AAAA	2001:503:c27::2:30
+k.root-servers.net.	510621	IN	A	193.0.14.129
+k.root-servers.net.	510621	IN	AAAA	2001:7fd::1
+l.root-servers.net.	510621	IN	A	199.7.83.42
+l.root-servers.net.	510621	IN	AAAA	2001:500:9f::42
+m.root-servers.net.	510621	IN	A	202.12.27.33
+m.root-servers.net.	510621	IN	AAAA	2001:dc3::35
+
+;; Query time: 1 msec
+;; SERVER: 172.16.40.12#53(172.16.40.12) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 1097
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 47277
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 8, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;eoh.be.				IN	A
+
+;; AUTHORITY SECTION:
+be.			172800	IN	NS	a.nsset.be.
+be.			172800	IN	NS	b.nsset.be.
+be.			172800	IN	NS	c.nsset.be.
+be.			172800	IN	NS	d.nsset.be.
+be.			172800	IN	NS	y.nsset.be.
+be.			172800	IN	NS	z.nsset.be.
+be.			86400	IN	DS	52756 8 2 5485AC33DD7C7ED237EA2A4BD269731C816960FE181042024484B5CE CA6ECC9F
+be.			86400	IN	RRSIG	DS 8 1 86400 20250930050000 20250917040000 46441 . Nh9CvuLx/VY3uR/0rL8DmQJirT4M/wmEqSga+s5N5dsFmJ/+ZFvTc5VP ZmYfogvjVQZoCoHKkxs3PVjQTU8lPNpBD1eGhKw3iXXtX87YvUDmM1TB U10PpMelAt0vBuI4n+d/wvuGJN8+HmRmJEofMX3NyrFsOVpLnT5sEjxV gTPbMElPDVsrRJeWU6iMfeIj3cHkOuGv/kvsePKC6NQtv3Ih622Hf6XE SA/RA9DWFell7n7LcPUZkFXnrSWUKWwjdc8dRNX5iTJcUDaxFE0Vlf1m e56JmNzCw7Y3rs9E/x0m17pnNVUmOXSq1pUuMhZJmNwKP4N0W6UkA1Pw yqMOFQ==
+
+;; ADDITIONAL SECTION:
+a.nsset.be.		172800	IN	A	194.0.6.1
+a.nsset.be.		172800	IN	AAAA	2001:678:9::1
+b.nsset.be.		172800	IN	A	194.0.37.1
+b.nsset.be.		172800	IN	AAAA	2001:678:64::1
+c.nsset.be.		172800	IN	A	194.0.43.1
+c.nsset.be.		172800	IN	AAAA	2001:678:68::1
+d.nsset.be.		172800	IN	A	194.0.44.1
+d.nsset.be.		172800	IN	AAAA	2001:678:6c::1
+y.nsset.be.		172800	IN	A	120.29.253.8
+y.nsset.be.		172800	IN	AAAA	2001:dcd:7::8
+z.nsset.be.		172800	IN	A	194.0.25.36
+z.nsset.be.		172800	IN	AAAA	2001:678:20::36
+
+;; Query time: 22 msec
+;; SERVER: 170.247.170.2#53(b.root-servers.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 736
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14493
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 7, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1350
+;; QUESTION SECTION:
+;eoh.be.				IN	A
+
+;; AUTHORITY SECTION:
+eoh.be.			86400	IN	NS	ns.eurosrs.com.
+eoh.be.			86400	IN	NS	ns.eurosrs.net.
+eoh.be.			86400	IN	NS	ns.eurosrs.org.
+pdrpqgs0t19r8qul7c2h4bhnb7agh1b8.be. 600 IN NSEC3 1 1 0 - PDRRMAHC5LLBO4DHP1J3TFP2JERSM6G0 NS SOA RRSIG DNSKEY NSEC3PARAM
+pdrpqgs0t19r8qul7c2h4bhnb7agh1b8.be. 600 IN RRSIG NSEC3 8 2 600 20250927180426 20250907042609 62188 be. ZMmGTu1koc58rERfe0xfGsNEzNvfC2ih6LGlpFZS6aOhQHevtH5sXQCa TwQ+Vv6z8qr1tvQAQkQjYSUq9t06B/Yiw80l5jdcQC3YEp+dQr81Vcqa aR7mnJb4eOvwv/2F126ctX6vzwz01B+V+LgvPDVcptc/RxXCXS21WoJR 5m8=
+usav8ngegsh05h3oqk0oisi1sj49h1h5.be. 600 IN NSEC3 1 1 0 - USB1KELFUG3TO8E99K1IB5J6RHQDGU28 NS DS RRSIG
+usav8ngegsh05h3oqk0oisi1sj49h1h5.be. 600 IN RRSIG NSEC3 8 2 600 20250929082005 20250908193409 62188 be. xCnrdmBHxrW/8/lwqE44G4PwWJmruiJFFIcfw9IXLUDwzAojrCrDd9SW 83Jwq3qbe35SzELfDp+TFBMyDnWEab752cLOFPFILKYfvqg9bfxaAHz0 7uE2dRrXEiNwdEx5KRNLy3u/+1W7+hrpEc2ZvOfo+UtKSj1XxK3RZpxa xzc=
+
+;; Query time: 1 msec
+;; SERVER: 194.0.44.1#53(d.nsset.be) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 602
+
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 8099
+;; flags: qr aa; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; QUESTION SECTION:
+;eoh.be.				IN	A
+
+;; AUTHORITY SECTION:
+eoh.be.			8	IN	SOA	ns.eurosrs.net. postmaster.eurosrs.net. 2011050901 28800 7200 604800 8
+
+;; Query time: 24 msec
+;; SERVER: 77.95.248.162#53(ns.eurosrs.net) (UDP)
+;; WHEN: Wed Sep 17 12:49:30 CEST 2025
+;; MSG SIZE  rcvd: 96
+
