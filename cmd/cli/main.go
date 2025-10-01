@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/linkdata/rate"
-	recursive "github.com/linkdata/resolver"
+	"github.com/linkdata/recursive"
 	"github.com/miekg/dns"
 )
 

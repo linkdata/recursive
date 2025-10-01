@@ -1,4 +1,4 @@
-module github.com/linkdata/resolver
+module github.com/linkdata/recursive
 
 go 1.24
 
