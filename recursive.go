@@ -25,7 +25,7 @@ const (
 	maxSrvCookies = 8192
 	srvCookieTTL  = 24 * time.Hour
 	maxDepth      = 16   // max recursion depth
-	maxSteps      = 1000 // max steps to take for a query
+	maxSteps      = 4096 // max steps to take for a query
 )
 
 type Recursive struct {
