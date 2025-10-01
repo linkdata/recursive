@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/query.go (84.4%)</option>
+				<option value="file7">github.com/linkdata/recursive/query.go (83.9%)</option>
 				
 				<option value="file8">github.com/linkdata/recursive/recursive.go (100.0%)</option>
 				
@@ -642,6 +642,7 @@ import (
         "context"
         "fmt"
         "io"
+        "math/rand/v2"
         "net"
         "net/netip"
         "slices"
@@ -699,7 +700,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
                 }</span>
 
                 <span class="cov8" title="1">if len(nsAddrs) &gt; 0 </span><span class="cov8" title="1">{
-                        servers = sortAddrs(nsAddrs)
+                        servers = q.sortAddrs(nsAddrs)
                 }</span>
 
                 <span class="cov8" title="1">if zone == qname </span><span class="cov8" title="1">{
@@ -1124,8 +1125,12 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
         <span class="cov8" title="1">return</span>
 }
 
-func sortAddrs(in []netip.Addr) []netip.Addr <span class="cov8" title="1">{
-        sort.Slice(in, func(i, j int) bool </span><span class="cov8" title="1">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov8" title="1">{
+        if r.Deterministic </span><span class="cov8" title="1">{
+                sort.Slice(in, func(i, j int) bool </span><span class="cov8" title="1">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+        } else<span class="cov0" title="0"> {
+                rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
+        }
         <span class="cov8" title="1">return in</span>
 }
 
@@ -1277,10 +1282,11 @@ const (
 )
 
 type Recursive struct {
-        proxy.ContextDialer // context dialer to use
-        Cacher              // cache to use for DnsResolve
-        Timeout             time.Duration
-        DNSPort             uint16
+        proxy.ContextDialer                 // context dialer to use
+        Cacher                              // cache to use for DnsResolve
+        Timeout             time.Duration   // default is DefaultTimeout
+        DNSPort             uint16          // default is DefaultDNSPort
+        Deterministic       bool            // if true, always query nameservers in the same order
         rateLimiter         &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
         mu                  sync.RWMutex    // protects following
         useIPv4             bool
