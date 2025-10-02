@@ -56,7 +56,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 		var nsNames []string
 		var nsAddrs []netip.Addr
 
-		if nsNames, nsAddrs, resp, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
+		if nsNames, nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
 			q.logf("DELEGATION ERROR %q: %v\n", zone, err)
 			return
 		}
@@ -66,6 +66,11 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 		}
 
 		if zone == qname {
+			if resp.Rcode == dns.RcodeNameError {
+				// no need to query final
+				resp.Question[0].Qtype = qtype
+				return
+			}
 			break
 		}
 
@@ -121,7 +126,7 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 
 // queryForDelegation performs the QMIN step at `zone` against `parentServers`.
 // If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
-func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, err error) {
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, svr netip.Addr, err error) {
 	if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil {
 		defer func() {
 			q.surface()
@@ -135,7 +140,7 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
 		}()
 
 	retryWithoutQMIN:
-		for _, svr := range parentServers {
+		for _, svr = range parentServers {
 			if resp, err = q.exchange(ctx, zone, dns.TypeNS, svr); resp != nil && err == nil {
 				if resp.Rcode != dns.RcodeSuccess {
 					if resp.Rcode != dns.RcodeNameError {
