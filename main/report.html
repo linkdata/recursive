@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/query.go (83.9%)</option>
+				<option value="file7">github.com/linkdata/recursive/query.go (83.5%)</option>
 				
 				<option value="file8">github.com/linkdata/recursive/recursive.go (100.0%)</option>
 				
@@ -694,7 +694,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
                 var nsNames []string
                 var nsAddrs []netip.Addr
 
-                if nsNames, nsAddrs, resp, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov8" title="1">{
+                if nsNames, nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov8" title="1">{
                         q.logf("DELEGATION ERROR %q: %v\n", zone, err)
                         return
                 }</span>
@@ -704,7 +704,12 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
                 }</span>
 
                 <span class="cov8" title="1">if zone == qname </span><span class="cov8" title="1">{
-                        break</span>
+                        if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                                // no need to query final
+                                resp.Question[0].Qtype = qtype
+                                return
+                        }</span>
+                        <span class="cov8" title="1">break</span>
                 }
 
                 <span class="cov8" title="1">if len(nsNames) == 0 &amp;&amp; resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
@@ -759,7 +764,7 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 
 // queryForDelegation performs the QMIN step at `zone` against `parentServers`.
 // If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
-func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, err error) <span class="cov8" title="1">{
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, svr netip.Addr, err error) <span class="cov8" title="1">{
         if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil </span><span class="cov8" title="1">{
                 defer func() </span><span class="cov8" title="1">{
                         q.surface()
@@ -773,7 +778,7 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
                 }()
 
         <span class="cov8" title="1">retryWithoutQMIN:
-                for _, svr := range parentServers </span><span class="cov8" title="1">{
+                for _, svr = range parentServers </span><span class="cov8" title="1">{
                         if resp, err = q.exchange(ctx, zone, dns.TypeNS, svr); resp != nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
                                 if resp.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
                                         if resp.Rcode != dns.RcodeNameError </span><span class="cov0" title="0">{
@@ -858,7 +863,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
                                         <span class="cov8" title="1">return</span>
                                 }
 
-                                <span class="cov8" title="1">if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                                <span class="cov0" title="0">if resp.Rcode == dns.RcodeNameError </span><span class="cov0" title="0">{
                                         return
                                 }</span>
 
