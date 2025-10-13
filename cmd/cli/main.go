@@ -32,6 +32,7 @@ var flagRecord = flag.Bool("record", false, "write a record of all queries made"
 var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
 var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
+var flagDeterministic = flag.Bool("deterministic", false, "do not randomize NS server order")
 
 func recordFn(_ *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
 	fmt.Println("\n;;; ----------------------------------------------------------------------")
@@ -114,6 +115,9 @@ func main() {
 
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	rec.OrderRoots(ctx)
+	if *flagDeterministic {
+		rec.Deterministic = true
+	}
 
 	var dbgout io.Writer
 	if *flagDebug {
