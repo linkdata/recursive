@@ -1021,7 +1021,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                 q.mu.RUnlock()
 
                 if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov8" title="1">{
-                        dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
+                        dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: DefaultMsgSize}
                         defer dnsconn.Close()
 
                         m := new(dns.Msg)
@@ -1030,7 +1030,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         opt := new(dns.OPT)
                         opt.Hdr.Name = "."
                         opt.Hdr.Rrtype = dns.TypeOPT
-                        opt.SetUDPSize(dns.DefaultMsgSize)
+                        opt.SetUDPSize(dnsconn.UDPSize)
 
                         // an existing but empty string for srvcookie means cookies are disabled for this server
                         useCookies := !hasSrvCookie || srvcookie != ""
@@ -1045,7 +1045,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         }
 
                         <span class="cov8" title="1">m.Extra = append(m.Extra, opt)
-                        c := dns.Client{UDPSize: dns.DefaultMsgSize}
+                        c := dns.Client{UDPSize: dnsconn.UDPSize}
                         msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
@@ -1324,6 +1324,7 @@ var (
         DefaultCache          = NewCache()
         DefaultTimeout        = time.Second * 3
         DefaultDNSPort uint16 = 53
+        DefaultMsgSize uint16 = 1232 // default UDP message size
 )
 
 // NewWithOptions returns a new Recursive resolver using the given ContextDialer and
