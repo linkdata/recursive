@@ -46,8 +46,16 @@ func (q *query) surface() {
 }
 
 func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *dns.Msg, srv netip.Addr, err error) {
+	var servers []netip.Addr
 	qname = dns.CanonicalName(qname)
-	servers := append([]netip.Addr(nil), q.rootServers...)
+	if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil {
+		resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
+	}
+	return
+}
+
+func (q *query) queryDelegation(ctx context.Context, qname string, qtype uint16) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
+	servers = append([]netip.Addr(nil), q.rootServers...)
 	labels := dns.SplitDomainName(qname)
 
 	// Walk down: "." -> "com." -> "example.com."
@@ -78,7 +86,58 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 			break
 		}
 	}
-	return q.queryFinal(ctx, qname, qtype, servers)
+	return
+}
+
+// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
+// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
+	if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil {
+		defer func() {
+			q.surface()
+			rcode := "UNKNOWN"
+			if resp != nil {
+				rcode = dns.RcodeToString[resp.Rcode]
+			} else if err != nil {
+				rcode = err.Error()
+			}
+			q.logf("DELEGATION ANSWER %q: %s with %d records\n", zone, rcode, len(nsNames))
+		}()
+
+	retryWithoutQMIN:
+		for _, srv = range parentServers {
+			if resp, err = q.exchange(ctx, zone, dns.TypeNS, srv); resp != nil && err == nil {
+				if resp.Rcode != dns.RcodeSuccess {
+					if resp.Rcode != dns.RcodeNameError {
+						// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
+						if zone != fullQname {
+							q.logf("DELEGATION RETRY without QNAME minimization\n")
+							zone = fullQname
+							goto retryWithoutQMIN
+						}
+					}
+					// NXDOMAIN at parent or we failed even without QMIN
+					return
+				}
+
+				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
+				if len(nsNames) > 0 {
+					if len(nsAddrs) == 0 {
+						nsAddrs = q.resolveNSAddrs(ctx, nsNames)
+					}
+				}
+				if len(nsAddrs) > 0 || resp.Authoritative {
+					return
+				}
+			}
+		}
+
+		if resp == nil && err == nil {
+			err = ErrNoResponse
+		}
+	}
+
+	return
 }
 
 func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, nsAddr []netip.Addr) {
@@ -121,57 +180,6 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 	for addr := range addrs {
 		nsAddr = append(nsAddr, addr)
 	}
-	return
-}
-
-// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
-// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
-func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, svr netip.Addr, err error) {
-	if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil {
-		defer func() {
-			q.surface()
-			rcode := "UNKNOWN"
-			if resp != nil {
-				rcode = dns.RcodeToString[resp.Rcode]
-			} else if err != nil {
-				rcode = err.Error()
-			}
-			q.logf("DELEGATION ANSWER %q: %s with %d records\n", zone, rcode, len(nsNames))
-		}()
-
-	retryWithoutQMIN:
-		for _, svr = range parentServers {
-			if resp, err = q.exchange(ctx, zone, dns.TypeNS, svr); resp != nil && err == nil {
-				if resp.Rcode != dns.RcodeSuccess {
-					if resp.Rcode != dns.RcodeNameError {
-						// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
-						if zone != fullQname {
-							q.logf("DELEGATION RETRY without QNAME minimization\n")
-							zone = fullQname
-							goto retryWithoutQMIN
-						}
-					}
-					// NXDOMAIN at parent or we failed even without QMIN
-					return
-				}
-
-				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
-				if len(nsNames) > 0 {
-					if len(nsAddrs) == 0 {
-						nsAddrs = q.resolveNSAddrs(ctx, nsNames)
-					}
-				}
-				if len(nsAddrs) > 0 || resp.Authoritative {
-					return
-				}
-			}
-		}
-
-		if resp == nil && err == nil {
-			err = ErrNoResponse
-		}
-	}
-
 	return
 }
 
