@@ -687,7 +687,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
         var servers []netip.Addr
         qname = dns.CanonicalName(qname)
         if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil </span><span class="cov8" title="1">{
-                if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                if resp != nil &amp;&amp; resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
                         // no need to query final
                         resp.Question[0].Qtype = qtype
                 }</span> else<span class="cov8" title="1"> {
