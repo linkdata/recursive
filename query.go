@@ -49,7 +49,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	var servers []netip.Addr
 	qname = dns.CanonicalName(qname)
 	if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil {
-		if resp.Rcode == dns.RcodeNameError {
+		if resp != nil && resp.Rcode == dns.RcodeNameError {
 			// no need to query final
 			resp.Question[0].Qtype = qtype
 		} else {
