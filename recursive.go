@@ -34,6 +34,7 @@ type Recursive struct {
 	Timeout             time.Duration   // default is DefaultTimeout
 	DNSPort             uint16          // default is DefaultDNSPort
 	Deterministic       bool            // if true, always query nameservers in the same order
+	MsgSize             uint16          // UDP message size
 	rateLimiter         <-chan struct{} // (read-only) rate limited passed to NewWithOptions
 	mu                  sync.RWMutex    // protects following
 	useIPv4             bool
@@ -95,6 +96,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		Cacher:        cache,
 		DNSPort:       DefaultDNSPort,
 		Timeout:       DefaultTimeout,
+		MsgSize:       DefaultMsgSize,
 		rateLimiter:   rateLimiter,
 		useUDP:        true,
 		useIPv4:       len(roots4) > 0,

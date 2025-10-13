@@ -49,50 +49,18 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	var servers []netip.Addr
 	qname = dns.CanonicalName(qname)
 	if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil {
-		resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
+		if resp.Rcode == dns.RcodeNameError {
+			// no need to query final
+			resp.Question[0].Qtype = qtype
+		} else {
+			resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
+		}
 	}
 	return
 }
 
 func (q *query) queryDelegation(ctx context.Context, qname string, qtype uint16) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
-	servers = append([]netip.Addr(nil), q.rootServers...)
-	labels := dns.SplitDomainName(qname)
-
-	// Walk down: "." -> "com." -> "example.com."
-	for i := len(labels) - 1; i >= 0; i-- {
-		zone := dns.Fqdn(strings.Join(labels[i:], "."))
-		var nsNames []string
-		var nsAddrs []netip.Addr
-
-		if nsNames, nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
-			q.logf("DELEGATION ERROR %q: %v\n", zone, err)
-			return
-		}
-
-		if len(nsAddrs) > 0 {
-			servers = q.sortAddrs(nsAddrs)
-		}
-
-		if zone == qname {
-			if resp.Rcode == dns.RcodeNameError {
-				// no need to query final
-				resp.Question[0].Qtype = qtype
-				return
-			}
-			break
-		}
-
-		if len(nsNames) == 0 && resp.Rcode == dns.RcodeNameError {
-			break
-		}
-	}
-	return
-}
-
-// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
-// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
-func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
-	if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil {
+	if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil {
 		defer func() {
 			q.surface()
 			rcode := "UNKNOWN"
@@ -101,40 +69,65 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
 			} else if err != nil {
 				rcode = err.Error()
 			}
-			q.logf("DELEGATION ANSWER %q: %s with %d records\n", zone, rcode, len(nsNames))
+			q.logf("DELEGATION ANSWER %q: %s with %d servers\n", qname, rcode, len(servers))
 		}()
 
-	retryWithoutQMIN:
-		for _, srv = range parentServers {
-			if resp, err = q.exchange(ctx, zone, dns.TypeNS, srv); resp != nil && err == nil {
-				if resp.Rcode != dns.RcodeSuccess {
-					if resp.Rcode != dns.RcodeNameError {
-						// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
-						if zone != fullQname {
-							q.logf("DELEGATION RETRY without QNAME minimization\n")
-							zone = fullQname
-							goto retryWithoutQMIN
-						}
-					}
-					// NXDOMAIN at parent or we failed even without QMIN
-					return
-				}
+		servers = append([]netip.Addr(nil), q.rootServers...)
+		labels := dns.SplitDomainName(qname)
 
-				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
-				if len(nsNames) > 0 {
-					if len(nsAddrs) == 0 {
-						nsAddrs = q.resolveNSAddrs(ctx, nsNames)
-					}
-				}
-				if len(nsAddrs) > 0 || resp.Authoritative {
-					return
-				}
+		// Walk down: "." -> "com." -> "example.com."
+		for i := len(labels) - 1; i >= 0; i-- {
+			zone := dns.Fqdn(strings.Join(labels[i:], "."))
+			var nsAddrs []netip.Addr
+
+			if nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
+				q.logf("DELEGATION ERROR %q: %v\n", zone, err)
+				return
+			}
+
+			if len(nsAddrs) > 0 {
+				// got a new set of servers to query
+				servers = q.sortAddrs(nsAddrs)
 			}
 		}
+	}
+	return
+}
 
-		if resp == nil && err == nil {
-			err = ErrNoResponse
+// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
+// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
+	var nsNames []string
+retryWithoutQMIN:
+	for _, srv = range parentServers {
+		if resp, err = q.exchange(ctx, zone, dns.TypeNS, srv); resp != nil && err == nil {
+			if resp.Rcode != dns.RcodeSuccess {
+				if resp.Rcode != dns.RcodeNameError {
+					// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
+					if zone != fullQname {
+						q.logf("DELEGATION RETRY without QNAME minimization\n")
+						zone = fullQname
+						goto retryWithoutQMIN
+					}
+				}
+				// NXDOMAIN at parent or we failed even without QMIN
+				return
+			}
+
+			nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
+			if len(nsNames) > 0 {
+				if len(nsAddrs) == 0 {
+					nsAddrs = q.resolveNSAddrs(ctx, nsNames)
+				}
+			}
+			if len(nsAddrs) > 0 || resp.Authoritative {
+				return
+			}
 		}
+	}
+
+	if resp == nil && err == nil {
+		err = ErrNoResponse
 	}
 
 	return
@@ -388,10 +381,11 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 		}
 		clicookie := q.clicookie
 		srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
+		msgsize := q.MsgSize
 		q.mu.RUnlock()
 
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil {
-			dnsconn := &dns.Conn{Conn: nconn, UDPSize: DefaultMsgSize}
+			dnsconn := &dns.Conn{Conn: nconn, UDPSize: msgsize}
 			defer dnsconn.Close()
 
 			m := new(dns.Msg)
@@ -400,7 +394,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 			opt := new(dns.OPT)
 			opt.Hdr.Name = "."
 			opt.Hdr.Rrtype = dns.TypeOPT
-			opt.SetUDPSize(dnsconn.UDPSize)
+			opt.SetUDPSize(msgsize)
 
 			// an existing but empty string for srvcookie means cookies are disabled for this server
 			useCookies := !hasSrvCookie || srvcookie != ""
@@ -415,7 +409,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 			}
 
 			m.Extra = append(m.Extra, opt)
-			c := dns.Client{UDPSize: dnsconn.UDPSize}
+			c := dns.Client{UDPSize: msgsize}
 			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 
 			if useCookies && msg != nil {
