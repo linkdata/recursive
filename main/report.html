@@ -684,39 +684,91 @@ func (q *query) surface() <span class="cov8" title="1">{
 }</span>
 
 func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        var servers []netip.Addr
         qname = dns.CanonicalName(qname)
-        servers := append([]netip.Addr(nil), q.rootServers...)
-        labels := dns.SplitDomainName(qname)
-
-        // Walk down: "." -&gt; "com." -&gt; "example.com."
-        for i := len(labels) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
-                zone := dns.Fqdn(strings.Join(labels[i:], "."))
-                var nsNames []string
-                var nsAddrs []netip.Addr
-
-                if nsNames, nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov8" title="1">{
-                        q.logf("DELEGATION ERROR %q: %v\n", zone, err)
-                        return
+        if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil </span><span class="cov8" title="1">{
+                if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
+                        // no need to query final
+                        resp.Question[0].Qtype = qtype
+                }</span> else<span class="cov8" title="1"> {
+                        resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
                 }</span>
+        }
+        <span class="cov8" title="1">return</span>
+}
 
-                <span class="cov8" title="1">if len(nsAddrs) &gt; 0 </span><span class="cov8" title="1">{
-                        servers = q.sortAddrs(nsAddrs)
-                }</span>
+func (q *query) queryDelegation(ctx context.Context, qname string, qtype uint16) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil </span><span class="cov8" title="1">{
+                defer func() </span><span class="cov8" title="1">{
+                        q.surface()
+                        rcode := "UNKNOWN"
+                        if resp != nil </span><span class="cov8" title="1">{
+                                rcode = dns.RcodeToString[resp.Rcode]
+                        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
+                                rcode = err.Error()
+                        }</span>
+                        <span class="cov8" title="1">q.logf("DELEGATION ANSWER %q: %s with %d servers\n", qname, rcode, len(servers))</span>
+                }()
 
-                <span class="cov8" title="1">if zone == qname </span><span class="cov8" title="1">{
-                        if resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
-                                // no need to query final
-                                resp.Question[0].Qtype = qtype
+                <span class="cov8" title="1">servers = append([]netip.Addr(nil), q.rootServers...)
+                labels := dns.SplitDomainName(qname)
+
+                // Walk down: "." -&gt; "com." -&gt; "example.com."
+                for i := len(labels) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
+                        zone := dns.Fqdn(strings.Join(labels[i:], "."))
+                        var nsAddrs []netip.Addr
+
+                        if nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov8" title="1">{
+                                q.logf("DELEGATION ERROR %q: %v\n", zone, err)
                                 return
                         }</span>
-                        <span class="cov8" title="1">break</span>
-                }
 
-                <span class="cov8" title="1">if len(nsNames) == 0 &amp;&amp; resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
-                        break</span>
+                        <span class="cov8" title="1">if len(nsAddrs) &gt; 0 </span><span class="cov8" title="1">{
+                                // got a new set of servers to query
+                                servers = q.sortAddrs(nsAddrs)
+                        }</span>
                 }
         }
-        <span class="cov8" title="1">return q.queryFinal(ctx, qname, qtype, servers)</span>
+        <span class="cov8" title="1">return</span>
+}
+
+// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
+// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
+func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+        var nsNames []string
+retryWithoutQMIN:
+        for _, srv = range parentServers </span><span class="cov8" title="1">{
+                if resp, err = q.exchange(ctx, zone, dns.TypeNS, srv); resp != nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                        if resp.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
+                                if resp.Rcode != dns.RcodeNameError </span><span class="cov0" title="0">{
+                                        // probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
+                                        if zone != fullQname </span><span class="cov0" title="0">{
+                                                q.logf("DELEGATION RETRY without QNAME minimization\n")
+                                                zone = fullQname
+                                                goto retryWithoutQMIN</span>
+                                        }
+                                }
+                                // NXDOMAIN at parent or we failed even without QMIN
+                                <span class="cov8" title="1">return</span>
+                        }
+
+                        <span class="cov8" title="1">nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
+                        if len(nsNames) &gt; 0 </span><span class="cov8" title="1">{
+                                if len(nsAddrs) == 0 </span><span class="cov8" title="1">{
+                                        nsAddrs = q.resolveNSAddrs(ctx, nsNames)
+                                }</span>
+                        }
+                        <span class="cov8" title="1">if len(nsAddrs) &gt; 0 || resp.Authoritative </span><span class="cov8" title="1">{
+                                return
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">if resp == nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
+                err = ErrNoResponse
+        }</span>
+
+        <span class="cov8" title="1">return</span>
 }
 
 func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, nsAddr []netip.Addr) <span class="cov8" title="1">{
@@ -759,57 +811,6 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
         <span class="cov8" title="1">for addr := range addrs </span><span class="cov8" title="1">{
                 nsAddr = append(nsAddr, addr)
         }</span>
-        <span class="cov8" title="1">return</span>
-}
-
-// queryForDelegation performs the QMIN step at `zone` against `parentServers`.
-// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
-func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsNames []string, nsAddrs []netip.Addr, resp *dns.Msg, svr netip.Addr, err error) <span class="cov8" title="1">{
-        if err = q.dive("DELEGATION QUERY %q from %d servers\n", zone, len(parentServers)); err == nil </span><span class="cov8" title="1">{
-                defer func() </span><span class="cov8" title="1">{
-                        q.surface()
-                        rcode := "UNKNOWN"
-                        if resp != nil </span><span class="cov8" title="1">{
-                                rcode = dns.RcodeToString[resp.Rcode]
-                        }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
-                                rcode = err.Error()
-                        }</span>
-                        <span class="cov8" title="1">q.logf("DELEGATION ANSWER %q: %s with %d records\n", zone, rcode, len(nsNames))</span>
-                }()
-
-        <span class="cov8" title="1">retryWithoutQMIN:
-                for _, svr = range parentServers </span><span class="cov8" title="1">{
-                        if resp, err = q.exchange(ctx, zone, dns.TypeNS, svr); resp != nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
-                                if resp.Rcode != dns.RcodeSuccess </span><span class="cov8" title="1">{
-                                        if resp.Rcode != dns.RcodeNameError </span><span class="cov0" title="0">{
-                                                // probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
-                                                if zone != fullQname </span><span class="cov0" title="0">{
-                                                        q.logf("DELEGATION RETRY without QNAME minimization\n")
-                                                        zone = fullQname
-                                                        goto retryWithoutQMIN</span>
-                                                }
-                                        }
-                                        // NXDOMAIN at parent or we failed even without QMIN
-                                        <span class="cov8" title="1">return</span>
-                                }
-
-                                <span class="cov8" title="1">nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
-                                if len(nsNames) &gt; 0 </span><span class="cov8" title="1">{
-                                        if len(nsAddrs) == 0 </span><span class="cov8" title="1">{
-                                                nsAddrs = q.resolveNSAddrs(ctx, nsNames)
-                                        }</span>
-                                }
-                                <span class="cov8" title="1">if len(nsAddrs) &gt; 0 || resp.Authoritative </span><span class="cov8" title="1">{
-                                        return
-                                }</span>
-                        }
-                }
-
-                <span class="cov8" title="1">if resp == nil &amp;&amp; err == nil </span><span class="cov8" title="1">{
-                        err = ErrNoResponse
-                }</span>
-        }
-
         <span class="cov8" title="1">return</span>
 }
 
@@ -1018,10 +1019,11 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                 }</span>
                 <span class="cov8" title="1">clicookie := q.clicookie
                 srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
+                msgsize := q.MsgSize
                 q.mu.RUnlock()
 
                 if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov8" title="1">{
-                        dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: DefaultMsgSize}
+                        dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: msgsize}
                         defer dnsconn.Close()
 
                         m := new(dns.Msg)
@@ -1030,7 +1032,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         opt := new(dns.OPT)
                         opt.Hdr.Name = "."
                         opt.Hdr.Rrtype = dns.TypeOPT
-                        opt.SetUDPSize(dnsconn.UDPSize)
+                        opt.SetUDPSize(msgsize)
 
                         // an existing but empty string for srvcookie means cookies are disabled for this server
                         useCookies := !hasSrvCookie || srvcookie != ""
@@ -1045,7 +1047,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         }
 
                         <span class="cov8" title="1">m.Extra = append(m.Extra, opt)
-                        c := dns.Client{UDPSize: dnsconn.UDPSize}
+                        c := dns.Client{UDPSize: msgsize}
                         msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 
                         if useCookies &amp;&amp; msg != nil </span><span class="cov8" title="1">{
@@ -1292,6 +1294,7 @@ type Recursive struct {
         Timeout             time.Duration   // default is DefaultTimeout
         DNSPort             uint16          // default is DefaultDNSPort
         Deterministic       bool            // if true, always query nameservers in the same order
+        MsgSize             uint16          // UDP message size
         rateLimiter         &lt;-chan struct{} // (read-only) rate limited passed to NewWithOptions
         mu                  sync.RWMutex    // protects following
         useIPv4             bool
@@ -1353,6 +1356,7 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
                 Cacher:        cache,
                 DNSPort:       DefaultDNSPort,
                 Timeout:       DefaultTimeout,
+                MsgSize:       DefaultMsgSize,
                 rateLimiter:   rateLimiter,
                 useUDP:        true,
                 useIPv4:       len(roots4) &gt; 0,
