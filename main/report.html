@@ -686,7 +686,7 @@ func (q *query) surface() <span class="cov8" title="1">{
 func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
         var servers []netip.Addr
         qname = dns.CanonicalName(qname)
-        if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil </span><span class="cov8" title="1">{
+        if servers, resp, srv, err = q.queryDelegation(ctx, qname); err == nil </span><span class="cov8" title="1">{
                 if resp != nil &amp;&amp; resp.Rcode == dns.RcodeNameError </span><span class="cov8" title="1">{
                         // no need to query final
                         resp.Question[0].Qtype = qtype
@@ -697,7 +697,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
         <span class="cov8" title="1">return</span>
 }
 
-func (q *query) queryDelegation(ctx context.Context, qname string, qtype uint16) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
+func (q *query) queryDelegation(ctx context.Context, qname string) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) <span class="cov8" title="1">{
         if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil </span><span class="cov8" title="1">{
                 defer func() </span><span class="cov8" title="1">{
                         q.surface()
