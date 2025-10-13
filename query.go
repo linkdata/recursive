@@ -383,7 +383,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 		q.mu.RUnlock()
 
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil {
-			dnsconn := &dns.Conn{Conn: nconn, UDPSize: dns.DefaultMsgSize}
+			dnsconn := &dns.Conn{Conn: nconn, UDPSize: DefaultMsgSize}
 			defer dnsconn.Close()
 
 			m := new(dns.Msg)
@@ -392,7 +392,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 			opt := new(dns.OPT)
 			opt.Hdr.Name = "."
 			opt.Hdr.Rrtype = dns.TypeOPT
-			opt.SetUDPSize(dns.DefaultMsgSize)
+			opt.SetUDPSize(dnsconn.UDPSize)
 
 			// an existing but empty string for srvcookie means cookies are disabled for this server
 			useCookies := !hasSrvCookie || srvcookie != ""
@@ -407,7 +407,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 			}
 
 			m.Extra = append(m.Extra, opt)
-			c := dns.Client{UDPSize: dns.DefaultMsgSize}
+			c := dns.Client{UDPSize: dnsconn.UDPSize}
 			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
 
 			if useCookies && msg != nil {

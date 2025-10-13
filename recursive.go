@@ -66,6 +66,7 @@ var (
 	DefaultCache          = NewCache()
 	DefaultTimeout        = time.Second * 3
 	DefaultDNSPort uint16 = 53
+	DefaultMsgSize uint16 = 1232 // default UDP message size
 )
 
 // NewWithOptions returns a new Recursive resolver using the given ContextDialer and
