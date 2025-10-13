@@ -48,7 +48,7 @@ func (q *query) surface() {
 func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *dns.Msg, srv netip.Addr, err error) {
 	var servers []netip.Addr
 	qname = dns.CanonicalName(qname)
-	if servers, resp, srv, err = q.queryDelegation(ctx, qname, qtype); err == nil {
+	if servers, resp, srv, err = q.queryDelegation(ctx, qname); err == nil {
 		if resp != nil && resp.Rcode == dns.RcodeNameError {
 			// no need to query final
 			resp.Question[0].Qtype = qtype
@@ -59,7 +59,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	return
 }
 
-func (q *query) queryDelegation(ctx context.Context, qname string, qtype uint16) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
+func (q *query) queryDelegation(ctx context.Context, qname string) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil {
 		defer func() {
 			q.surface()
