@@ -2,6 +2,7 @@ package recursive
 
 import (
 	"context"
+	"errors"
 	"net"
 	"testing"
 	"time"
@@ -172,5 +173,87 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 	c.Clean()
 	if entries := c.Entries(); entries != 0 {
 		t.Fatalf("Entries() = %d after Clean", entries)
+	}
+}
+
+func TestCacheWalkVisitsEntries(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	now := time.Now()
+
+	qnameA := dns.Fqdn("walk-a.example")
+	msgA := newTestMessage(qnameA)
+	expiresA := now.Add(5 * time.Minute)
+	cqA := cache.cq[dns.TypeA]
+	cqA.mu.Lock()
+	cqA.cache[qnameA] = cacheValue{Msg: msgA, expires: expiresA}
+	cqA.mu.Unlock()
+
+	qnameAAAA := dns.Fqdn("walk-aaaa.example")
+	msgAAAA := new(dns.Msg)
+	msgAAAA.SetQuestion(qnameAAAA, dns.TypeAAAA)
+	msgAAAA.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr:  dns.RR_Header{Name: qnameAAAA, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 300},
+			AAAA: net.ParseIP("2001:db8::5"),
+		},
+	}
+	expiresAAAA := now.Add(10 * time.Minute)
+	cqAAAA := cache.cq[dns.TypeAAAA]
+	cqAAAA.mu.Lock()
+	cqAAAA.cache[qnameAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA}
+	cqAAAA.mu.Unlock()
+
+	got := make(map[*dns.Msg]time.Time, 2)
+	if err := cache.Walk(func(msg *dns.Msg, expires time.Time) error {
+		got[msg] = expires
+		return nil
+	}); err != nil {
+		t.Fatalf("Walk returned error: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Fatalf("Walk visited %d entries, expected 2", len(got))
+	}
+	if exp, ok := got[msgA]; !ok {
+		t.Fatalf("Walk did not visit TypeA entry")
+	} else if !exp.Equal(expiresA) {
+		t.Fatalf("TypeA entry expires %v, expected %v", exp, expiresA)
+	}
+	if exp, ok := got[msgAAAA]; !ok {
+		t.Fatalf("Walk did not visit TypeAAAA entry")
+	} else if !exp.Equal(expiresAAAA) {
+		t.Fatalf("TypeAAAA entry expires %v, expected %v", exp, expiresAAAA)
+	}
+}
+
+func TestCacheWalkStopsOnError(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname1 := dns.Fqdn("walk-stop-1.example")
+	qname2 := dns.Fqdn("walk-stop-2.example")
+	msg1 := newTestMessage(qname1)
+	msg2 := newTestMessage(qname2)
+
+	cq := cache.cq[dns.TypeA]
+	cq.mu.Lock()
+	cq.cache[qname1] = cacheValue{Msg: msg1, expires: time.Now().Add(time.Minute)}
+	cq.cache[qname2] = cacheValue{Msg: msg2, expires: time.Now().Add(2 * time.Minute)}
+	cq.mu.Unlock()
+
+	var calls int
+	sentinel := errors.New("stop walk")
+	err := cache.Walk(func(msg *dns.Msg, expires time.Time) error {
+		calls++
+		return sentinel
+	})
+
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("Walk returned wrong error: %v", err)
+	}
+	if calls != 1 {
+		t.Fatalf("Walk invoked callback %d times, expected 1", calls)
 	}
 }
