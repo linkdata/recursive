@@ -29,7 +29,7 @@ jobs:
         run: go generate ./...
 
       - name: Test
-        run: go test -tags debug -bench=. -coverprofile=coverage.out .
+        run: go test -race -bench=. -coverprofile=coverage.out .
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
@@ -49,7 +49,7 @@ jobs:
           go tool cover -html=coverage.out -o=coveragereport.html.out
 
       - name: Publish code coverage badge (and optional report)
-        uses: linkdata/gitcoverage@v2
+        uses: linkdata/gitcoverage@v3
         with:
           coverage: ${{ steps.coverage.outputs.coverage }}
           report:   "coveragereport.html.out"
