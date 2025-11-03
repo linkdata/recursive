@@ -16,12 +16,13 @@ const DefaultNXTTL = time.Hour         // one hour
 const MaxQtype = 260
 
 type Cache struct {
-	MinTTL time.Duration // always cache responses for at least this long
-	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
-	NXTTL  time.Duration // cache NXDOMAIN responses for this long
-	count  atomic.Uint64
-	hits   atomic.Uint64
-	cq     []*cacheQtype
+	MinTTL     time.Duration // always cache responses for at least this long
+	MaxTTL     time.Duration // never cache responses for longer than this (excepting successful NS responses)
+	NXTTL      time.Duration // cache NXDOMAIN responses for this long
+	AllowStale atomic.Bool   // allow stale replies
+	count      atomic.Uint64
+	hits       atomic.Uint64
+	cq         []*cacheQtype
 }
 
 var _ CachingResolver = &Cache{}
@@ -80,7 +81,7 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	if cache != nil {
 		cache.count.Add(1)
 		if qtype <= MaxQtype {
-			if msg = cache.cq[qtype].get(qname); msg != nil {
+			if msg = cache.cq[qtype].get(qname, cache.AllowStale.Load()); msg != nil {
 				cache.hits.Add(1)
 			}
 		}

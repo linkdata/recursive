@@ -31,12 +31,12 @@ func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) {
 	cq.mu.Unlock()
 }
 
-func (cq *cacheQtype) get(qname string) *dns.Msg {
+func (cq *cacheQtype) get(qname string, allowstale bool) *dns.Msg {
 	cq.mu.RLock()
 	cv := cq.cache[qname]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		if time.Since(cv.expires) < 0 {
+		if allowstale || time.Since(cv.expires) < 0 {
 			return cv.Msg
 		}
 		cq.mu.Lock()
