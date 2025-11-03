@@ -110,6 +110,28 @@ func (cache *Cache) Clean() {
 	}
 }
 
+// Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
+func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (err error) {
+	if cache != nil && fn != nil {
+		for qtype := uint16(0); qtype <= MaxQtype; qtype++ {
+			if qc := cache.cq[qtype]; qc != nil {
+				var cvs []cacheValue
+				qc.mu.RLock()
+				for _, cv := range qc.cache {
+					cvs = append(cvs, cv)
+				}
+				qc.mu.RUnlock()
+				for _, cv := range cvs {
+					if err = fn(cv.Msg, cv.expires); err != nil {
+						return
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
 func minDNSMsgTTL(msg *dns.Msg) (minTTL int) {
 	minTTL = math.MaxInt
 	if msg != nil {
