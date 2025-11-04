@@ -257,3 +257,76 @@ func TestCacheWalkStopsOnError(t *testing.T) {
 		t.Fatalf("Walk invoked callback %d times, expected 1", calls)
 	}
 }
+
+func TestCacheMergeAddsEntries(t *testing.T) {
+	t.Parallel()
+
+	dst := NewCache()
+	src := NewCache()
+
+	qname := dns.Fqdn("merge-add.example.")
+	msg := newTestMessage(qname)
+	expires := time.Now().Add(5 * time.Minute)
+
+	srcCQ := src.cq[dns.TypeA]
+	srcCQ.mu.Lock()
+	srcCQ.cache[qname] = cacheValue{Msg: msg, expires: expires}
+	srcCQ.mu.Unlock()
+
+	dst.Merge(src)
+
+	dstCQ := dst.cq[dns.TypeA]
+	dstCQ.mu.RLock()
+	cv, ok := dstCQ.cache[qname]
+	dstCQ.mu.RUnlock()
+
+	if !ok {
+		t.Fatalf("expected qname %s to exist after merge", qname)
+	}
+	if cv.Msg != msg {
+		t.Fatalf("merged entry Msg mismatch: got %p want %p", cv.Msg, msg)
+	}
+	if !cv.expires.Equal(expires) {
+		t.Fatalf("merged entry expires %v, expected %v", cv.expires, expires)
+	}
+}
+
+func TestCacheMergePrefersLatestExpiration(t *testing.T) {
+	t.Parallel()
+
+	dst := NewCache()
+	src := NewCache()
+
+	qname := dns.Fqdn("merge-conflict.example.")
+	now := time.Now()
+	shortExpires := now.Add(1 * time.Minute)
+	longExpires := now.Add(10 * time.Minute)
+
+	dstCQ := dst.cq[dns.TypeA]
+	shortMsg := newTestMessage(qname)
+	dstCQ.mu.Lock()
+	dstCQ.cache[qname] = cacheValue{Msg: shortMsg, expires: shortExpires}
+	dstCQ.mu.Unlock()
+
+	srcCQ := src.cq[dns.TypeA]
+	longMsg := newTestMessage(qname)
+	srcCQ.mu.Lock()
+	srcCQ.cache[qname] = cacheValue{Msg: longMsg, expires: longExpires}
+	srcCQ.mu.Unlock()
+
+	dst.Merge(src)
+
+	dstCQ.mu.RLock()
+	cv, ok := dstCQ.cache[qname]
+	dstCQ.mu.RUnlock()
+
+	if !ok {
+		t.Fatalf("expected qname %s to exist after merge", qname)
+	}
+	if cv.Msg != longMsg {
+		t.Fatalf("merge did not replace with longer lived msg")
+	}
+	if !cv.expires.Equal(longExpires) {
+		t.Fatalf("merge expiration mismatch: got %v want %v", cv.expires, longExpires)
+	}
+}

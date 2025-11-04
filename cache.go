@@ -117,12 +117,11 @@ func (cache *Cache) Clean() {
 // Merge inserts all entries from other into cache.
 // If an entry exists in both, the one that expires last wins.
 func (cache *Cache) Merge(other *Cache) {
-	if cache != nil && other != nil {
+	if cache != nil && other != nil && cache != other {
 		for i := range other.cq {
 			other.cq[i].mu.RLock()
 			cache.cq[i].mu.Lock()
-			for _, cv := range other.cq[i].cache {
-				qname := cv.Question[0].Name
+			for qname, cv := range other.cq[i].cache {
 				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires.After(oldcv.expires) {
 					cache.cq[i].cache[qname] = cv
 				}
