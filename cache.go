@@ -108,13 +108,18 @@ func (cache *Cache) Clear() {
 	}
 }
 
-func (cache *Cache) Clean() {
-	if cache != nil {
-		now := time.Now()
+// CleanBefore removes entries that expired before t from the cache.
+func (cache *Cache) CleanBefore(t time.Time) {
+	if cache != nil && !t.IsZero() {
 		for _, cq := range cache.cq {
-			cq.clean(now)
+			cq.clean(t)
 		}
 	}
+}
+
+// Clean removes stale entries from the cache.
+func (cache *Cache) Clean() {
+	cache.CleanBefore(time.Now())
 }
 
 func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {

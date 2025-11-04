@@ -52,11 +52,11 @@ func (cq *cacheQtype) clear() {
 	cq.clean(time.Time{})
 }
 
-func (cq *cacheQtype) clean(now time.Time) {
+func (cq *cacheQtype) clean(t time.Time) {
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
 	for qname, cv := range cq.cache {
-		if now.IsZero() || now.After(cv.expires) {
+		if t.IsZero() || cv.expires.Before(t) {
 			delete(cq.cache, qname)
 		}
 	}
