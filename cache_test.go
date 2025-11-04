@@ -257,3 +257,93 @@ func TestCacheWalkStopsOnError(t *testing.T) {
 		t.Fatalf("Walk invoked callback %d times, expected 1", calls)
 	}
 }
+
+func TestCacheCloneCopiesEntries(t *testing.T) {
+	t.Parallel()
+
+	original := NewCache()
+	original.MinTTL = time.Second
+	original.MaxTTL = 30 * time.Minute
+	original.NXTTL = 10 * time.Minute
+
+	qnameA := dns.Fqdn("clone-a.example")
+	msgA := newTestMessage(qnameA)
+	expiresA := time.Now().Add(5 * time.Minute)
+	cqA := original.cq[dns.TypeA]
+	cqA.mu.Lock()
+	cqA.cache[qnameA] = cacheValue{Msg: msgA, expires: expiresA}
+	cqA.mu.Unlock()
+
+	qnameAAAA := dns.Fqdn("clone-aaaa.example")
+	msgAAAA := new(dns.Msg)
+	msgAAAA.SetQuestion(qnameAAAA, dns.TypeAAAA)
+	msgAAAA.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   qnameAAAA,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    600,
+			},
+			AAAA: net.ParseIP("2001:db8::10"),
+		},
+	}
+	expiresAAAA := time.Now().Add(15 * time.Minute)
+	cqAAAA := original.cq[dns.TypeAAAA]
+	cqAAAA.mu.Lock()
+	cqAAAA.cache[qnameAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA}
+	cqAAAA.mu.Unlock()
+
+	clone := original.Clone()
+	if clone == nil {
+		t.Fatalf("Clone returned nil")
+	}
+
+	if clone.MinTTL != original.MinTTL || clone.MaxTTL != original.MaxTTL || clone.NXTTL != original.NXTTL {
+		t.Fatalf("Clone TTL configuration mismatch: got Min=%s Max=%s NX=%s want Min=%s Max=%s NX=%s",
+			clone.MinTTL, clone.MaxTTL, clone.NXTTL, original.MinTTL, original.MaxTTL, original.NXTTL)
+	}
+
+	if got, want := clone.Entries(), original.Entries(); got != want {
+		t.Fatalf("Clone entries=%d, want %d", got, want)
+	}
+
+	cqCloneA := clone.cq[dns.TypeA]
+	cqCloneA.mu.RLock()
+	cvA, ok := cqCloneA.cache[qnameA]
+	cqCloneA.mu.RUnlock()
+	if !ok {
+		t.Fatalf("Clone missing TypeA entry")
+	}
+	if !cvA.expires.Equal(expiresA) {
+		t.Fatalf("Clone TypeA expires %v, want %v", cvA.expires, expiresA)
+	}
+
+	cqCloneAAAA := clone.cq[dns.TypeAAAA]
+	cqCloneAAAA.mu.RLock()
+	cvAAAA, ok := cqCloneAAAA.cache[qnameAAAA]
+	cqCloneAAAA.mu.RUnlock()
+	if !ok {
+		t.Fatalf("Clone missing TypeAAAA entry")
+	}
+	if !cvAAAA.expires.Equal(expiresAAAA) {
+		t.Fatalf("Clone TypeAAAA expires %v, want %v", cvAAAA.expires, expiresAAAA)
+	}
+
+	clone.Clear()
+	if entries := clone.Entries(); entries != 0 {
+		t.Fatalf("Clone Clear() left %d entries", entries)
+	}
+	if original.DnsGet(qnameA, dns.TypeA) == nil || original.DnsGet(qnameAAAA, dns.TypeAAAA) == nil {
+		t.Fatalf("Original cache lost entries after mutating clone")
+	}
+}
+
+func TestCacheCloneNilReceiver(t *testing.T) {
+	t.Parallel()
+
+	var cache *Cache
+	if clone := cache.Clone(); clone != nil {
+		t.Fatalf("Clone returned non-nil result for nil receiver")
+	}
+}
