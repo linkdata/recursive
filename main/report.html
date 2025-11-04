@@ -67,15 +67,17 @@
 				
 				<option value="file5">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/neterror.go (100.0%)</option>
+				<option value="file6">github.com/linkdata/recursive/ioutil.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
+				<option value="file7">github.com/linkdata/recursive/neterror.go (100.0%)</option>
 				
-				<option value="file8">github.com/linkdata/recursive/query.go (82.3%)</option>
+				<option value="file8">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
 				
-				<option value="file9">github.com/linkdata/recursive/recursive.go (100.0%)</option>
+				<option value="file9">github.com/linkdata/recursive/query.go (82.3%)</option>
 				
-				<option value="file10">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				<option value="file10">github.com/linkdata/recursive/recursive.go (100.0%)</option>
+				
+				<option value="file11">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -102,7 +104,6 @@
 
 import (
         "context"
-        "encoding/binary"
         "errors"
         "io"
         "math"
@@ -129,12 +130,12 @@ type Cache struct {
 
 var _ CachingResolver = &amp;Cache{}
 
-func NewCache() *Cache <span class="cov4" title="17">{
+func NewCache() *Cache <span class="cov4" title="19">{
         cq := make([]*cacheQtype, MaxQtype+1)
-        for i := range cq </span><span class="cov10" title="4437">{
+        for i := range cq </span><span class="cov10" title="4959">{
                 cq[i] = newCacheQtype()
         }</span>
-        <span class="cov4" title="17">return &amp;Cache{
+        <span class="cov4" title="19">return &amp;Cache{
                 MinTTL: DefaultMinTTL,
                 MaxTTL: DefaultMaxTTL,
                 NXTTL:  DefaultNXTTL,
@@ -181,20 +182,20 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov5" title="101">{
         }
 }
 
-func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span class="cov7" title="274">{
+func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span class="cov6" title="274">{
         return cache.Get(qname, qtype, false)
 }</span>
 
-func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg) <span class="cov7" title="274">{
-        if cache != nil </span><span class="cov7" title="274">{
+func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg) <span class="cov6" title="274">{
+        if cache != nil </span><span class="cov6" title="274">{
                 cache.count.Add(1)
-                if qtype &lt;= MaxQtype </span><span class="cov7" title="274">{
+                if qtype &lt;= MaxQtype </span><span class="cov6" title="274">{
                         if msg = cache.cq[qtype].get(qname, allowstale); msg != nil </span><span class="cov6" title="174">{
                                 cache.hits.Add(1)
                         }</span>
                 }
         }
-        <span class="cov7" title="274">return</span>
+        <span class="cov6" title="274">return</span>
 }
 
 func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov1" title="1">{
@@ -224,13 +225,13 @@ func (cache *Cache) Clean() <span class="cov1" title="1">{
         cache.CleanBefore(time.Now())
 }</span>
 
-const magic = uint64(0xCACE0001)
+const cacheMagic = int64(0xCACE0001)
 
-func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) <span class="cov1" title="2">{
-        if cache != nil </span><span class="cov1" title="2">{
-                if err = binary.Write(w, binary.BigEndian, magic); err == nil </span><span class="cov1" title="2">{
-                        for _, cq := range cache.cq </span><span class="cov7" title="522">{
-                                if err == nil </span><span class="cov6" title="262">{
+func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) <span class="cov2" title="3">{
+        if cache != nil </span><span class="cov2" title="3">{
+                if err = writeInt64(w, &amp;n, cacheMagic); err == nil </span><span class="cov2" title="3">{
+                        for _, cq := range cache.cq </span><span class="cov8" title="783">{
+                                if err == nil </span><span class="cov7" title="523">{
                                         var written int64
                                         written, err = cq.WriteTo(w)
                                         n += written
@@ -238,20 +239,20 @@ func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) <span class="cov1"
                         }
                 }
         }
-        <span class="cov1" title="2">return</span>
+        <span class="cov2" title="3">return</span>
 }
 
 var ErrWrongMagic = errors.New("wrong magic number")
 
-func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov1" title="2">{
-        if cache != nil </span><span class="cov1" title="2">{
-                var gotmagic uint64
-                if err = binary.Read(r, binary.BigEndian, &amp;gotmagic); err == nil </span><span class="cov1" title="2">{
+func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov2" title="3">{
+        if cache != nil </span><span class="cov2" title="3">{
+                var gotmagic int64
+                if gotmagic, err = readInt64(r, &amp;n); err == nil </span><span class="cov2" title="3">{
                         err = ErrWrongMagic
-                        if gotmagic == magic </span><span class="cov1" title="2">{
+                        if gotmagic == cacheMagic </span><span class="cov2" title="3">{
                                 err = nil
-                                for _, cq := range cache.cq </span><span class="cov7" title="522">{
-                                        if err == nil </span><span class="cov6" title="263">{
+                                for _, cq := range cache.cq </span><span class="cov8" title="783">{
+                                        if err == nil </span><span class="cov7" title="524">{
                                                 var numread int64
                                                 numread, err = cq.ReadFrom(r)
                                                 n += numread
@@ -260,7 +261,7 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov1
                         }
                 }
         }
-        <span class="cov1" title="2">return</span>
+        <span class="cov2" title="3">return</span>
 }
 
 // Merge inserts all entries from other into cache.
@@ -332,7 +333,6 @@ func minDNSMsgTTL(msg *dns.Msg) (minTTL int) <span class="cov5" title="95">{
 		<pre class="file" id="file1" style="display: none">package recursive
 
 import (
-        "encoding/binary"
         "io"
         "sync"
         "time"
@@ -345,7 +345,7 @@ type cacheQtype struct {
         cache map[string]cacheValue
 }
 
-func newCacheQtype() *cacheQtype <span class="cov10" title="4437">{
+func newCacheQtype() *cacheQtype <span class="cov10" title="4959">{
         return &amp;cacheQtype{cache: make(map[string]cacheValue)}
 }</span>
 
@@ -364,7 +364,7 @@ func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) <span class="cov5" ti
         cq.mu.Unlock()
 }</span>
 
-func (cq *cacheQtype) get(qname string, allowstale bool) *dns.Msg <span class="cov7" title="274">{
+func (cq *cacheQtype) get(qname string, allowstale bool) *dns.Msg <span class="cov6" title="274">{
         cq.mu.RLock()
         cv := cq.cache[qname]
         cq.mu.RUnlock()
@@ -393,49 +393,62 @@ func (cq *cacheQtype) clean(t time.Time) <span class="cov8" title="783">{
         }
 }
 
-func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) <span class="cov6" title="262">{
+const cacheQtypeMagic = uint16(0xFE01)
+
+func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) <span class="cov7" title="523">{
         cq.mu.RLock()
         defer cq.mu.RUnlock()
-        var written int
-        if written, err = w.Write(binary.BigEndian.AppendUint64(nil, uint64(len(cq.cache)))); err == nil </span><span class="cov6" title="261">{
-                n += int64(written)
-                for _, cv := range cq.cache </span><span class="cov1" title="2">{
-                        if err == nil </span><span class="cov1" title="2">{
-                                var written int64
-                                written, err = cv.WriteTo(w)
-                                n += written
-                        }</span>
-                }
-        }
-        <span class="cov6" title="262">return</span>
-}
-
-func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) <span class="cov6" title="263">{
-        cq.mu.Lock()
-        defer cq.mu.Unlock()
-        clear(cq.cache)
-        var numentries uint64
-        if err = binary.Read(r, binary.BigEndian, &amp;numentries); err == nil </span><span class="cov6" title="262">{
-                n += 8
-                for range numentries </span><span class="cov1" title="2">{
-                        if err == nil </span><span class="cov1" title="2">{
-                                var cv cacheValue
-                                var x int64
-                                if x, err = cv.ReadFrom(r); err == nil </span><span class="cov1" title="2">{
-                                        cq.cache[cv.Question[0].Name] = cv
+        if err = writeUint16(w, &amp;n, cacheQtypeMagic); err == nil </span><span class="cov7" title="522">{
+                numentries := int64(len(cq.cache))
+                if err = writeInt64(w, &amp;n, numentries); err == nil </span><span class="cov7" title="522">{
+                        for _, cv := range cq.cache </span><span class="cov2" title="3">{
+                                if err == nil </span><span class="cov2" title="3">{
+                                        var written int64
+                                        written, err = cv.WriteTo(w)
+                                        n += written
                                 }</span>
-                                <span class="cov1" title="2">n += x</span>
                         }
                 }
         }
-        <span class="cov6" title="263">return</span>
+        <span class="cov7" title="523">return</span>
+}
+
+func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) <span class="cov7" title="524">{
+        cq.mu.Lock()
+        defer cq.mu.Unlock()
+        clear(cq.cache)
+        var gotmagic uint16
+        if gotmagic, err = readUint16(r, &amp;n); err == nil </span><span class="cov7" title="523">{
+                err = ErrWrongMagic
+                if gotmagic == cacheQtypeMagic </span><span class="cov7" title="523">{
+                        var numentries int64
+                        if numentries, err = readInt64(r, &amp;n); err == nil </span><span class="cov7" title="523">{
+                                for range numentries </span><span class="cov2" title="3">{
+                                        if err == nil </span><span class="cov2" title="3">{
+                                                var cv cacheValue
+                                                var numread int64
+                                                if numread, err = cv.ReadFrom(r); err == nil </span><span class="cov2" title="3">{
+                                                        err = ErrBadRecord
+                                                        if len(cv.Question) &gt; 0 </span><span class="cov2" title="3">{
+                                                                err = nil
+                                                                qname := cv.Question[0].Name
+                                                                cq.cache[qname] = cv
+                                                        }</span>
+                                                }
+                                                <span class="cov2" title="3">n += numread</span>
+                                        }
+                                }
+                        }
+                }
+        }
+        <span class="cov7" title="524">return</span>
 }
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package recursive
 
 import (
-        "encoding/binary"
+        "errors"
         "io"
         "time"
 
@@ -447,40 +460,48 @@ type cacheValue struct {
         expires time.Time
 }
 
-func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) <span class="cov10" title="2">{
-        var packed, b []byte
-        if packed, err = cv.Pack(); err == nil </span><span class="cov10" title="2">{
-                expiry := uint64(cv.expires.UnixMilli()) // #nosec G115
-                packlen := uint64(len(packed))
-                b = binary.BigEndian.AppendUint64(b, expiry)
-                b = binary.BigEndian.AppendUint64(b, packlen)
-                b = append(b, packed...)
-                var written int
-                written, err = w.Write(b)
-                n += int64(written)
-        }</span>
-        <span class="cov10" title="2">return</span>
-}
+var ErrBadRecord = errors.New("bad record")
 
-func (cv *cacheValue) ReadFrom(r io.Reader) (n int64, err error) <span class="cov10" title="2">{
-        var expiry, packlen uint64
-        if err = binary.Read(r, binary.BigEndian, &amp;expiry); err == nil </span><span class="cov10" title="2">{
-                n += 8
-                if err = binary.Read(r, binary.BigEndian, &amp;packlen); err == nil </span><span class="cov10" title="2">{
-                        n += 8
-                        buf := make([]byte, int(packlen)) // #nosec G115
-                        var numread int
-                        if numread, err = r.Read(buf); err == nil </span><span class="cov10" title="2">{
-                                var msg dns.Msg
-                                if err = msg.Unpack(buf); err == nil </span><span class="cov10" title="2">{
-                                        cv.Msg = &amp;msg
-                                        cv.expires = time.UnixMilli(int64(expiry)) // #nosec G115
-                                }</span>
+func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) <span class="cov10" title="3">{
+        if err = writeInt64(w, &amp;n, cv.expires.UnixMilli()); err == nil </span><span class="cov10" title="3">{
+                var packed []byte
+                if packed, err = cv.Pack(); err == nil </span><span class="cov10" title="3">{
+                        err = ErrBadRecord
+                        if packlen := int64(len(packed)); packlen &lt; 1&lt;&lt;16 </span><span class="cov10" title="3">{
+                                if err = writeInt64(w, &amp;n, packlen); err == nil </span><span class="cov10" title="3">{
+                                        var written int
+                                        if written, err = w.Write(packed); err == nil </span><span class="cov10" title="3">{
+                                                err = ErrBadRecord
+                                                if written == len(packed) </span><span class="cov10" title="3">{
+                                                        err = nil
+                                                }</span>
+                                        }
+                                        <span class="cov10" title="3">n += int64(written)</span>
+                                }
                         }
-                        <span class="cov10" title="2">n += int64(numread)</span>
                 }
         }
-        <span class="cov10" title="2">return</span>
+        <span class="cov10" title="3">return</span>
+}
+
+func (cv *cacheValue) ReadFrom(r io.Reader) (n int64, err error) <span class="cov10" title="3">{
+        var expiry, packlen int64
+        if expiry, err = readInt64(r, &amp;n); err == nil </span><span class="cov10" title="3">{
+                expires := time.UnixMilli(expiry)
+                if packlen, err = readInt64(r, &amp;n); err == nil </span><span class="cov10" title="3">{
+                        buf := make([]byte, int(packlen)) // #nosec G115
+                        var numread int
+                        if numread, err = io.ReadFull(r, buf); err == nil </span><span class="cov10" title="3">{
+                                var msg dns.Msg
+                                if err = msg.Unpack(buf); err == nil </span><span class="cov10" title="3">{
+                                        cv.Msg = &amp;msg
+                                        cv.expires = expires
+                                }</span>
+                        }
+                        <span class="cov10" title="3">n += int64(numread)</span>
+                }
+        }
+        <span class="cov10" title="3">return</span>
 }
 </pre>
 		
@@ -546,7 +567,7 @@ func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" ti
         for addr, c := range r.srvcookies </span><span class="cov7" title="8193">{
                 l = append(l, ac{addr: addr, ts: c.ts})
         }</span>
-        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="114914">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="110638">{ return l[i].ts.Before(l[j].ts) }</span>)
         <span class="cov1" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov1" title="1">{
                 delete(r.srvcookies, l[i].addr)
         }</span>
@@ -682,7 +703,7 @@ func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov7" tit
                         return uint16(rcodeErr)
                 }</span>
 
-                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="160">{
+                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="156">{
                         if errors.Is(err, sample) </span><span class="cov5" title="13">{
                                 return code
                         }</span>
@@ -763,6 +784,70 @@ func ErrorFromExtendedErrorCode(code uint16) (err error) <span class="cov4" titl
 		
 		<pre class="file" id="file6" style="display: none">package recursive
 
+import (
+        "encoding/binary"
+        "io"
+)
+
+func readInt64(r io.Reader, numread *int64) (val int64, err error) <span class="cov10" title="532">{
+        b := [8]byte{}
+        var n int
+        if n, err = io.ReadFull(r, b[:]); err == nil </span><span class="cov10" title="532">{
+                err = io.ErrNoProgress
+                if n == 8 </span><span class="cov10" title="532">{
+                        err = nil
+                        val = int64(binary.BigEndian.Uint64(b[:])) //#nosec
+                }</span>
+        }
+        <span class="cov10" title="532">*numread += int64(n)
+        return</span>
+}
+
+func writeInt64(w io.Writer, written *int64, val int64) (err error) <span class="cov9" title="531">{
+        b := [8]byte{}
+        binary.BigEndian.PutUint64(b[:], uint64(val)) //#nosec
+        var n int
+        if n, err = w.Write(b[:]); err == nil </span><span class="cov9" title="531">{
+                err = io.ErrNoProgress
+                if n == 8 </span><span class="cov9" title="531">{
+                        err = nil
+                }</span>
+        }
+        <span class="cov9" title="531">*written += int64(n)
+        return</span>
+}
+
+func readUint16(r io.Reader, numread *int64) (val uint16, err error) <span class="cov9" title="524">{
+        b := [2]byte{}
+        var n int
+        if n, err = io.ReadFull(r, b[:]); err == nil </span><span class="cov9" title="523">{
+                err = io.ErrNoProgress
+                if n == 2 </span><span class="cov9" title="523">{
+                        err = nil
+                        val = uint16(binary.BigEndian.Uint16(b[:])) //#nosec
+                }</span>
+        }
+        <span class="cov9" title="524">*numread += int64(n)
+        return</span>
+}
+
+func writeUint16(w io.Writer, written *int64, val uint16) (err error) <span class="cov9" title="523">{
+        b := [2]byte{}
+        binary.BigEndian.PutUint16(b[:], val) //#nosec
+        var n int
+        if n, err = w.Write(b[:]); err == nil </span><span class="cov9" title="522">{
+                err = io.ErrNoProgress
+                if n == 2 </span><span class="cov9" title="522">{
+                        err = nil
+                }</span>
+        }
+        <span class="cov9" title="523">*written += int64(n)
+        return</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package recursive
+
 import "time"
 
 type netError struct {
@@ -779,7 +864,7 @@ func (ne netError) Unwrap() error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file8" style="display: none">package recursive
 
 import (
         "context"
@@ -830,7 +915,7 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package recursive
+		<pre class="file" id="file9" style="display: none">package recursive
 
 import (
         "context"
@@ -1328,7 +1413,7 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 
 func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov6" title="145">{
         if r.Deterministic </span><span class="cov6" title="145">{
-                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7482">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7483">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
         } else<span class="cov0" title="0"> {
                 rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
         }
@@ -1452,7 +1537,7 @@ func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) <span class="cov3" title="9">{
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">// package recursive provides a minimal iterative DNS resolver with QNAME minimization
+		<pre class="file" id="file10" style="display: none">// package recursive provides a minimal iterative DNS resolver with QNAME minimization
 // using github.com/miekg/dns for wire format and transport.
 package recursive
 
@@ -1635,7 +1720,7 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 }
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package recursive
+		<pre class="file" id="file11" style="display: none">package recursive
 
 import (
         "context"
@@ -1658,13 +1743,13 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
         }</span>
         <span class="cov8" title="52">rt.rtt = time.Hour
         var rtt time.Duration
-        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="102">{
+        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="103">{
                 now := time.Now()
                 conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
                 if err != nil </span><span class="cov7" title="28">{
                         return
                 }</span>
-                <span class="cov9" title="74">rtt += time.Since(now)
+                <span class="cov9" title="75">rtt += time.Since(now)
                 _ = conn.Close()</span>
         }
         <span class="cov7" title="24">rt.rtt = rtt / numProbes</span>
