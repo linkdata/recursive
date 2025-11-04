@@ -1,7 +1,6 @@
 package recursive
 
 import (
-	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -69,9 +68,6 @@ func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) {
 	defer cq.mu.RUnlock()
 	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
 		numentries := int64(len(cq.cache))
-		if numentries > 0 {
-			fmt.Println("write", numentries)
-		}
 		if err = writeInt64(w, &n, numentries); err == nil {
 			for _, cv := range cq.cache {
 				if err == nil {
@@ -95,9 +91,6 @@ func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) {
 		if gotmagic == cacheQtypeMagic {
 			var numentries int64
 			if numentries, err = readInt64(r, &n); err == nil {
-				if numentries > 0 {
-					fmt.Println("read", numentries)
-				}
 				for range numentries {
 					if err == nil {
 						var cv cacheValue
