@@ -60,10 +60,12 @@ func (cache *Cache) Entries() (n int) {
 }
 
 func (cache *Cache) DnsSet(msg *dns.Msg) {
-	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
+	if cache != nil && msg != nil && len(msg.Question) == 1 {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
-			msg = msg.Copy()
-			msg.Zero = true
+			if !msg.Zero {
+				msg = msg.Copy()
+				msg.Zero = true
+			}
 			ttl := cache.NXTTL
 			if msg.Rcode != dns.RcodeNameError {
 				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
