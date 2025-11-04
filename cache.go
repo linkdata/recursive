@@ -114,20 +114,23 @@ func (cache *Cache) Clean() {
 	}
 }
 
-func (cache *Cache) Clone() (clone *Cache) {
-	if cache != nil {
-		clone = NewCache()
-		clone.MaxTTL = cache.MaxTTL
-		clone.MinTTL = cache.MinTTL
-		clone.NXTTL = cache.NXTTL
-		_ = cache.Walk(func(msg *dns.Msg, expires time.Time) (err error) {
-			qname := msg.Question[0].Name
-			qtype := msg.Question[0].Qtype
-			clone.cq[qtype].cache[qname] = cacheValue{Msg: msg, expires: expires}
-			return
-		})
+// Merge inserts all entries from other into cache.
+// If an entry exists in both, the one that expires last wins.
+func (cache *Cache) Merge(other *Cache) {
+	if cache != nil && other != nil {
+		for i := range other.cq {
+			other.cq[i].mu.RLock()
+			cache.cq[i].mu.Lock()
+			for _, cv := range other.cq[i].cache {
+				qname := cv.Question[0].Name
+				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires.After(oldcv.expires) {
+					cache.cq[i].cache[qname] = cv
+				}
+			}
+			cache.cq[i].mu.Unlock()
+			other.cq[i].mu.RUnlock()
+		}
 	}
-	return
 }
 
 // Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
