@@ -120,7 +120,7 @@ func (cache *Cache) Clone() (clone *Cache) {
 		clone.MaxTTL = cache.MaxTTL
 		clone.MinTTL = cache.MinTTL
 		clone.NXTTL = cache.NXTTL
-		cache.Walk(func(msg *dns.Msg, expires time.Time) (err error) {
+		_ = cache.Walk(func(msg *dns.Msg, expires time.Time) (err error) {
 			qname := msg.Question[0].Name
 			qtype := msg.Question[0].Qtype
 			clone.cq[qtype].cache[qname] = cacheValue{Msg: msg, expires: expires}
