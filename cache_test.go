@@ -1,8 +1,10 @@
 package recursive
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net"
 	"testing"
 	"time"
@@ -329,4 +331,127 @@ func TestCacheMergePrefersLatestExpiration(t *testing.T) {
 	if !cv.expires.Equal(longExpires) {
 		t.Fatalf("merge expiration mismatch: got %v want %v", cv.expires, longExpires)
 	}
+}
+
+func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	src := NewCache()
+	base := time.Unix(1_700_000_000, 0).UTC()
+
+	qnameA := dns.Fqdn("serialize-a.example.")
+	msgA := newTestMessage(qnameA)
+	expiresA := base.Add(5 * time.Minute)
+	cqA := src.cq[dns.TypeA]
+	cqA.mu.Lock()
+	cqA.cache[qnameA] = cacheValue{Msg: msgA, expires: expiresA}
+	cqA.mu.Unlock()
+
+	qnameAAAA := dns.Fqdn("serialize-aaaa.example.")
+	msgAAAA := new(dns.Msg)
+	msgAAAA.SetQuestion(qnameAAAA, dns.TypeAAAA)
+	msgAAAA.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   qnameAAAA,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    600,
+			},
+			AAAA: net.ParseIP("2001:db8::10"),
+		},
+	}
+	expiresAAAA := base.Add(10 * time.Minute)
+	cqAAAA := src.cq[dns.TypeAAAA]
+	cqAAAA.mu.Lock()
+	cqAAAA.cache[qnameAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA}
+	cqAAAA.mu.Unlock()
+
+	var buf bytes.Buffer
+	written, err := src.WriteTo(&buf)
+	if err != nil {
+		t.Fatalf("WriteTo returned error: %v", err)
+	}
+	if written == 0 {
+		t.Fatalf("WriteTo wrote zero bytes")
+	}
+
+	dst := NewCache()
+	read, err := dst.ReadFrom(&buf)
+	if err != nil {
+		t.Fatalf("ReadFrom returned error: %v", err)
+	}
+	if read != written {
+		t.Fatalf("ReadFrom read %d bytes, want %d", read, written)
+	}
+
+	assertEntry := func(t *testing.T, qtype uint16, qname string, wantExpires time.Time) {
+		t.Helper()
+		cq := dst.cq[qtype]
+		cq.mu.RLock()
+		cv, ok := cq.cache[qname]
+		cq.mu.RUnlock()
+		if !ok {
+			t.Fatalf("missing cache entry for %s qtype=%d", qname, qtype)
+		}
+		if cv.Msg == nil || len(cv.Msg.Question) == 0 || cv.Msg.Question[0].Name != qname {
+			t.Fatalf("unexpected message for %s: %#v", qname, cv.Msg)
+		}
+		if !cv.expires.Equal(wantExpires) {
+			t.Fatalf("expires mismatch for %s: got %v want %v", qname, cv.expires, wantExpires)
+		}
+	}
+
+	assertEntry(t, dns.TypeA, qnameA, expiresA)
+	assertEntry(t, dns.TypeAAAA, qnameAAAA, expiresAAAA)
+}
+
+func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	sentinel := errors.New("sentinel write/read failure")
+
+	t.Run("write", func(t *testing.T) {
+		t.Parallel()
+		cache := NewCache()
+		writer := &failWriter{failAfter: 1, err: sentinel}
+		if _, err := cache.WriteTo(writer); !errors.Is(err, sentinel) {
+			t.Fatalf("WriteTo error = %v, want %v", err, sentinel)
+		}
+		if writer.writes != writer.failAfter {
+			t.Fatalf("WriteTo performed unexpected number of writes: %d", writer.writes)
+		}
+	})
+
+	t.Run("read", func(t *testing.T) {
+		t.Parallel()
+		cache := NewCache()
+		goodPrefix := bytes.NewReader(make([]byte, 8))
+		reader := io.MultiReader(goodPrefix, &failReader{err: sentinel})
+		if _, err := cache.ReadFrom(reader); !errors.Is(err, sentinel) {
+			t.Fatalf("ReadFrom error = %v, want %v", err, sentinel)
+		}
+	})
+}
+
+type failWriter struct {
+	failAfter int
+	writes    int
+	err       error
+}
+
+func (fw *failWriter) Write(p []byte) (int, error) {
+	if fw.writes >= fw.failAfter {
+		return 0, fw.err
+	}
+	fw.writes++
+	return len(p), nil
+}
+
+type failReader struct {
+	err error
+}
+
+func (fr *failReader) Read(p []byte) (int, error) {
+	return 0, fr.err
 }

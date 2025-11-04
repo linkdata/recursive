@@ -2,6 +2,7 @@ package recursive
 
 import (
 	"context"
+	"io"
 	"math"
 	"net/netip"
 	"sync/atomic"
@@ -114,6 +115,32 @@ func (cache *Cache) Clean() {
 			cq.clean(now)
 		}
 	}
+}
+
+func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
+	if cache != nil {
+		for _, cq := range cache.cq {
+			if err == nil {
+				var written int64
+				written, err = cq.WriteTo(w)
+				n += written
+			}
+		}
+	}
+	return
+}
+
+func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
+	if cache != nil {
+		for _, cq := range cache.cq {
+			if err == nil {
+				var numread int64
+				numread, err = cq.ReadFrom(r)
+				n += numread
+			}
+		}
+	}
+	return
 }
 
 // Merge inserts all entries from other into cache.
