@@ -428,8 +428,10 @@ func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
 		t.Parallel()
 		cache := NewCache()
 		var b []byte
-		b = binary.BigEndian.AppendUint64(b, magic)
-		b = binary.BigEndian.AppendUint64(b, 0)
+		b = binary.BigEndian.AppendUint64(b, uint64(cacheMagic))
+		b = binary.BigEndian.AppendUint16(b, cacheQtypeMagic)
+		b = binary.BigEndian.AppendUint64(b, 1)
+		b = binary.BigEndian.AppendUint16(b, cacheValueMagic)
 		goodPrefix := bytes.NewReader(b)
 		reader := io.MultiReader(goodPrefix, &failReader{err: sentinel})
 		if _, err := cache.ReadFrom(reader); !errors.Is(err, sentinel) {
