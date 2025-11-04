@@ -3,6 +3,7 @@ package recursive
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
 	"io"
 	"net"
@@ -426,7 +427,10 @@ func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
 	t.Run("read", func(t *testing.T) {
 		t.Parallel()
 		cache := NewCache()
-		goodPrefix := bytes.NewReader(make([]byte, 8))
+		var b []byte
+		b = binary.BigEndian.AppendUint64(b, magic)
+		b = binary.BigEndian.AppendUint64(b, 0)
+		goodPrefix := bytes.NewReader(b)
 		reader := io.MultiReader(goodPrefix, &failReader{err: sentinel})
 		if _, err := cache.ReadFrom(reader); !errors.Is(err, sentinel) {
 			t.Fatalf("ReadFrom error = %v, want %v", err, sentinel)

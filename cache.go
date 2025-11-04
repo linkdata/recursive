@@ -2,6 +2,8 @@ package recursive
 
 import (
 	"context"
+	"encoding/binary"
+	"errors"
 	"io"
 	"math"
 	"net/netip"
@@ -122,26 +124,39 @@ func (cache *Cache) Clean() {
 	cache.CleanBefore(time.Now())
 }
 
+const magic = uint64(0xCACE0001)
+
 func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
 	if cache != nil {
-		for _, cq := range cache.cq {
-			if err == nil {
-				var written int64
-				written, err = cq.WriteTo(w)
-				n += written
+		if err = binary.Write(w, binary.BigEndian, magic); err == nil {
+			for _, cq := range cache.cq {
+				if err == nil {
+					var written int64
+					written, err = cq.WriteTo(w)
+					n += written
+				}
 			}
 		}
 	}
 	return
 }
 
+var ErrWrongMagic = errors.New("wrong magic number")
+
 func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 	if cache != nil {
-		for _, cq := range cache.cq {
-			if err == nil {
-				var numread int64
-				numread, err = cq.ReadFrom(r)
-				n += numread
+		var gotmagic uint64
+		if err = binary.Read(r, binary.BigEndian, &gotmagic); err == nil {
+			err = ErrWrongMagic
+			if gotmagic == magic {
+				err = nil
+				for _, cq := range cache.cq {
+					if err == nil {
+						var numread int64
+						numread, err = cq.ReadFrom(r)
+						n += numread
+					}
+				}
 			}
 		}
 	}
