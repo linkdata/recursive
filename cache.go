@@ -114,6 +114,22 @@ func (cache *Cache) Clean() {
 	}
 }
 
+func (cache *Cache) Clone() (clone *Cache) {
+	if cache != nil {
+		clone = NewCache()
+		clone.MaxTTL = cache.MaxTTL
+		clone.MinTTL = cache.MinTTL
+		clone.NXTTL = cache.NXTTL
+		cache.Walk(func(msg *dns.Msg, expires time.Time) (err error) {
+			qname := msg.Question[0].Name
+			qtype := msg.Question[0].Qtype
+			clone.cq[qtype].cache[qname] = cacheValue{Msg: msg, expires: expires}
+			return
+		})
+	}
+	return
+}
+
 // Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
 func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (err error) {
 	if cache != nil && fn != nil {
