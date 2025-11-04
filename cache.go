@@ -2,7 +2,6 @@ package recursive
 
 import (
 	"context"
-	"encoding/binary"
 	"errors"
 	"io"
 	"math"
@@ -124,11 +123,11 @@ func (cache *Cache) Clean() {
 	cache.CleanBefore(time.Now())
 }
 
-const magic = uint64(0xCACE0001)
+const cacheMagic = int64(0xCACE0001)
 
 func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
 	if cache != nil {
-		if err = binary.Write(w, binary.BigEndian, magic); err == nil {
+		if err = writeInt64(w, &n, cacheMagic); err == nil {
 			for _, cq := range cache.cq {
 				if err == nil {
 					var written int64
@@ -145,10 +144,10 @@ var ErrWrongMagic = errors.New("wrong magic number")
 
 func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 	if cache != nil {
-		var gotmagic uint64
-		if err = binary.Read(r, binary.BigEndian, &gotmagic); err == nil {
+		var gotmagic int64
+		if gotmagic, err = readInt64(r, &n); err == nil {
 			err = ErrWrongMagic
-			if gotmagic == magic {
+			if gotmagic == cacheMagic {
 				err = nil
 				for _, cq := range cache.cq {
 					if err == nil {

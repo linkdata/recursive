@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -407,6 +408,75 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 	assertEntry(t, dns.TypeAAAA, qnameAAAA, expiresAAAA)
 }
 
+func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
+	t.Parallel()
+
+	const chunkSize = 16
+
+	src := NewCache()
+	base := time.Unix(1_700_000_000, 0).UTC()
+
+	qnameTXT := dns.Fqdn("serialize-shortread.example.")
+	txtPayload := strings.Repeat("chunky", 40) // 240 bytes to guarantee a larger packet
+	msgTXT := new(dns.Msg)
+	msgTXT.SetQuestion(qnameTXT, dns.TypeTXT)
+	msgTXT.Answer = []dns.RR{
+		&dns.TXT{
+			Hdr: dns.RR_Header{
+				Name:   qnameTXT,
+				Rrtype: dns.TypeTXT,
+				Class:  dns.ClassINET,
+				Ttl:    900,
+			},
+			Txt: []string{txtPayload},
+		},
+	}
+	if msgTXT.Len() <= chunkSize {
+		t.Fatalf("test requires message larger than chunk size, got len=%d chunk=%d", msgTXT.Len(), chunkSize)
+	}
+	expiresTXT := base.Add(15 * time.Minute)
+	cqTXT := src.cq[dns.TypeTXT]
+	cqTXT.mu.Lock()
+	cqTXT.cache[qnameTXT] = cacheValue{Msg: msgTXT, expires: expiresTXT}
+	cqTXT.mu.Unlock()
+
+	var buf bytes.Buffer
+	written, err := src.WriteTo(&buf)
+	if err != nil {
+		t.Fatalf("WriteTo returned error: %v", err)
+	}
+	if written == 0 {
+		t.Fatal("WriteTo wrote zero bytes")
+	}
+
+	dst := NewCache()
+	chunked := &chunkedReader{
+		r:     bytes.NewReader(buf.Bytes()),
+		chunk: chunkSize,
+	}
+	read, err := dst.ReadFrom(chunked)
+	if err != nil {
+		t.Fatalf("ReadFrom should tolerate short reads, got error: %v", err)
+	}
+	if read != written {
+		t.Fatalf("ReadFrom read %d bytes, want %d", read, written)
+	}
+
+	cq := dst.cq[dns.TypeTXT]
+	cq.mu.RLock()
+	cv, ok := cq.cache[qnameTXT]
+	cq.mu.RUnlock()
+	if !ok {
+		t.Fatalf("missing cache entry for %s after short-read roundtrip", qnameTXT)
+	}
+	if cv.Msg == nil || len(cv.Msg.Question) == 0 || cv.Msg.Question[0].Name != qnameTXT {
+		t.Fatalf("unexpected message for %s: %#v", qnameTXT, cv.Msg)
+	}
+	if !cv.expires.Equal(expiresTXT) {
+		t.Fatalf("expires mismatch for %s: got %v want %v", qnameTXT, cv.expires, expiresTXT)
+	}
+}
+
 func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
 	t.Parallel()
 
@@ -428,7 +498,8 @@ func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
 		t.Parallel()
 		cache := NewCache()
 		var b []byte
-		b = binary.BigEndian.AppendUint64(b, magic)
+		b = binary.BigEndian.AppendUint64(b, uint64(cacheMagic))
+		b = binary.BigEndian.AppendUint16(b, cacheQtypeMagic)
 		b = binary.BigEndian.AppendUint64(b, 0)
 		goodPrefix := bytes.NewReader(b)
 		reader := io.MultiReader(goodPrefix, &failReader{err: sentinel})
@@ -458,4 +529,19 @@ type failReader struct {
 
 func (fr *failReader) Read(p []byte) (int, error) {
 	return 0, fr.err
+}
+
+type chunkedReader struct {
+	r     io.Reader
+	chunk int
+}
+
+func (cr *chunkedReader) Read(p []byte) (int, error) {
+	if cr.chunk <= 0 {
+		return cr.r.Read(p)
+	}
+	if len(p) > cr.chunk {
+		p = p[:cr.chunk]
+	}
+	return cr.r.Read(p)
 }
