@@ -148,9 +148,11 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 			if gotmagic == cacheMagic {
 				err = nil
 				for _, cq := range cache.cq {
-					numread, cqerr := cq.ReadFrom(r)
-					n += numread
-					err = errors.Join(err, cqerr)
+					if !(errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)) {
+						numread, cqerr := cq.ReadFrom(r)
+						n += numread
+						err = errors.Join(err, cqerr)
+					}
 				}
 			}
 		}
