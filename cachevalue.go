@@ -19,18 +19,10 @@ func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) {
 	if err = writeInt64(w, &n, cv.expires.UnixMilli()); err == nil {
 		var packed []byte
 		if packed, err = cv.Pack(); err == nil {
-			err = ErrBadRecord
-			if packlen := int64(len(packed)); packlen < 1<<16 {
-				if err = writeInt64(w, &n, packlen); err == nil {
-					var written int
-					if written, err = w.Write(packed); err == nil {
-						err = ErrBadRecord
-						if written == len(packed) {
-							err = nil
-						}
-					}
-					n += int64(written)
-				}
+			if err = writeInt64(w, &n, int64(len(packed))); err == nil {
+				var written int
+				written, err = w.Write(packed)
+				n += int64(written)
 			}
 		}
 	}

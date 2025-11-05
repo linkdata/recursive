@@ -129,11 +129,9 @@ func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
 	if cache != nil {
 		if err = writeInt64(w, &n, cacheMagic); err == nil {
 			for _, cq := range cache.cq {
-				if err == nil {
-					var written int64
-					written, err = cq.WriteTo(w)
-					n += written
-				}
+				written, cqerr := cq.WriteTo(w)
+				n += written
+				err = errors.Join(err, cqerr)
 			}
 		}
 	}
@@ -150,11 +148,9 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 			if gotmagic == cacheMagic {
 				err = nil
 				for _, cq := range cache.cq {
-					if err == nil {
-						var numread int64
-						numread, err = cq.ReadFrom(r)
-						n += numread
-					}
+					numread, cqerr := cq.ReadFrom(r)
+					n += numread
+					err = errors.Join(err, cqerr)
 				}
 			}
 		}

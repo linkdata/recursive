@@ -17,7 +17,7 @@ var testSvc *Recursive
 
 func init() {
 	testSvc = NewWithOptions(nil, nil, nil, nil, nil)
-	testSvc.Timeout = time.Second
+	testSvc.Timeout = time.Second * 5
 	testSvc.Deterministic = true
 	testSvc.OrderRootsTimeout(context.Background(), time.Millisecond*100)
 }

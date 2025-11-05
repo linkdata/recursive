@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"errors"
 	"io"
 	"sync"
 	"time"
@@ -70,11 +71,9 @@ func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) {
 		numentries := int64(len(cq.cache))
 		if err = writeInt64(w, &n, numentries); err == nil {
 			for _, cv := range cq.cache {
-				if err == nil {
-					var written int64
-					written, err = cv.WriteTo(w)
-					n += written
-				}
+				written, valueerr := cv.WriteTo(w)
+				n += written
+				err = errors.Join(err, valueerr)
 			}
 		}
 	}
@@ -92,18 +91,13 @@ func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) {
 			var numentries int64
 			if numentries, err = readInt64(r, &n); err == nil {
 				for range numentries {
-					if err == nil {
-						var cv cacheValue
-						var numread int64
-						if numread, err = cv.ReadFrom(r); err == nil {
-							err = ErrBadRecord
-							if len(cv.Question) > 0 {
-								err = nil
-								qname := cv.Question[0].Name
-								cq.cache[qname] = cv
-							}
-						}
-						n += numread
+					var cv cacheValue
+					numread, valueerr := cv.ReadFrom(r)
+					n += numread
+					err = errors.Join(err, valueerr)
+					if valueerr == nil {
+						qname := cv.Question[0].Name
+						cq.cache[qname] = cv
 					}
 				}
 			}
