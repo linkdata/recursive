@@ -51,7 +51,12 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	if servers, resp, srv, err = q.queryDelegation(ctx, qname); err == nil {
 		if resp != nil && resp.Rcode == dns.RcodeNameError {
 			// no need to query final
-			resp.Question[0].Qtype = qtype
+			if resp.Question[0].Qtype != qtype {
+				if resp.Zero {
+					resp = resp.Copy()
+				}
+				resp.Question[0].Qtype = qtype
+			}
 		} else {
 			resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
 		}
