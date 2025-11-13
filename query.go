@@ -54,6 +54,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 			if resp.Question[0].Qtype != qtype {
 				if resp.Zero {
 					resp = resp.Copy()
+					resp.Zero = false
 				}
 				resp.Question[0].Qtype = qtype
 			}
