@@ -61,13 +61,14 @@ func (cache *Cache) Entries() (n int) {
 	return
 }
 
+// DnsSet add a DNS message to the cache.
+//
+// Does nothing if the message has the Zero flag set, or does not have exactly one Question.
 func (cache *Cache) DnsSet(msg *dns.Msg) {
-	if cache != nil && msg != nil && len(msg.Question) == 1 {
+	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
-			if !msg.Zero {
-				msg = msg.Copy()
-				msg.Zero = true
-			}
+			msg = msg.Copy()
+			msg.Zero = true
 			ttl := cache.NXTTL
 			if msg.Rcode != dns.RcodeNameError {
 				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
@@ -80,10 +81,14 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 	}
 }
 
+// DnsGet returns a caches DNS message if one exists that has not expired.
+//
+// If an expired message is found, it is removed from the cache and nil is returned.
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	return cache.Get(qname, qtype, false)
 }
 
+// Get allows getting stale DNS entries from the cache if allowstale is true.
 func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg) {
 	if cache != nil {
 		cache.count.Add(1)
