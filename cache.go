@@ -12,9 +12,9 @@ import (
 	"github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10 * time.Second // ten seconds
-const DefaultMaxTTL = 6 * time.Hour    // six hours
-const DefaultNXTTL = time.Hour         // one hour
+const DefaultMinTTL = 10 * time.Second
+const DefaultMaxTTL = 24 * 7 * time.Hour
+const DefaultNXTTL = time.Hour
 const MaxQtype = 260
 
 type Cache struct {
