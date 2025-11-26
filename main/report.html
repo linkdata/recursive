@@ -187,15 +187,16 @@ func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov5" title="102">{
 //
 // If an expired message is found, it is removed from the cache and nil is returned.
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span class="cov6" title="274">{
-        return cache.Get(qname, qtype, false)
+        msg, _ = cache.Get(qname, qtype, false)
+        return
 }</span>
 
 // Get allows getting stale DNS entries from the cache if allowstale is true.
-func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg) <span class="cov6" title="274">{
+func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg, stale bool) <span class="cov6" title="274">{
         if cache != nil </span><span class="cov6" title="274">{
                 cache.count.Add(1)
                 if qtype &lt;= MaxQtype </span><span class="cov6" title="274">{
-                        if msg = cache.cq[qtype].get(qname, allowstale); msg != nil </span><span class="cov6" title="173">{
+                        if msg, stale = cache.cq[qtype].get(qname, allowstale); msg != nil </span><span class="cov6" title="173">{
                                 cache.hits.Add(1)
                         }</span>
                 }
@@ -368,19 +369,21 @@ func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) <span class="cov5" ti
         cq.mu.Unlock()
 }</span>
 
-func (cq *cacheQtype) get(qname string, allowstale bool) *dns.Msg <span class="cov6" title="274">{
+func (cq *cacheQtype) get(qname string, allowstale bool) (msg *dns.Msg, stale bool) <span class="cov6" title="274">{
         cq.mu.RLock()
         cv := cq.cache[qname]
         cq.mu.RUnlock()
         if cv.Msg != nil </span><span class="cov6" title="174">{
-                if allowstale || time.Since(cv.expires) &lt; 0 </span><span class="cov6" title="173">{
-                        return cv.Msg
+                stale = time.Since(cv.expires) &gt; 0
+                if !stale || allowstale </span><span class="cov6" title="173">{
+                        msg = cv.Msg
+                }</span> else<span class="cov1" title="1"> {
+                        cq.mu.Lock()
+                        delete(cq.cache, qname)
+                        cq.mu.Unlock()
                 }</span>
-                <span class="cov1" title="1">cq.mu.Lock()
-                delete(cq.cache, qname)
-                cq.mu.Unlock()</span>
         }
-        <span class="cov5" title="101">return nil</span>
+        <span class="cov6" title="274">return</span>
 }
 
 func (cq *cacheQtype) clear() <span class="cov7" title="522">{
@@ -540,7 +543,7 @@ func (r *Recursive) ResetCookies() <span class="cov1" title="1">{
 
 func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" title="8">{
         cutoff := now.Add(-srvCookieTTL)
-        for addr, c := range r.srvcookies </span><span class="cov7" title="8195">{
+        for addr, c := range r.srvcookies </span><span class="cov7" title="8196">{
                 if c.ts.Before(cutoff) </span><span class="cov1" title="1">{
                         delete(r.srvcookies, addr)
                 }</span>
@@ -556,7 +559,7 @@ func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" ti
         for addr, c := range r.srvcookies </span><span class="cov7" title="8193">{
                 l = append(l, ac{addr: addr, ts: c.ts})
         }</span>
-        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="112400">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="110648">{ return l[i].ts.Before(l[j].ts) }</span>)
         <span class="cov1" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov1" title="1">{
                 delete(r.srvcookies, l[i].addr)
         }</span>
@@ -692,7 +695,7 @@ func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov7" tit
                         return uint16(rcodeErr)
                 }</span>
 
-                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="160">{
+                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="154">{
                         if errors.Is(err, sample) </span><span class="cov5" title="13">{
                                 return code
                         }</span>
@@ -860,19 +863,19 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
         defer r.mu.Unlock()
         var l []*rootRtt
         var wg sync.WaitGroup
-        for _, addr := range r.rootServers </span><span class="cov8" title="52">{
+        for _, addr := range r.rootServers </span><span class="cov7" title="52">{
                 rt := &amp;rootRtt{addr: addr}
                 l = append(l, rt)
                 wg.Add(1)
                 go timeRoot(ctx, r, &amp;wg, rt)
         }</span>
         <span class="cov2" title="2">wg.Wait()
-        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="152">{ return l[i].rtt &lt; l[j].rtt }</span>)
+        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="170">{ return l[i].rtt &lt; l[j].rtt }</span>)
         <span class="cov2" title="2">var newRootServers []netip.Addr
         useIPv4 := false
         useIPv6 := false
-        for _, rt := range l </span><span class="cov8" title="52">{
-                if rt.rtt &lt;= cutoff </span><span class="cov6" title="23">{
+        for _, rt := range l </span><span class="cov7" title="52">{
+                if rt.rtt &lt;= cutoff </span><span class="cov6" title="24">{
                         useIPv4 = useIPv4 || rt.addr.Is4()
                         useIPv6 = useIPv6 || rt.addr.Is6()
                         newRootServers = append(newRootServers, rt.addr)
@@ -1043,7 +1046,7 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
         <span class="cov6" title="236">for _, rr := range m.Extra </span><span class="cov8" title="2136">{
                 var addr netip.Addr
                 switch a := rr.(type) </span>{
-                case *dns.A:<span class="cov7" title="1025">
+                case *dns.A:<span class="cov8" title="1025">
                         addr = ipToAddr(a.A)</span>
                 case *dns.AAAA:<span class="cov7" title="914">
                         addr = ipToAddr(a.AAAA)</span>
@@ -1390,7 +1393,7 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
 
 func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov6" title="145">{
         if r.Deterministic </span><span class="cov6" title="145">{
-                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7528">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7428">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
         } else<span class="cov0" title="0"> {
                 rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
         }
@@ -1720,16 +1723,16 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
         }</span>
         <span class="cov8" title="52">rt.rtt = time.Hour
         var rtt time.Duration
-        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="103">{
+        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="102">{
                 now := time.Now()
                 conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
-                if err != nil </span><span class="cov7" title="29">{
+                if err != nil </span><span class="cov7" title="28">{
                         return
                 }</span>
                 <span class="cov9" title="74">rtt += time.Since(now)
                 _ = conn.Close()</span>
         }
-        <span class="cov7" title="23">rt.rtt = rtt / numProbes</span>
+        <span class="cov7" title="24">rt.rtt = rtt / numProbes</span>
 }
 </pre>
 		
