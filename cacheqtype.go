@@ -33,19 +33,21 @@ func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) {
 	cq.mu.Unlock()
 }
 
-func (cq *cacheQtype) get(qname string, allowstale bool) *dns.Msg {
+func (cq *cacheQtype) get(qname string, allowstale bool) (msg *dns.Msg, stale bool) {
 	cq.mu.RLock()
 	cv := cq.cache[qname]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		if allowstale || time.Since(cv.expires) < 0 {
-			return cv.Msg
+		stale = time.Since(cv.expires) > 0
+		if !stale || allowstale {
+			msg = cv.Msg
+		} else {
+			cq.mu.Lock()
+			delete(cq.cache, qname)
+			cq.mu.Unlock()
 		}
-		cq.mu.Lock()
-		delete(cq.cache, qname)
-		cq.mu.Unlock()
 	}
-	return nil
+	return
 }
 
 func (cq *cacheQtype) clear() {
