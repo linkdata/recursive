@@ -2,8 +2,6 @@ package recursive
 
 import (
 	"context"
-	"errors"
-	"io"
 	"math"
 	"net/netip"
 	"sync/atomic"
@@ -127,43 +125,6 @@ func (cache *Cache) CleanBefore(t time.Time) {
 // Clean removes stale entries from the cache.
 func (cache *Cache) Clean() {
 	cache.CleanBefore(time.Now())
-}
-
-const cacheMagic = int64(0xCACE0001)
-
-func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
-	if cache != nil {
-		if err = writeInt64(w, &n, cacheMagic); err == nil {
-			for _, cq := range cache.cq {
-				written, cqerr := cq.WriteTo(w)
-				n += written
-				err = errors.Join(err, cqerr)
-			}
-		}
-	}
-	return
-}
-
-var ErrWrongMagic = errors.New("wrong magic number")
-
-func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
-	if cache != nil {
-		var gotmagic int64
-		if gotmagic, err = readInt64(r, &n); err == nil {
-			err = ErrWrongMagic
-			if gotmagic == cacheMagic {
-				err = nil
-				for _, cq := range cache.cq {
-					if !(errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)) {
-						numread, cqerr := cq.ReadFrom(r)
-						n += numread
-						err = errors.Join(err, cqerr)
-					}
-				}
-			}
-		}
-	}
-	return
 }
 
 // Merge inserts all entries from other into cache.

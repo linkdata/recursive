@@ -3,7 +3,6 @@ package recursive
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"errors"
 	"io"
 	"net"
@@ -475,60 +474,6 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	if !cv.expires.Equal(expiresTXT) {
 		t.Fatalf("expires mismatch for %s: got %v want %v", qnameTXT, cv.expires, expiresTXT)
 	}
-}
-
-func TestCacheWriteToReadFromErrorPropagation(t *testing.T) {
-	t.Parallel()
-
-	sentinel := errors.New("sentinel write/read failure")
-
-	t.Run("write", func(t *testing.T) {
-		t.Parallel()
-		cache := NewCache()
-		writer := &failWriter{failAfter: 1, err: sentinel}
-		if _, err := cache.WriteTo(writer); !errors.Is(err, sentinel) {
-			t.Fatalf("WriteTo error = %v, want %v", err, sentinel)
-		}
-		if writer.writes != writer.failAfter {
-			t.Fatalf("WriteTo performed unexpected number of writes: %d", writer.writes)
-		}
-	})
-
-	t.Run("read", func(t *testing.T) {
-		t.Parallel()
-		cache := NewCache()
-		var b []byte
-		b = binary.BigEndian.AppendUint64(b, uint64(cacheMagic))
-		b = binary.BigEndian.AppendUint16(b, cacheQtypeMagic)
-		b = binary.BigEndian.AppendUint64(b, 0)
-		goodPrefix := bytes.NewReader(b)
-		reader := io.MultiReader(goodPrefix, &failReader{err: sentinel})
-		if _, err := cache.ReadFrom(reader); !errors.Is(err, sentinel) {
-			t.Fatalf("ReadFrom error = %v, want %v", err, sentinel)
-		}
-	})
-}
-
-type failWriter struct {
-	failAfter int
-	writes    int
-	err       error
-}
-
-func (fw *failWriter) Write(p []byte) (int, error) {
-	if fw.writes >= fw.failAfter {
-		return 0, fw.err
-	}
-	fw.writes++
-	return len(p), nil
-}
-
-type failReader struct {
-	err error
-}
-
-func (fr *failReader) Read(p []byte) (int, error) {
-	return 0, fr.err
 }
 
 type chunkedReader struct {

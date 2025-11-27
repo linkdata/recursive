@@ -1,7 +1,7 @@
 package recursive
 
 import (
-	"errors"
+	"encoding/binary"
 	"io"
 	"time"
 
@@ -13,7 +13,27 @@ type cacheValue struct {
 	expires time.Time
 }
 
-var ErrBadRecord = errors.New("bad record")
+func (cv *cacheValue) MarshalBinary() (b []byte, err error) {
+	var buf [4096]byte
+	var packed []byte
+	if packed, err = cv.PackBuffer(buf[:]); err == nil {
+		b = binary.AppendVarint(b, cv.expires.UnixMilli())
+		b = append(b, packed...)
+	}
+	return
+}
+
+func (cv *cacheValue) UnmarshalBinary(b []byte) (err error) {
+	err = io.ErrShortBuffer
+	if unixmilli, n := binary.Varint(b); n > 0 {
+		var msg dns.Msg
+		if err = msg.Unpack(b[n:]); err == nil {
+			cv.Msg = &msg
+			cv.expires = time.UnixMilli(unixmilli)
+		}
+	}
+	return
+}
 
 func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) {
 	if err = writeInt64(w, &n, cv.expires.UnixMilli()); err == nil {
