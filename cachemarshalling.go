@@ -11,7 +11,7 @@ import (
 
 var ErrWrongMagic = errors.New("wrong magic number")
 
-const cacheMagic = int64(0xCACE0001)
+const cacheMagic = int64(0xCACE0002)
 
 func errorWorker(perr *error, errch <-chan error) {
 	for err := range errch {
