@@ -25,14 +25,14 @@ func (cq *cacheQtype) entries() (n int) {
 	return
 }
 
-func (cq *cacheQtype) setLocked(msg *dns.Msg, expires time.Time) {
+func (cq *cacheQtype) setLocked(msg *dns.Msg, expires int64) {
 	qname := msg.Question[0].Name
 	cq.cache[qname] = cacheValue{Msg: msg, expires: expires}
 }
 
 func (cq *cacheQtype) set(msg *dns.Msg, ttl time.Duration) {
 	cq.mu.Lock()
-	cq.setLocked(msg, time.Now().Add(ttl))
+	cq.setLocked(msg, time.Now().Add(ttl).Unix())
 	cq.mu.Unlock()
 }
 
@@ -41,7 +41,8 @@ func (cq *cacheQtype) get(qname string, allowstale bool) (msg *dns.Msg, stale bo
 	cv := cq.cache[qname]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		stale = time.Since(cv.expires) > 0
+		expires := cv.expiresAt()
+		stale = time.Since(expires) > 0
 		if !stale || allowstale {
 			msg = cv.Msg
 		} else {
@@ -61,7 +62,7 @@ func (cq *cacheQtype) clean(t time.Time) {
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
 	for qname, cv := range cq.cache {
-		if t.IsZero() || cv.expires.Before(t) {
+		if t.IsZero() || cv.expiresAt().Before(t) {
 			delete(cq.cache, qname)
 		}
 	}

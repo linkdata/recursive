@@ -135,7 +135,7 @@ func (cache *Cache) Merge(other *Cache) {
 			other.cq[i].mu.RLock()
 			cache.cq[i].mu.Lock()
 			for qname, cv := range other.cq[i].cache {
-				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires.After(oldcv.expires) {
+				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires > oldcv.expires {
 					cache.cq[i].cache[qname] = cv
 				}
 			}
@@ -156,7 +156,7 @@ func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (
 			}
 			qc.mu.RUnlock()
 			for _, cv := range cvs {
-				if err = fn(cv.Msg, cv.expires); err != nil {
+				if err = fn(cv.Msg, cv.expiresAt()); err != nil {
 					return
 				}
 			}
