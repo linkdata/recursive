@@ -11,7 +11,8 @@ import (
 
 var ErrWrongMagic = errors.New("wrong magic number")
 
-const cacheMagic = int64(0xCACE0002)
+const cacheMagic1 = int64(0xCACE0001)
+const cacheMagic2 = int64(0xCACE0002)
 
 func errorWorker(perr *error, errch <-chan error) {
 	for err := range errch {
@@ -51,7 +52,7 @@ func writeWorker(w io.Writer, n *int64, outch <-chan []byte, errch chan<- error,
 
 func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
 	if cache != nil {
-		if err = writeInt64(w, &n, cacheMagic); err == nil {
+		if err = writeInt64(w, &n, cacheMagic2); err == nil {
 			var writewg sync.WaitGroup
 			var marshalwg sync.WaitGroup
 			numworkers := runtime.GOMAXPROCS(0)
@@ -87,7 +88,7 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 		var gotmagic int64
 		if gotmagic, err = readInt64(r, &n); err == nil {
 			err = ErrWrongMagic
-			if gotmagic == cacheMagic {
+			if gotmagic == cacheMagic2 {
 				err = nil
 				cache.Clear()
 				for err == nil {
