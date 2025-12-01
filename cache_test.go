@@ -4,8 +4,13 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"math"
 	"net"
+	"os"
+	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -91,14 +96,118 @@ func TestCacheNegativeUsesNXTTL(t *testing.T) {
 }
 
 func newTestMessage(qname string) *dns.Msg {
-	msg := new(dns.Msg)
-	msg.SetQuestion(qname, dns.TypeA)
-	msg.Answer = []dns.RR{
-		&dns.A{
-			Hdr: dns.RR_Header{Name: qname, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 300},
-			A:   net.IPv4(192, 0, 2, 1),
-		},
+	return newTestMessageForType(nil, dns.TypeA, qname, 0)
+}
+
+func newCacheWithEntries(t *testing.T, entries int) *Cache {
+	t.Helper()
+
+	cache := NewCache()
+	if entries <= 0 {
+		return cache
 	}
+
+	aCount := int(math.Ceil(float64(entries) * 0.9))
+	if aCount > entries {
+		aCount = entries
+	}
+	remaining := entries - aCount
+	counts := map[uint16]int{
+		dns.TypeA:     aCount,
+		dns.TypeNS:    0,
+		dns.TypeAAAA:  0,
+		dns.TypeCNAME: 0,
+	}
+	if remaining > 0 {
+		perType := remaining / 3
+		counts[dns.TypeNS] = perType
+		counts[dns.TypeAAAA] = perType
+		counts[dns.TypeCNAME] = perType
+		switch remaining % 3 {
+		case 2:
+			counts[dns.TypeAAAA]++
+			fallthrough
+		case 1:
+			counts[dns.TypeNS]++
+		}
+	}
+
+	qtypes := []uint16{dns.TypeA, dns.TypeNS, dns.TypeAAAA, dns.TypeCNAME}
+	entryIdx := 0
+	for _, qt := range qtypes {
+		for i := 0; i < counts[qt]; i++ {
+			typeName := dns.TypeToString[qt]
+			if typeName == "" {
+				typeName = fmt.Sprintf("type-%d", qt)
+			}
+			prefix := fmt.Sprintf("%cgen%d", 'a'+(entryIdx%26), entryIdx/26)
+			qname := dns.Fqdn(fmt.Sprintf("%s-cache-%s-%d.example", prefix, strings.ToLower(typeName), entryIdx))
+			cache.DnsSet(newTestMessageForType(t, qt, qname, entryIdx))
+			entryIdx++
+		}
+	}
+
+	return cache
+}
+
+func newTestMessageForType(t *testing.T, qtype uint16, qname string, idx int) *dns.Msg {
+	if t != nil {
+		t.Helper()
+	}
+
+	const ttl = 300
+	msg := new(dns.Msg)
+	msg.SetQuestion(qname, qtype)
+	hdr := dns.RR_Header{
+		Name:   qname,
+		Rrtype: qtype,
+		Class:  dns.ClassINET,
+		Ttl:    ttl,
+	}
+
+	switch qtype {
+	case dns.TypeA:
+		msg.Answer = []dns.RR{
+			&dns.A{
+				Hdr: hdr,
+				A:   net.IPv4(192, 0, 2, byte((idx%250)+1)),
+			},
+		}
+	case dns.TypeAAAA:
+		ip := net.ParseIP(fmt.Sprintf("2001:db8::%x", idx+1))
+		if ip == nil {
+			if t != nil {
+				t.Fatalf("failed to parse ipv6 address for index %d", idx)
+			}
+			panic(fmt.Sprintf("failed to parse ipv6 address for index %d", idx))
+		}
+		msg.Answer = []dns.RR{
+			&dns.AAAA{
+				Hdr:  hdr,
+				AAAA: ip,
+			},
+		}
+	case dns.TypeNS:
+		msg.Answer = []dns.RR{
+			&dns.NS{
+				Hdr: hdr,
+				Ns:  dns.Fqdn(fmt.Sprintf("ns-%d.example", idx+1)),
+			},
+		}
+	case dns.TypeCNAME:
+		msg.Answer = []dns.RR{
+			&dns.CNAME{
+				Hdr:    hdr,
+				Target: dns.Fqdn(fmt.Sprintf("alias-%d.example", idx+1)),
+			},
+		}
+	default:
+		if t != nil {
+			t.Fatalf("unsupported qtype %d", qtype)
+		}
+		panic(fmt.Sprintf("unsupported qtype %d", qtype))
+	}
+
 	return msg
 }
 
@@ -492,4 +601,108 @@ func (cr *chunkedReader) Read(p []byte) (int, error) {
 		p = p[:cr.chunk]
 	}
 	return cr.r.Read(p)
+}
+
+func FuzzCacheWriteReadRoundTrip(f *testing.F) {
+	f.Add(0)
+	f.Add(1)
+	f.Add(5)
+	f.Add(50)
+	f.Add(200)
+
+	f.Fuzz(func(t *testing.T, entries int) {
+		t.Helper()
+
+		if entries < 0 {
+			entries = -entries
+		}
+		if entries > 500 {
+			entries = entries % 500
+		}
+
+		src := newCacheWithEntries(t, entries)
+
+		tmp := filepath.Join(t.TempDir(), "dnscache.bin")
+		file, err := os.Create(tmp)
+		if err != nil {
+			t.Fatalf("Create temp cache file: %v", err)
+		}
+		defer os.Remove(tmp)
+
+		written, err := src.WriteTo(file)
+		file.Close()
+		if err != nil {
+			t.Fatalf("WriteTo returned error: %v", err)
+		}
+		if written <= 0 {
+			t.Fatalf("WriteTo wrote zero bytes for %d entries", entries)
+		}
+
+		dst := NewCache()
+		readFile, err := os.Open(tmp)
+		if err != nil {
+			t.Fatalf("Open temp cache file for read: %v", err)
+		}
+		read, err := dst.ReadFrom(readFile)
+		readFile.Close()
+		if err != nil {
+			t.Fatalf("ReadFrom returned error: %v", err)
+		}
+		if read != written {
+			t.Fatalf("ReadFrom read %d bytes, want %d", read, written)
+		}
+
+		assertCachesEqual(t, src, dst)
+	})
+}
+
+func assertCachesEqual(t *testing.T, want, got *Cache) {
+	t.Helper()
+
+	if wantEntries, gotEntries := want.Entries(), got.Entries(); wantEntries != gotEntries {
+		t.Fatalf("cache entry count mismatch: got %d want %d", gotEntries, wantEntries)
+	}
+
+	for qtype := range want.cq {
+		wantSnapshot := snapshotCacheQtype(want.cq[qtype])
+		gotSnapshot := snapshotCacheQtype(got.cq[qtype])
+
+		if len(wantSnapshot) != len(gotSnapshot) {
+			t.Fatalf("qtype %d entry count mismatch: got %d want %d", qtype, len(gotSnapshot), len(wantSnapshot))
+		}
+
+		for qname, wantCV := range wantSnapshot {
+			gotCV, ok := gotSnapshot[qname]
+			if !ok {
+				t.Fatalf("qtype %d missing qname %s", qtype, qname)
+			}
+			if wantCV.expires != gotCV.expires {
+				t.Fatalf("qtype %d qname %s expires mismatch: got %d want %d", qtype, qname, gotCV.expires, wantCV.expires)
+			}
+			if !dnsMsgsEqual(wantCV.Msg, gotCV.Msg) {
+				t.Fatalf("qtype %d qname %s message mismatch:\nwant:\n%s\ngot:\n%s", qtype, qname, wantCV.Msg, gotCV.Msg)
+			}
+		}
+	}
+}
+
+func snapshotCacheQtype(cq *cacheQtype) map[string]cacheValue {
+	cq.mu.RLock()
+	defer cq.mu.RUnlock()
+
+	out := make(map[string]cacheValue, len(cq.cache))
+	for k, v := range cq.cache {
+		out[k] = v
+	}
+	return out
+}
+
+func dnsMsgsEqual(a, b *dns.Msg) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	if reflect.DeepEqual(a, b) {
+		return true
+	}
+	return a.String() == b.String()
 }
