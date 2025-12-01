@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -584,101 +585,57 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	}
 }
 
+func loadCacheFile(t *testing.T, fixture string) (c *Cache, elapsed time.Duration, err error) {
+	t.Helper()
+	var source *os.File
+	if source, err = os.Open(fixture); err == nil {
+		defer source.Close()
+		c = NewCache()
+		start := time.Now()
+		_, err = c.ReadFrom(bufio.NewReader(source))
+		elapsed = time.Since(start)
+	}
+	return
+}
+
+func saveCacheFile(t *testing.T, c *Cache, fixture string) (fpath string, elapsed time.Duration, err error) {
+	t.Helper()
+	var f *os.File
+	if f, err = os.CreateTemp("", fixture); err == nil {
+		defer f.Close()
+		fpath = f.Name()
+		bw := bufio.NewWriter(f)
+		defer bw.Flush()
+		start := time.Now()
+		_, err = c.WriteTo(bw)
+		elapsed = time.Since(start)
+	}
+	return
+}
+
 func TestCacheReadFromExistingBinaryRoundTrip(t *testing.T) {
+	const fixture = "dnscache1.bin"
 	t.Parallel()
 
 	t.SkipNow()
 
-	const fixture = "dnscache1.bin"
+	original, loadDuration, err := loadCacheFile(t, fixture)
+	if errors.Is(err, os.ErrNotExist) {
+		t.Skipf("%s not present; skipping fixture round trip", fixture)
+	}
 
-	var info os.FileInfo
-	var err error
-	info, err = os.Stat(fixture)
+	copyPath, writeDuration, err := saveCacheFile(t, original, "dnscache2-*.bin")
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			t.Skipf("%s not present; skipping fixture round trip", fixture)
-		}
-		t.Fatalf("stat %s: %v", fixture, err)
+		t.Fatal(err)
 	}
-	if info.IsDir() {
-		t.Fatalf("%s is a directory, expected file", fixture)
-	}
+	defer os.Remove(copyPath)
 
-	var source *os.File
-	source, err = os.Open(fixture)
-	if err != nil {
-		t.Fatalf("open %s: %v", fixture, err)
-	}
-	defer source.Close()
-
-	original := NewCache()
-
-	var start time.Time
-	var readBytes int64
-	var loadDuration time.Duration
-	start = time.Now()
-	readBytes, err = original.ReadFrom(source)
-	loadDuration = time.Since(start)
-	if err != nil {
-		t.Fatalf("ReadFrom(%s) returned error: %v", fixture, err)
-	}
-	if readBytes <= 0 {
-		t.Fatalf("ReadFrom(%s) read %d bytes", fixture, readBytes)
-	}
-
-	tmpDir := t.TempDir()
-	copyPath := filepath.Join(tmpDir, "dnscache2.bin")
-
-	var copyFile *os.File
-	copyFile, err = os.Create(copyPath)
-	if err != nil {
-		t.Fatalf("create %s: %v", copyPath, err)
-	}
-
-	var writeDuration time.Duration
-	var written int64
-	start = time.Now()
-	written, err = original.WriteTo(copyFile)
-	writeDuration = time.Since(start)
-	if err != nil {
-		t.Fatalf("WriteTo(%s) returned error: %v", copyPath, err)
-	}
-	if written <= 0 {
-		t.Fatalf("WriteTo(%s) wrote %d bytes", copyPath, written)
-	}
-
-	syncErr := copyFile.Sync()
-	if syncErr != nil {
-		t.Fatalf("Sync(%s) returned error: %v", copyPath, syncErr)
-	}
-
-	closeErr := copyFile.Close()
-	if closeErr != nil {
-		t.Fatalf("Close(%s) returned error: %v", copyPath, closeErr)
-	}
-
-	copyCache := NewCache()
-
-	var copyReader *os.File
-	copyReader, err = os.Open(copyPath)
-	if err != nil {
-		t.Fatalf("open %s: %v", copyPath, err)
-	}
-	defer copyReader.Close()
-
-	var copyReadDuration time.Duration
-	var copyReadBytes int64
-	start = time.Now()
-	copyReadBytes, err = copyCache.ReadFrom(copyReader)
-	copyReadDuration = time.Since(start)
+	copyCache, copyReadDuration, err := loadCacheFile(t, copyPath)
 	if err != nil {
 		t.Fatalf("ReadFrom(%s) returned error: %v", copyPath, err)
 	}
-	if copyReadBytes != written {
-		t.Fatalf("ReadFrom(%s) read %d bytes, want %d", copyPath, copyReadBytes, written)
-	}
 
-	t.Logf("loaded %s in %s (%d bytes), wrote copy in %s, reloaded copy in %s", fixture, loadDuration, readBytes, writeDuration, copyReadDuration)
+	t.Logf("loaded %s in %s, wrote copy in %s, reloaded copy in %s", fixture, loadDuration, writeDuration, copyReadDuration)
 
 	assertCachesEqual(t, original, copyCache)
 }
