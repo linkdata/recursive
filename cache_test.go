@@ -136,12 +136,8 @@ func newCacheWithEntries(t *testing.T, entries int) *Cache {
 	entryIdx := 0
 	for _, qt := range qtypes {
 		for i := 0; i < counts[qt]; i++ {
-			typeName := dns.TypeToString[qt]
-			if typeName == "" {
-				typeName = fmt.Sprintf("type-%d", qt)
-			}
 			prefix := fmt.Sprintf("%cgen%d", 'a'+(entryIdx%26), entryIdx/26)
-			qname := dns.Fqdn(fmt.Sprintf("%s-cache-%s-%d.example", prefix, strings.ToLower(typeName), entryIdx))
+			qname := dns.Fqdn(fmt.Sprintf("%s-cache-%s-%d.example", prefix, dns.Type(qt), entryIdx))
 			cache.DnsSet(newTestMessageForType(t, qt, qname, entryIdx))
 			entryIdx++
 		}
