@@ -1,8 +1,6 @@
 package recursive
 
 import (
-	"errors"
-	"io"
 	"sync"
 	"time"
 
@@ -66,52 +64,4 @@ func (cq *cacheQtype) clean(t time.Time) {
 			delete(cq.cache, qname)
 		}
 	}
-}
-
-const cacheQtypeMagic = uint16(0xFE01)
-
-func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) {
-	cq.mu.RLock()
-	defer cq.mu.RUnlock()
-	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
-		numentries := int64(len(cq.cache))
-		if err = writeInt64(w, &n, numentries); err == nil {
-			for _, cv := range cq.cache {
-				written, valueerr := cv.WriteTo(w)
-				n += written
-				err = errors.Join(err, valueerr)
-			}
-		}
-	}
-	return
-}
-
-func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) {
-	cq.mu.Lock()
-	defer cq.mu.Unlock()
-	clear(cq.cache)
-	var gotmagic uint16
-	if gotmagic, err = readUint16(r, &n); err == nil {
-		err = ErrWrongMagic
-		if gotmagic == cacheQtypeMagic {
-			var numentries int64
-			if numentries, err = readInt64(r, &n); err == nil {
-				for range numentries {
-					var cv cacheValue
-					numread, valueerr := cv.ReadFrom(r)
-					n += numread
-					if valueerr == nil {
-						qname := cv.Question[0].Name
-						cq.cache[qname] = cv
-					} else {
-						err = errors.Join(err, valueerr)
-						if valueerr == io.EOF || errors.Is(valueerr, io.ErrUnexpectedEOF) {
-							break
-						}
-					}
-				}
-			}
-		}
-	}
-	return
 }

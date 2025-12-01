@@ -83,19 +83,6 @@ func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cache *Cache) readFromV1(r io.Reader) (n int64, err error) {
-	err = nil
-	for _, cq := range cache.cq {
-		numread, cqerr := cq.ReadFrom(r)
-		n += numread
-		err = errors.Join(err, cqerr)
-		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
-			break
-		}
-	}
-	return
-}
-
 func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 	if cache != nil {
 		var gotmagic int64
