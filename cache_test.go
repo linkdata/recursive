@@ -683,7 +683,7 @@ func assertCachesEqual(t *testing.T, want, got *Cache) {
 	}
 }
 
-func snapshotCacheQtype(cq *cacheQtype) map[string]cacheValue {
+func snapshotCacheQtype(cq *cacheBucket) map[string]cacheValue {
 	cq.mu.RLock()
 	defer cq.mu.RUnlock()
 

@@ -14,7 +14,7 @@ func errorWorker(perr *error, errch <-chan error) {
 	}
 }
 
-func marshalWorker(qc *cacheQtype, w io.Writer, n *int64, wlock *sync.Mutex, errch chan<- error, wg *sync.WaitGroup) {
+func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, wlock *sync.Mutex, errch chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for _, cv := range qc.cache {
 		b, err := cv.MarshalBinary()

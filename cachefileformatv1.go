@@ -38,7 +38,7 @@ func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
 	return
 }
 
-func (cq *cacheQtype) writeToV1Locked(w io.Writer) (n int64, err error) {
+func (cq *cacheBucket) writeToV1Locked(w io.Writer) (n int64, err error) {
 	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
 		numentries := int64(len(cq.cache))
 		if err = writeInt64(w, &n, numentries); err == nil {
@@ -52,7 +52,7 @@ func (cq *cacheQtype) writeToV1Locked(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cq *cacheQtype) readFromV1Locked(r io.Reader) (n int64, err error) {
+func (cq *cacheBucket) readFromV1Locked(r io.Reader) (n int64, err error) {
 	clear(cq.cache)
 	var gotmagic uint16
 	if gotmagic, err = readUint16(r, &n); err == nil {

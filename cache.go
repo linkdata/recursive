@@ -21,15 +21,15 @@ type Cache struct {
 	NXTTL  time.Duration // cache NXDOMAIN responses for this long
 	count  atomic.Uint64
 	hits   atomic.Uint64
-	cq     []*cacheQtype
+	cq     []*cacheBucket
 }
 
 var _ CachingResolver = &Cache{}
 
 func NewCache() *Cache {
-	cq := make([]*cacheQtype, MaxQtype+1)
+	cq := make([]*cacheBucket, MaxQtype+1)
 	for i := range cq {
-		cq[i] = newCacheQtype()
+		cq[i] = newCacheBucket()
 	}
 	return &Cache{
 		MinTTL: DefaultMinTTL,
