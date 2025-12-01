@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -701,4 +702,59 @@ func dnsMsgsEqual(a, b *dns.Msg) bool {
 		return true
 	}
 	return a.String() == b.String()
+}
+
+func TestCacheWriteTo(t *testing.T) {
+	c, _, err := loadCacheFile(t, "dnscache1.bin")
+	if err == nil {
+		saveCacheFile(t, c, "dnscache2-*.bin")
+		saveCacheFileWriteTo(t, "dnscache1-*.bin", c.WriteToV1)
+	}
+}
+
+func loadCacheFile(t *testing.T, fixture string) (c *Cache, elapsed time.Duration, err error) {
+	if t != nil {
+		t.Helper()
+	}
+	var source *os.File
+	if source, err = os.Open(fixture); err == nil {
+		defer source.Close()
+		c = NewCache()
+		start := time.Now()
+		var n int64
+		n, err = c.ReadFrom(bufio.NewReader(source))
+		elapsed = time.Since(start)
+		if t != nil {
+			t.Logf("loadCacheFile %q: %s (%v bytes)\n", fixture, elapsed, n)
+		}
+	}
+	return
+}
+
+func saveCacheFileWriteTo(t *testing.T, fixture string, writeTo func(w io.Writer) (n int64, err error)) (fpath string, elapsed time.Duration, err error) {
+	if t != nil {
+		t.Helper()
+	}
+	var f *os.File
+	if f, err = os.CreateTemp("", fixture); err == nil {
+		defer f.Close()
+		fpath = f.Name()
+		bw := bufio.NewWriter(f)
+		defer bw.Flush()
+		start := time.Now()
+		var n int64
+		n, err = writeTo(bw)
+		elapsed = time.Since(start)
+		if t != nil {
+			t.Logf("saveCacheFile %q: %s (%v bytes)\n", fpath, elapsed, n)
+		}
+	}
+	return
+}
+
+func saveCacheFile(t *testing.T, c *Cache, fixture string) (fpath string, elapsed time.Duration, err error) {
+	if t != nil {
+		t.Helper()
+	}
+	return saveCacheFileWriteTo(t, fixture, c.WriteTo)
 }

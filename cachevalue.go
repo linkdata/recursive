@@ -18,9 +18,8 @@ func (cv cacheValue) expiresAt() time.Time {
 }
 
 func (cv *cacheValue) MarshalBinary() (b []byte, err error) {
-	var buf [4096]byte
 	var packed []byte
-	if packed, err = cv.PackBuffer(buf[:]); err == nil {
+	if packed, err = cv.Pack(); err == nil {
 		b = binary.AppendVarint(b, cv.expires)
 		b = append(b, packed...)
 	}

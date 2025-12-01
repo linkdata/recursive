@@ -11,12 +11,12 @@ import (
 
 const cacheQtypeMagic = uint16(0xFE01)
 
-func (cache *Cache) WriteToV1(w io.Writer, n *int64) (err error) {
+func (cache *Cache) WriteToV1(w io.Writer) (n int64, err error) {
 	if cache != nil {
-		if err = writeInt64(w, n, cacheMagic1); err == nil {
+		if err = writeInt64(w, &n, cacheMagic1); err == nil {
 			for _, cq := range cache.cq {
 				written, cqerr := cq.writeToV1Locked(w)
-				*n += written
+				n += written
 				err = errors.Join(err, cqerr)
 			}
 		}

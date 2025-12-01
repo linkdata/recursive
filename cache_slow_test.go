@@ -4,40 +4,10 @@
 package recursive
 
 import (
-	"bufio"
 	"errors"
 	"os"
 	"testing"
-	"time"
 )
-
-func loadCacheFile(t *testing.T, fixture string) (c *Cache, elapsed time.Duration, err error) {
-	t.Helper()
-	var source *os.File
-	if source, err = os.Open(fixture); err == nil {
-		defer source.Close()
-		c = NewCache()
-		start := time.Now()
-		_, err = c.ReadFrom(bufio.NewReader(source))
-		elapsed = time.Since(start)
-	}
-	return
-}
-
-func saveCacheFile(t *testing.T, c *Cache, fixture string) (fpath string, elapsed time.Duration, err error) {
-	t.Helper()
-	var f *os.File
-	if f, err = os.CreateTemp("", fixture); err == nil {
-		defer f.Close()
-		fpath = f.Name()
-		bw := bufio.NewWriter(f)
-		defer bw.Flush()
-		start := time.Now()
-		_, err = c.WriteTo(bw)
-		elapsed = time.Since(start)
-	}
-	return
-}
 
 func TestCacheReadFromExistingBinaryRoundTrip(t *testing.T) {
 	const fixture = "dnscache1.bin"

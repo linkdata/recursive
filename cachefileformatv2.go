@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
-	"runtime"
 	"sync"
 	"sync/atomic"
 )
@@ -15,12 +14,21 @@ func errorWorker(perr *error, errch <-chan error) {
 	}
 }
 
-func marshalWorker(inch <-chan cacheValue, outch chan<- []byte, errch chan<- error, wg *sync.WaitGroup) {
+func marshalWorker(qc *cacheQtype, w io.Writer, n *int64, wlock *sync.Mutex, errch chan<- error, wg *sync.WaitGroup) {
 	defer wg.Done()
-	for cv := range inch {
-		if b, err := cv.MarshalBinary(); err == nil {
-			outch <- b
-		} else {
+	for _, cv := range qc.cache {
+		b, err := cv.MarshalBinary()
+		if err == nil {
+			var buf []byte
+			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b)))
+			buf = append(buf, b...)
+			var written int
+			wlock.Lock()
+			written, err = w.Write(buf)
+			wlock.Unlock()
+			atomic.AddInt64(n, int64(written))
+		}
+		if err != nil {
 			errch <- err
 		}
 	}
@@ -47,28 +55,15 @@ func writeWorker(w io.Writer, n *int64, outch <-chan []byte, errch chan<- error,
 
 func (cache *Cache) writeToV2Locked(w io.Writer, n *int64) (err error) {
 	if err = writeInt64(w, n, cacheMagic2); err == nil {
-		var writewg sync.WaitGroup
 		var marshalwg sync.WaitGroup
-		numworkers := runtime.GOMAXPROCS(0)
 		errch := make(chan error)
-		inch := make(chan cacheValue, 1024)
-		outch := make(chan []byte, 1024)
 		go errorWorker(&err, errch)
-		writewg.Add(1)
-		go writeWorker(w, n, outch, errch, &writewg)
-		for range numworkers {
-			marshalwg.Add(1)
-			go marshalWorker(inch, outch, errch, &marshalwg)
-		}
+		var wlock sync.Mutex
 		for _, cq := range cache.cq {
-			for _, cv := range cq.cache {
-				inch <- cv
-			}
+			marshalwg.Add(1)
+			go marshalWorker(cq, w, n, &wlock, errch, &marshalwg)
 		}
-		close(inch)
 		marshalwg.Wait()
-		close(outch)
-		writewg.Wait()
 		close(errch)
 	}
 	return
