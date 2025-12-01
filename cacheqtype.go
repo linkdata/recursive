@@ -96,10 +96,14 @@ func (cq *cacheQtype) ReadFrom(r io.Reader) (n int64, err error) {
 					var cv cacheValue
 					numread, valueerr := cv.ReadFrom(r)
 					n += numread
-					err = errors.Join(err, valueerr)
 					if valueerr == nil {
 						qname := cv.Question[0].Name
 						cq.cache[qname] = cv
+					} else {
+						err = errors.Join(err, valueerr)
+						if valueerr == io.EOF || errors.Is(valueerr, io.ErrUnexpectedEOF) {
+							break
+						}
 					}
 				}
 			}
