@@ -81,7 +81,7 @@ func (cq *cacheQtype) readFromV1Locked(r io.Reader) (n int64, err error) {
 }
 
 func (cv *cacheValue) writeToV1Locked(w io.Writer) (n int64, err error) {
-	if err = writeInt64(w, &n, cv.expires); err == nil {
+	if err = writeInt64(w, &n, cv.expires*1000); err == nil {
 		var packed []byte
 		if packed, err = cv.Pack(); err == nil {
 			if err = writeInt64(w, &n, int64(len(packed))); err == nil {
@@ -104,7 +104,7 @@ func (cv *cacheValue) readFromV1Locked(r io.Reader) (n int64, err error) {
 				var msg dns.Msg
 				if err = msg.Unpack(buf); err == nil {
 					cv.Msg = &msg
-					cv.expires = expiry
+					cv.expires = expiry / 1000
 				}
 			}
 			n += int64(numread)

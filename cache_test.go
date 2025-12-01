@@ -588,6 +588,105 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	}
 }
 
+func TestCacheReadFromExistingBinaryRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	t.SkipNow()
+
+	const fixture = "dnscache1.bin"
+
+	var info os.FileInfo
+	var err error
+	info, err = os.Stat(fixture)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			t.Skipf("%s not present; skipping fixture round trip", fixture)
+		}
+		t.Fatalf("stat %s: %v", fixture, err)
+	}
+	if info.IsDir() {
+		t.Fatalf("%s is a directory, expected file", fixture)
+	}
+
+	var source *os.File
+	source, err = os.Open(fixture)
+	if err != nil {
+		t.Fatalf("open %s: %v", fixture, err)
+	}
+	defer source.Close()
+
+	original := NewCache()
+
+	var start time.Time
+	var readBytes int64
+	var loadDuration time.Duration
+	start = time.Now()
+	readBytes, err = original.ReadFrom(source)
+	loadDuration = time.Since(start)
+	if err != nil {
+		t.Fatalf("ReadFrom(%s) returned error: %v", fixture, err)
+	}
+	if readBytes <= 0 {
+		t.Fatalf("ReadFrom(%s) read %d bytes", fixture, readBytes)
+	}
+
+	tmpDir := t.TempDir()
+	copyPath := filepath.Join(tmpDir, "dnscache2.bin")
+
+	var copyFile *os.File
+	copyFile, err = os.Create(copyPath)
+	if err != nil {
+		t.Fatalf("create %s: %v", copyPath, err)
+	}
+
+	var writeDuration time.Duration
+	var written int64
+	start = time.Now()
+	written, err = original.WriteTo(copyFile)
+	writeDuration = time.Since(start)
+	if err != nil {
+		t.Fatalf("WriteTo(%s) returned error: %v", copyPath, err)
+	}
+	if written <= 0 {
+		t.Fatalf("WriteTo(%s) wrote %d bytes", copyPath, written)
+	}
+
+	syncErr := copyFile.Sync()
+	if syncErr != nil {
+		t.Fatalf("Sync(%s) returned error: %v", copyPath, syncErr)
+	}
+
+	closeErr := copyFile.Close()
+	if closeErr != nil {
+		t.Fatalf("Close(%s) returned error: %v", copyPath, closeErr)
+	}
+
+	copyCache := NewCache()
+
+	var copyReader *os.File
+	copyReader, err = os.Open(copyPath)
+	if err != nil {
+		t.Fatalf("open %s: %v", copyPath, err)
+	}
+	defer copyReader.Close()
+
+	var copyReadDuration time.Duration
+	var copyReadBytes int64
+	start = time.Now()
+	copyReadBytes, err = copyCache.ReadFrom(copyReader)
+	copyReadDuration = time.Since(start)
+	if err != nil {
+		t.Fatalf("ReadFrom(%s) returned error: %v", copyPath, err)
+	}
+	if copyReadBytes != written {
+		t.Fatalf("ReadFrom(%s) read %d bytes, want %d", copyPath, copyReadBytes, written)
+	}
+
+	t.Logf("loaded %s in %s (%d bytes), wrote copy in %s, reloaded copy in %s", fixture, loadDuration, readBytes, writeDuration, copyReadDuration)
+
+	assertCachesEqual(t, original, copyCache)
+}
+
 type chunkedReader struct {
 	r     io.Reader
 	chunk int
