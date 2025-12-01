@@ -52,16 +52,24 @@ func (cq *cacheQtype) get(qname string, allowstale bool) (msg *dns.Msg, stale bo
 	return
 }
 
+func (cq *cacheQtype) clearLocked() {
+	cq.cleanLocked(time.Time{})
+}
+
 func (cq *cacheQtype) clear() {
 	cq.clean(time.Time{})
 }
 
-func (cq *cacheQtype) clean(t time.Time) {
-	cq.mu.Lock()
-	defer cq.mu.Unlock()
+func (cq *cacheQtype) cleanLocked(t time.Time) {
 	for qname, cv := range cq.cache {
 		if t.IsZero() || cv.expiresAt().Before(t) {
 			delete(cq.cache, qname)
 		}
 	}
+}
+
+func (cq *cacheQtype) clean(t time.Time) {
+	cq.mu.Lock()
+	defer cq.mu.Unlock()
+	cq.cleanLocked(t)
 }

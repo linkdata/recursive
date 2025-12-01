@@ -15,7 +15,7 @@ func (cache *Cache) WriteToV1(w io.Writer, n *int64) (err error) {
 	if cache != nil {
 		if err = writeInt64(w, n, cacheMagic1); err == nil {
 			for _, cq := range cache.cq {
-				written, cqerr := cq.writeToV1(w)
+				written, cqerr := cq.writeToV1Locked(w)
 				*n += written
 				err = errors.Join(err, cqerr)
 			}
@@ -24,11 +24,11 @@ func (cache *Cache) WriteToV1(w io.Writer, n *int64) (err error) {
 	return
 }
 
-func (cache *Cache) readFromV1(r io.Reader, n *int64) (err error) {
-	cache.Clear()
+func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
+	cache.clearLocked()
 	err = nil
 	for _, cq := range cache.cq {
-		numread, cqerr := cq.readFromV1(r)
+		numread, cqerr := cq.readFromV1Locked(r)
 		*n += numread
 		err = errors.Join(err, cqerr)
 		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
@@ -38,14 +38,12 @@ func (cache *Cache) readFromV1(r io.Reader, n *int64) (err error) {
 	return
 }
 
-func (cq *cacheQtype) writeToV1(w io.Writer) (n int64, err error) {
-	cq.mu.RLock()
-	defer cq.mu.RUnlock()
+func (cq *cacheQtype) writeToV1Locked(w io.Writer) (n int64, err error) {
 	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
 		numentries := int64(len(cq.cache))
 		if err = writeInt64(w, &n, numentries); err == nil {
 			for _, cv := range cq.cache {
-				written, valueerr := cv.writeToV1(w)
+				written, valueerr := cv.writeToV1Locked(w)
 				n += written
 				err = errors.Join(err, valueerr)
 			}
@@ -54,9 +52,7 @@ func (cq *cacheQtype) writeToV1(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
-	cq.mu.Lock()
-	defer cq.mu.Unlock()
+func (cq *cacheQtype) readFromV1Locked(r io.Reader) (n int64, err error) {
 	clear(cq.cache)
 	var gotmagic uint16
 	if gotmagic, err = readUint16(r, &n); err == nil {
@@ -66,7 +62,7 @@ func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
 			if numentries, err = readInt64(r, &n); err == nil {
 				for range numentries {
 					var cv cacheValue
-					numread, valueerr := cv.readFromV1(r)
+					numread, valueerr := cv.readFromV1Locked(r)
 					n += numread
 					if valueerr == nil {
 						qname := cv.Question[0].Name
@@ -84,7 +80,7 @@ func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
 	return
 }
 
-func (cv *cacheValue) writeToV1(w io.Writer) (n int64, err error) {
+func (cv *cacheValue) writeToV1Locked(w io.Writer) (n int64, err error) {
 	if err = writeInt64(w, &n, cv.expires); err == nil {
 		var packed []byte
 		if packed, err = cv.Pack(); err == nil {
@@ -98,7 +94,7 @@ func (cv *cacheValue) writeToV1(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cv *cacheValue) readFromV1(r io.Reader) (n int64, err error) {
+func (cv *cacheValue) readFromV1Locked(r io.Reader) (n int64, err error) {
 	var expiry, packlen int64
 	if expiry, err = readInt64(r, &n); err == nil {
 		if packlen, err = readInt64(r, &n); err == nil {

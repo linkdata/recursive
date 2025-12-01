@@ -45,7 +45,7 @@ func writeWorker(w io.Writer, n *int64, outch <-chan []byte, errch chan<- error,
 	}
 }
 
-func (cache *Cache) writeToV2(w io.Writer, n *int64) (err error) {
+func (cache *Cache) writeToV2Locked(w io.Writer, n *int64) (err error) {
 	if err = writeInt64(w, n, cacheMagic2); err == nil {
 		var writewg sync.WaitGroup
 		var marshalwg sync.WaitGroup
@@ -61,11 +61,9 @@ func (cache *Cache) writeToV2(w io.Writer, n *int64) (err error) {
 			go marshalWorker(inch, outch, errch, &marshalwg)
 		}
 		for _, cq := range cache.cq {
-			cq.mu.RLock()
 			for _, cv := range cq.cache {
 				inch <- cv
 			}
-			cq.mu.RUnlock()
 		}
 		close(inch)
 		marshalwg.Wait()
@@ -76,8 +74,8 @@ func (cache *Cache) writeToV2(w io.Writer, n *int64) (err error) {
 	return
 }
 
-func (cache *Cache) readFromV2(r io.Reader, n *int64) (err error) {
-	cache.Clear()
+func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
+	cache.clearLocked()
 	for err == nil {
 		var buf [0xFFFF]byte
 		var numread int
@@ -90,9 +88,7 @@ func (cache *Cache) readFromV2(r io.Reader, n *int64) (err error) {
 				if err = cv.UnmarshalBinary(buf[:length]); err == nil {
 					if qtype := cv.Question[0].Qtype; qtype <= MaxQtype {
 						cq := cache.cq[qtype]
-						cq.mu.Lock()
 						cq.setLocked(cv.Msg, cv.expires)
-						cq.mu.Unlock()
 					}
 				}
 			}
