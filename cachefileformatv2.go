@@ -81,9 +81,13 @@ func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
 				*n += int64(numread)
 				var cv cacheValue
 				if err = cv.UnmarshalBinary(buf[:length]); err == nil {
-					if qtype := cv.Question[0].Qtype; qtype <= MaxQtype {
-						cq := cache.cq[qtype]
-						cq.setLocked(cv.Msg, cv.expires)
+					if len(cv.Question) > 0 {
+						question := cv.Question[0]
+						var key bucketKey
+						var ok bool
+						if key, ok = newBucketKey(question.Name, question.Qtype); ok {
+							cache.bucketFor(key).setLocked(key, cv.Msg, cv.expires)
+						}
 					}
 				}
 			}

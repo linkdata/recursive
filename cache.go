@@ -21,22 +21,21 @@ type Cache struct {
 	NXTTL  time.Duration // cache NXDOMAIN responses for this long
 	count  atomic.Uint64
 	hits   atomic.Uint64
-	cq     []*cacheBucket
+	cq     [cacheBucketCount]*cacheBucket
 }
 
 var _ CachingResolver = &Cache{}
 
 func NewCache() *Cache {
-	cq := make([]*cacheBucket, MaxQtype+1)
-	for i := range cq {
-		cq[i] = newCacheBucket()
-	}
-	return &Cache{
+	cache := &Cache{
 		MinTTL: DefaultMinTTL,
 		MaxTTL: DefaultMaxTTL,
 		NXTTL:  DefaultNXTTL,
-		cq:     cq,
 	}
+	for i := range cache.cq {
+		cache.cq[i] = newCacheBucket()
+	}
+	return cache
 }
 
 // HitRatio returns the hit ratio as a percentage.
@@ -59,22 +58,38 @@ func (cache *Cache) Entries() (n int) {
 	return
 }
 
+func newBucketKey(qname string, qtype uint16) (key bucketKey, ok bool) {
+	if qtype <= MaxQtype {
+		key = bucketKey{qname: qname, qtype: qtype}
+		ok = true
+	}
+	return
+}
+
+func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
+	bucket = cache.cq[bucketIndexForKey(key)]
+	return
+}
+
 // DnsSet add a DNS message to the cache.
 //
 // Does nothing if the message has the Zero flag set, or does not have exactly one Question.
 func (cache *Cache) DnsSet(msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
-		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
+		question := msg.Question[0]
+		var key bucketKey
+		var ok bool
+		if key, ok = newBucketKey(question.Name, question.Qtype); ok {
 			msg = msg.Copy()
 			msg.Zero = true
 			ttl := cache.NXTTL
 			if msg.Rcode != dns.RcodeNameError {
 				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
-				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+				if question.Qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
 					ttl = min(cache.MaxTTL, ttl)
 				}
 			}
-			cache.cq[qtype].set(msg, ttl)
+			cache.bucketFor(key).set(key, msg, ttl)
 		}
 	}
 }
@@ -91,8 +106,10 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
 		cache.count.Add(1)
-		if qtype <= MaxQtype {
-			if msg, stale = cache.cq[qtype].get(qname, allowstale); msg != nil {
+		var key bucketKey
+		var ok bool
+		if key, ok = newBucketKey(qname, qtype); ok {
+			if msg, stale = cache.bucketFor(key).get(key, allowstale); msg != nil {
 				cache.hits.Add(1)
 			}
 		}
@@ -142,9 +159,9 @@ func (cache *Cache) Merge(other *Cache) {
 		for i := range other.cq {
 			other.cq[i].mu.RLock()
 			cache.cq[i].mu.Lock()
-			for qname, cv := range other.cq[i].cache {
-				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires > oldcv.expires {
-					cache.cq[i].cache[qname] = cv
+			for key, cv := range other.cq[i].cache {
+				if oldcv, ok := cache.cq[i].cache[key]; !ok || cv.expires > oldcv.expires {
+					cache.cq[i].cache[key] = cv
 				}
 			}
 			cache.cq[i].mu.Unlock()

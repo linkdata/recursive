@@ -65,8 +65,14 @@ func (cq *cacheBucket) readFromV1Locked(r io.Reader) (n int64, err error) {
 					numread, valueerr := cv.readFromV1Locked(r)
 					n += numread
 					if valueerr == nil {
-						qname := cv.Question[0].Name
-						cq.cache[qname] = cv
+						if len(cv.Question) > 0 {
+							question := cv.Question[0]
+							var key bucketKey
+							var ok bool
+							if key, ok = newBucketKey(question.Name, question.Qtype); ok {
+								cq.cache[key] = cv
+							}
+						}
 					} else {
 						err = errors.Join(err, valueerr)
 						if valueerr == io.EOF || errors.Is(valueerr, io.ErrUnexpectedEOF) {
