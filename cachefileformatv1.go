@@ -11,11 +11,25 @@ import (
 
 const cacheQtypeMagic = uint16(0xFE01)
 
-func (cache *Cache) readFromV1(r io.Reader) (n int64, err error) {
+func (cache *Cache) WriteToV1(w io.Writer, n *int64) (err error) {
+	if cache != nil {
+		if err = writeInt64(w, n, cacheMagic1); err == nil {
+			for _, cq := range cache.cq {
+				written, cqerr := cq.writeToV1(w)
+				*n += written
+				err = errors.Join(err, cqerr)
+			}
+		}
+	}
+	return
+}
+
+func (cache *Cache) readFromV1(r io.Reader, n *int64) (err error) {
+	cache.Clear()
 	err = nil
 	for _, cq := range cache.cq {
 		numread, cqerr := cq.readFromV1(r)
-		n += numread
+		*n += numread
 		err = errors.Join(err, cqerr)
 		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
 			break
@@ -24,21 +38,21 @@ func (cache *Cache) readFromV1(r io.Reader) (n int64, err error) {
 	return
 }
 
-/*func (cq *cacheQtype) WriteTo(w io.Writer) (n int64, err error) {
+func (cq *cacheQtype) writeToV1(w io.Writer) (n int64, err error) {
 	cq.mu.RLock()
 	defer cq.mu.RUnlock()
 	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
 		numentries := int64(len(cq.cache))
 		if err = writeInt64(w, &n, numentries); err == nil {
 			for _, cv := range cq.cache {
-				written, valueerr := cv.WriteTo(w)
+				written, valueerr := cv.writeToV1(w)
 				n += written
 				err = errors.Join(err, valueerr)
 			}
 		}
 	}
 	return
-}*/
+}
 
 func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
 	cq.mu.Lock()
@@ -70,7 +84,7 @@ func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
 	return
 }
 
-/*func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) {
+func (cv *cacheValue) writeToV1(w io.Writer) (n int64, err error) {
 	if err = writeInt64(w, &n, cv.expires); err == nil {
 		var packed []byte
 		if packed, err = cv.Pack(); err == nil {
@@ -82,7 +96,7 @@ func (cq *cacheQtype) readFromV1(r io.Reader) (n int64, err error) {
 		}
 	}
 	return
-}*/
+}
 
 func (cv *cacheValue) readFromV1(r io.Reader) (n int64, err error) {
 	var expiry, packlen int64
