@@ -386,8 +386,7 @@ func TestCacheMergeAddsEntries(t *testing.T) {
 
 	qname := dns.Fqdn("merge-add.example.")
 	msg := newTestMessage(qname)
-	expires := time.Now().Add(5 * 60)
-	wantExpires := expires.Unix()
+	wantExpires := int64(time.Now().Unix() + (5 * 60))
 
 	key := mustBucketKey(t, qname, dns.TypeA)
 	srcCQ := src.bucketFor(key)
@@ -409,7 +408,7 @@ func TestCacheMergeAddsEntries(t *testing.T) {
 		t.Fatalf("merged entry Msg mismatch: got %p want %p", cv.Msg, msg)
 	}
 	if cv.expires != wantExpires {
-		t.Fatalf("merged entry expires %v, expected %v", cv.expires, expires)
+		t.Fatalf("merged entry expires %v, expected %v", cv.expires, wantExpires)
 	}
 }
 
