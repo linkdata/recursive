@@ -9,23 +9,23 @@ import (
 
 const marshalWorkerBufferSize = 1024 * 64
 
-func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, errmu *sync.Mutex, wg *sync.WaitGroup) {
+func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var buf []byte
 	ef := func(e error) (fatal bool) {
 		if e != nil {
 			fatal = e == io.EOF || errors.Is(e, io.ErrShortWrite)
-			errmu.Lock()
+			pmu.Lock()
 			*perr = errors.Join(*perr, e)
-			errmu.Unlock()
+			pmu.Unlock()
 		}
 		return
 	}
 	wf := func() error {
-		errmu.Lock()
+		pmu.Lock()
 		written, err := w.Write(buf)
 		*n += int64(written)
-		errmu.Unlock()
+		pmu.Unlock()
 		buf = buf[:0]
 		return err
 	}
@@ -46,40 +46,71 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, errmu *s
 
 func (cache *Cache) writeToV2Locked(w io.Writer, n *int64) (err error) {
 	if err = writeInt64(w, n, cacheMagic2); err == nil {
-		var marshalwg sync.WaitGroup
-		var errmu sync.Mutex
+		var wg sync.WaitGroup
+		var mu sync.Mutex
 		for _, cq := range cache.cq {
-			marshalwg.Add(1)
-			go marshalWorker(cq, w, n, &err, &errmu, &marshalwg)
+			wg.Add(1)
+			go marshalWorker(cq, w, n, &err, &mu, &wg)
 		}
-		marshalwg.Wait()
+		wg.Wait()
 	}
 	return
 }
 
-func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
-	cache.clearLocked()
-	for err == nil {
-		var buf [0xFFFF]byte
+func (cache *Cache) unmarshalWorker(r io.Reader, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
+	defer wg.Done()
+	var err error
+	buf := make([]byte, 512)
+	ef := func(e error) (fatal bool) {
+		if e != nil {
+			fatal = e == io.EOF || errors.Is(e, io.ErrShortWrite)
+			if e != io.EOF {
+				pmu.Lock()
+				*perr = errors.Join(*perr, e)
+				pmu.Unlock()
+			}
+		}
+		return
+	}
+	rf := func() (length int, err error) {
+		pmu.Lock()
+		defer pmu.Unlock()
 		var numread int
-		if numread, err = io.ReadFull(r, buf[:2]); err == nil {
+		numread, err = io.ReadFull(r, buf[:2])
+		*n += int64(numread)
+		if err == nil {
+			length = int(binary.BigEndian.Uint16(buf[:2]))
+			if length > len(buf) {
+				buf = make([]byte, length)
+			}
+			numread, err = io.ReadFull(r, buf[:length])
 			*n += int64(numread)
-			length := int(binary.BigEndian.Uint16(buf[:2]))
-			if numread, err = io.ReadFull(r, buf[:length]); err == nil {
-				*n += int64(numread)
-				var cv cacheValue
-				if err = cv.UnmarshalBinary(buf[:length]); err == nil {
-					if len(cv.Question) > 0 {
-						question := cv.Question[0]
-						key := newBucketKey(question.Name, question.Qtype)
-						cache.bucketFor(key).setLocked(key, cv.Msg, cv.expires)
-					}
+		}
+		return
+	}
+	for !ef(err) {
+		var length int
+		if length, err = rf(); err == nil {
+			var cv cacheValue
+			if err = cv.UnmarshalBinary(buf[:length]); err == nil {
+				if len(cv.Question) > 0 {
+					question := cv.Question[0]
+					key := newBucketKey(question.Name, question.Qtype)
+					cache.bucketFor(key).set(key, cv.Msg, cv.expires)
 				}
 			}
 		}
 	}
-	if errors.Is(err, io.EOF) {
-		err = nil
+}
+
+func (cache *Cache) readFromV2(r io.Reader, n *int64) (err error) {
+	cache.Clear()
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	for range cacheBucketCount {
+		wg.Add(1)
+		go cache.unmarshalWorker(r, n, &err, &mu, &wg)
 	}
+	wg.Wait()
 	return
 }

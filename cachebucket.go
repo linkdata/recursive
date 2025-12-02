@@ -40,9 +40,9 @@ func (cq *cacheBucket) setLocked(key bucketKey, msg *dns.Msg, expires int64) {
 	cq.cache[key] = cacheValue{Msg: msg, expires: expires}
 }
 
-func (cq *cacheBucket) set(key bucketKey, msg *dns.Msg, ttl time.Duration) {
+func (cq *cacheBucket) set(key bucketKey, msg *dns.Msg, expires int64) {
 	cq.mu.Lock()
-	cq.setLocked(key, msg, time.Now().Add(ttl).Unix())
+	cq.setLocked(key, msg, expires)
 	cq.mu.Unlock()
 }
 

@@ -22,11 +22,11 @@ func TestCachePositiveUsesMessageMinTTL(t *testing.T) {
 	t.Parallel()
 	const (
 		expectedTTLSeconds = 2
-		tolerance          = time.Second + 75*time.Millisecond
+		tolerance          = 1
 	)
 	cache := NewCache()
 	cache.MinTTL = 0
-	cache.MaxTTL = time.Hour
+	cache.MaxTTL = 60 * 60
 	qname := dns.Fqdn("example-positive-ttl.com")
 	msg := new(dns.Msg)
 	msg.SetQuestion(qname, dns.TypeA)
@@ -49,10 +49,9 @@ func TestCachePositiveUsesMessageMinTTL(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected cache entry for %s", qname)
 	}
-	ttl := time.Until(time.Unix(entry.expires, 0))
-	expected := time.Duration(expectedTTLSeconds) * time.Second
-	if ttl > expected+tolerance || ttl < expected-tolerance {
-		t.Fatalf("unexpected ttl got=%s want=%s±%s", ttl, expected, tolerance)
+	ttl := int64(time.Until(time.Unix(entry.expires, 0)).Seconds())
+	if ttl > expectedTTLSeconds+tolerance || ttl < expectedTTLSeconds-tolerance {
+		t.Fatalf("unexpected ttl got=%v want=%v±%v", ttl, expectedTTLSeconds, tolerance)
 	}
 }
 
@@ -60,11 +59,11 @@ func TestCacheNegativeUsesNXTTL(t *testing.T) {
 	t.Parallel()
 	const (
 		expectedTTLSeconds = 12
-		tolerance          = time.Second + 75*time.Millisecond
+		tolerance          = 1
 	)
 	cache := NewCache()
 	cache.MinTTL = 0
-	cache.NXTTL = time.Duration(expectedTTLSeconds) * time.Second
+	cache.NXTTL = expectedTTLSeconds
 	qname := dns.Fqdn("example-negative-ttl.org")
 	msg := new(dns.Msg)
 	msg.SetQuestion(qname, dns.TypeAAAA)
@@ -90,10 +89,10 @@ func TestCacheNegativeUsesNXTTL(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected cache entry for %s", qname)
 	}
-	ttl := time.Until(time.Unix(entry.expires, 0))
+	ttl := int64(time.Until(time.Unix(entry.expires, 0)).Seconds())
 	expected := cache.NXTTL
 	if ttl > expected+tolerance || ttl < expected-tolerance {
-		t.Fatalf("unexpected ttl got=%s want=%s±%s", ttl, expected, tolerance)
+		t.Fatalf("unexpected ttl got=%v want=%v±%v", ttl, expected, tolerance)
 	}
 }
 
@@ -268,7 +267,7 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 
 	msg := newTestMessage(qname)
 	key := mustBucketKey(t, qname, dns.TypeA)
-	c.bucketFor(key).set(key, msg, -time.Second)
+	c.bucketFor(key).set(key, msg, -1)
 	if entries := c.Entries(); entries != 1 {
 		t.Fatalf("Entries() = %d after expired insert", entries)
 	}
@@ -281,7 +280,7 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 
 	fresh := newTestMessage(dns.Fqdn("fresh.example"))
 	freshKey := mustBucketKey(t, dns.Fqdn("fresh.example"), dns.TypeA)
-	c.bucketFor(freshKey).set(freshKey, fresh, -time.Minute)
+	c.bucketFor(freshKey).set(freshKey, fresh, -60)
 	c.Clean()
 	if entries := c.Entries(); entries != 0 {
 		t.Fatalf("Entries() = %d after Clean", entries)
@@ -292,15 +291,15 @@ func TestCacheWalkVisitsEntries(t *testing.T) {
 	t.Parallel()
 
 	cache := NewCache()
-	now := time.Now()
+	now := time.Now().Unix()
 
 	qnameA := dns.Fqdn("walk-a.example")
 	msgA := newTestMessage(qnameA)
-	expiresA := now.Add(5 * time.Minute)
+	expiresA := now + (5 * 60)
 	keyA := mustBucketKey(t, qnameA, dns.TypeA)
 	cqA := cache.bucketFor(keyA)
 	cqA.mu.Lock()
-	cqA.cache[keyA] = cacheValue{Msg: msgA, expires: expiresA.Unix()}
+	cqA.cache[keyA] = cacheValue{Msg: msgA, expires: expiresA}
 	cqA.mu.Unlock()
 
 	qnameAAAA := dns.Fqdn("walk-aaaa.example")
@@ -312,16 +311,16 @@ func TestCacheWalkVisitsEntries(t *testing.T) {
 			AAAA: net.ParseIP("2001:db8::5"),
 		},
 	}
-	expiresAAAA := now.Add(10 * time.Minute)
+	expiresAAAA := now + (10 * 60)
 	keyAAAA := mustBucketKey(t, qnameAAAA, dns.TypeAAAA)
 	cqAAAA := cache.bucketFor(keyAAAA)
 	cqAAAA.mu.Lock()
-	cqAAAA.cache[keyAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA.Unix()}
+	cqAAAA.cache[keyAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA}
 	cqAAAA.mu.Unlock()
 
-	got := make(map[*dns.Msg]time.Time, 2)
+	got := make(map[*dns.Msg]int64, 2)
 	if err := cache.Walk(func(msg *dns.Msg, expires time.Time) error {
-		got[msg] = expires
+		got[msg] = expires.Unix()
 		return nil
 	}); err != nil {
 		t.Fatalf("Walk returned error: %v", err)
@@ -332,13 +331,13 @@ func TestCacheWalkVisitsEntries(t *testing.T) {
 	}
 	if exp, ok := got[msgA]; !ok {
 		t.Fatalf("Walk did not visit TypeA entry")
-	} else if !exp.Equal(time.Unix(expiresA.Unix(), 0)) {
-		t.Fatalf("TypeA entry expires %v, expected %v", exp, time.Unix(expiresA.Unix(), 0))
+	} else if exp != expiresA {
+		t.Fatalf("TypeA entry expires %v, expected %v", exp, expiresA)
 	}
 	if exp, ok := got[msgAAAA]; !ok {
 		t.Fatalf("Walk did not visit TypeAAAA entry")
-	} else if !exp.Equal(time.Unix(expiresAAAA.Unix(), 0)) {
-		t.Fatalf("TypeAAAA entry expires %v, expected %v", exp, time.Unix(expiresAAAA.Unix(), 0))
+	} else if exp != expiresAAAA {
+		t.Fatalf("TypeAAAA entry expires %v, expected %v", exp, expiresAAAA)
 	}
 }
 
@@ -351,16 +350,17 @@ func TestCacheWalkStopsOnError(t *testing.T) {
 	msg1 := newTestMessage(qname1)
 	msg2 := newTestMessage(qname2)
 
+	now := time.Now().Unix()
 	key1 := mustBucketKey(t, qname1, dns.TypeA)
 	cq1 := cache.bucketFor(key1)
 	cq1.mu.Lock()
-	cq1.cache[key1] = cacheValue{Msg: msg1, expires: time.Now().Add(time.Minute).Unix()}
+	cq1.cache[key1] = cacheValue{Msg: msg1, expires: now + 60}
 	cq1.mu.Unlock()
 
 	key2 := mustBucketKey(t, qname2, dns.TypeA)
 	cq2 := cache.bucketFor(key2)
 	cq2.mu.Lock()
-	cq2.cache[key2] = cacheValue{Msg: msg2, expires: time.Now().Add(2 * time.Minute).Unix()}
+	cq2.cache[key2] = cacheValue{Msg: msg2, expires: now + (2 * 60)}
 	cq2.mu.Unlock()
 
 	var calls int
@@ -386,7 +386,7 @@ func TestCacheMergeAddsEntries(t *testing.T) {
 
 	qname := dns.Fqdn("merge-add.example.")
 	msg := newTestMessage(qname)
-	expires := time.Now().Add(5 * time.Minute)
+	expires := time.Now().Add(5 * 60)
 	wantExpires := expires.Unix()
 
 	key := mustBucketKey(t, qname, dns.TypeA)
@@ -409,7 +409,7 @@ func TestCacheMergeAddsEntries(t *testing.T) {
 		t.Fatalf("merged entry Msg mismatch: got %p want %p", cv.Msg, msg)
 	}
 	if cv.expires != wantExpires {
-		t.Fatalf("merged entry expires %v, expected %v", time.Unix(cv.expires, 0), expires)
+		t.Fatalf("merged entry expires %v, expected %v", cv.expires, expires)
 	}
 }
 
@@ -420,23 +420,21 @@ func TestCacheMergePrefersLatestExpiration(t *testing.T) {
 	src := NewCache()
 
 	qname := dns.Fqdn("merge-conflict.example.")
-	now := time.Now()
-	shortExpires := now.Add(1 * time.Minute)
-	longExpires := now.Add(10 * time.Minute)
-	shortExpiresUnix := shortExpires.Unix()
-	longExpiresUnix := longExpires.Unix()
+	now := time.Now().Unix()
+	shortExpires := now + (1 * 60)
+	longExpires := now + (10 * 60)
 
 	key := mustBucketKey(t, qname, dns.TypeA)
 	dstCQ := dst.bucketFor(key)
 	shortMsg := newTestMessage(qname)
 	dstCQ.mu.Lock()
-	dstCQ.cache[key] = cacheValue{Msg: shortMsg, expires: shortExpiresUnix}
+	dstCQ.cache[key] = cacheValue{Msg: shortMsg, expires: shortExpires}
 	dstCQ.mu.Unlock()
 
 	srcCQ := src.bucketFor(key)
 	longMsg := newTestMessage(qname)
 	srcCQ.mu.Lock()
-	srcCQ.cache[key] = cacheValue{Msg: longMsg, expires: longExpiresUnix}
+	srcCQ.cache[key] = cacheValue{Msg: longMsg, expires: longExpires}
 	srcCQ.mu.Unlock()
 
 	dst.Merge(src)
@@ -451,8 +449,8 @@ func TestCacheMergePrefersLatestExpiration(t *testing.T) {
 	if cv.Msg != longMsg {
 		t.Fatalf("merge did not replace with longer lived msg")
 	}
-	if cv.expires != longExpiresUnix {
-		t.Fatalf("merge expiration mismatch: got %v want %v", time.Unix(cv.expires, 0), longExpires)
+	if cv.expires != longExpires {
+		t.Fatalf("merge expiration mismatch: got %v want %v", cv.expires, longExpires)
 	}
 }
 
@@ -460,15 +458,15 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	src := NewCache()
-	base := time.Unix(1_700_000_000, 0).UTC()
+	base := int64(1_700_000_000)
 
 	qnameA := dns.Fqdn("serialize-a.example.")
 	msgA := newTestMessage(qnameA)
-	expiresA := base.Add(5 * time.Minute)
+	expiresA := base + (5 * 60)
 	keyA := mustBucketKey(t, qnameA, dns.TypeA)
 	cqA := src.bucketFor(keyA)
 	cqA.mu.Lock()
-	cqA.cache[keyA] = cacheValue{Msg: msgA, expires: expiresA.Unix()}
+	cqA.cache[keyA] = cacheValue{Msg: msgA, expires: expiresA}
 	cqA.mu.Unlock()
 
 	qnameAAAA := dns.Fqdn("serialize-aaaa.example.")
@@ -485,11 +483,11 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 			AAAA: net.ParseIP("2001:db8::10"),
 		},
 	}
-	expiresAAAA := base.Add(10 * time.Minute)
+	expiresAAAA := base + (10 * 60)
 	keyAAAA := mustBucketKey(t, qnameAAAA, dns.TypeAAAA)
 	cqAAAA := src.bucketFor(keyAAAA)
 	cqAAAA.mu.Lock()
-	cqAAAA.cache[keyAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA.Unix()}
+	cqAAAA.cache[keyAAAA] = cacheValue{Msg: msgAAAA, expires: expiresAAAA}
 	cqAAAA.mu.Unlock()
 
 	var buf bytes.Buffer
@@ -510,7 +508,7 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 		t.Fatalf("ReadFrom read %d bytes, want %d", read, written)
 	}
 
-	assertEntry := func(t *testing.T, qtype uint16, qname string, wantExpires time.Time) {
+	assertEntry := func(t *testing.T, qtype uint16, qname string, wantExpires int64) {
 		t.Helper()
 		key := mustBucketKey(t, qname, qtype)
 		cq := dst.bucketFor(key)
@@ -523,8 +521,8 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 		if cv.Msg == nil || len(cv.Msg.Question) == 0 || cv.Msg.Question[0].Name != qname {
 			t.Fatalf("unexpected message for %s: %#v", qname, cv.Msg)
 		}
-		if cv.expires != wantExpires.Unix() {
-			t.Fatalf("expires mismatch for %s: got %v want %v", qname, time.Unix(cv.expires, 0), wantExpires)
+		if cv.expires != wantExpires {
+			t.Fatalf("expires mismatch for %s: got %v want %v", qname, cv.expires, wantExpires)
 		}
 	}
 
@@ -538,8 +536,6 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	const chunkSize = 16
 
 	src := NewCache()
-	base := time.Unix(1_700_000_000, 0).UTC()
-
 	qnameTXT := dns.Fqdn("serialize-shortread.example.")
 	txtPayload := strings.Repeat("chunky", 40) // 240 bytes to guarantee a larger packet
 	msgTXT := new(dns.Msg)
@@ -558,11 +554,11 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	if msgTXT.Len() <= chunkSize {
 		t.Fatalf("test requires message larger than chunk size, got len=%d chunk=%d", msgTXT.Len(), chunkSize)
 	}
-	expiresTXT := base.Add(15 * time.Minute)
+	expiresTXT := int64(1_700_000_000) + (15 * 60)
 	key := mustBucketKey(t, qnameTXT, dns.TypeTXT)
 	cqTXT := src.bucketFor(key)
 	cqTXT.mu.Lock()
-	cqTXT.cache[key] = cacheValue{Msg: msgTXT, expires: expiresTXT.Unix()}
+	cqTXT.cache[key] = cacheValue{Msg: msgTXT, expires: expiresTXT}
 	cqTXT.mu.Unlock()
 
 	var buf bytes.Buffer
@@ -597,8 +593,8 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	if cv.Msg == nil || len(cv.Msg.Question) == 0 || cv.Msg.Question[0].Name != qnameTXT {
 		t.Fatalf("unexpected message for %s: %#v", qnameTXT, cv.Msg)
 	}
-	if cv.expires != expiresTXT.Unix() {
-		t.Fatalf("expires mismatch for %s: got %v want %v", qnameTXT, time.Unix(cv.expires, 0), expiresTXT)
+	if cv.expires != expiresTXT {
+		t.Fatalf("expires mismatch for %s: got %v want %v", qnameTXT, cv.expires, expiresTXT)
 	}
 }
 
