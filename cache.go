@@ -13,7 +13,8 @@ import (
 const DefaultMinTTL = 10 * time.Second
 const DefaultMaxTTL = 24 * 7 * time.Hour
 const DefaultNXTTL = time.Hour
-const cacheBucketCount = 32
+const cacheBucketCountBits = 6
+const cacheBucketCount = (1 << cacheBucketCountBits)
 
 type Cache struct {
 	MinTTL time.Duration // always cache responses for at least this long

@@ -1,6 +1,7 @@
 package recursive
 
 import (
+	"hash/maphash"
 	"sync"
 	"time"
 
@@ -21,10 +22,10 @@ func newCacheBucket() *cacheBucket {
 	return &cacheBucket{cache: make(map[bucketKey]cacheValue)}
 }
 
+var bucketSeed = maphash.MakeSeed()
+
 func bucketIndexForKey(key bucketKey) (idx int) {
-	if len(key.qname) > 0 {
-		idx = int(key.qname[0]-32) & (cacheBucketCount - 1)
-	}
+	idx = int(maphash.String(bucketSeed, key.qname) & (cacheBucketCount - 1))
 	return
 }
 

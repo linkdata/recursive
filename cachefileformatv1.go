@@ -24,20 +24,6 @@ func (cache *Cache) WriteToV1(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
-	cache.clearLocked()
-	err = nil
-	for _, cq := range cache.cq {
-		numread, cqerr := cq.readFromV1Locked(r)
-		*n += numread
-		err = errors.Join(err, cqerr)
-		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
-			break
-		}
-	}
-	return
-}
-
 func (cq *cacheBucket) writeToV1Locked(w io.Writer) (n int64, err error) {
 	if err = writeUint16(w, &n, cacheQtypeMagic); err == nil {
 		numentries := int64(len(cq.cache))
@@ -52,8 +38,35 @@ func (cq *cacheBucket) writeToV1Locked(w io.Writer) (n int64, err error) {
 	return
 }
 
-func (cq *cacheBucket) readFromV1Locked(r io.Reader) (n int64, err error) {
-	clear(cq.cache)
+func (cv *cacheValue) writeToV1Locked(w io.Writer) (n int64, err error) {
+	if err = writeInt64(w, &n, cv.expires*1000); err == nil {
+		var packed []byte
+		if packed, err = cv.Pack(); err == nil {
+			if err = writeInt64(w, &n, int64(len(packed))); err == nil {
+				var written int
+				written, err = w.Write(packed)
+				n += int64(written)
+			}
+		}
+	}
+	return
+}
+
+func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
+	cache.clearLocked()
+	err = nil
+	for qtype := range uint16(260) {
+		numread, cqerr := cache.readQcacheFromV1Locked(r, qtype)
+		*n += numread
+		err = errors.Join(err, cqerr)
+		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
+			break
+		}
+	}
+	return
+}
+
+func (cache *Cache) readQcacheFromV1Locked(r io.Reader, qtype uint16) (n int64, err error) {
 	var gotmagic uint16
 	if gotmagic, err = readUint16(r, &n); err == nil {
 		err = ErrWrongMagic
@@ -68,7 +81,7 @@ func (cq *cacheBucket) readFromV1Locked(r io.Reader) (n int64, err error) {
 						if len(cv.Question) > 0 {
 							question := cv.Question[0]
 							key := newBucketKey(question.Name, question.Qtype)
-							cq.cache[key] = cv
+							cache.bucketFor(key).setLocked(key, cv.Msg, cv.expires)
 						}
 					} else {
 						err = errors.Join(err, valueerr)
@@ -77,20 +90,6 @@ func (cq *cacheBucket) readFromV1Locked(r io.Reader) (n int64, err error) {
 						}
 					}
 				}
-			}
-		}
-	}
-	return
-}
-
-func (cv *cacheValue) writeToV1Locked(w io.Writer) (n int64, err error) {
-	if err = writeInt64(w, &n, cv.expires*1000); err == nil {
-		var packed []byte
-		if packed, err = cv.Pack(); err == nil {
-			if err = writeInt64(w, &n, int64(len(packed))); err == nil {
-				var written int
-				written, err = w.Write(packed)
-				n += int64(written)
 			}
 		}
 	}
