@@ -37,8 +37,8 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
 					return
 				}
 			}
-			buf = binary.BigEndian.AppendUint16(buf, uint16(cv.bucketIndex()))
-			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b)))
+			buf = binary.BigEndian.AppendUint16(buf, uint16(cv.bucketIndex())) // #nosec G115
+			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b)))           // #nosec G115
 			buf = append(buf, b...)
 		}
 	}

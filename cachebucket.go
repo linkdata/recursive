@@ -25,7 +25,7 @@ func newCacheBucket() *cacheBucket {
 var bucketSeed = maphash.MakeSeed()
 
 func bucketIndexForQname(qname string) (idx int) {
-	idx = int(maphash.String(bucketSeed, qname) & (cacheBucketCount - 1))
+	idx = int(maphash.String(bucketSeed, qname) & (cacheBucketCount - 1)) // #nosec G115
 	return
 }
 
