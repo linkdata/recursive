@@ -63,7 +63,7 @@ func (cache *Cache) unmarshalWorker(cq *cacheBucket, ch <-chan *sliceRef, pool *
 	for sr := range ch {
 		var err error
 		var cv cacheValue
-		if err = cv.UnmarshalBinary(sr.b[:sr.l]); err == nil {
+		if err = cv.UnmarshalBinary(sr.b); err == nil {
 			if len(cv.Question) > 0 {
 				cq.setLocked(cv.Msg, cv.expires)
 			}
@@ -78,7 +78,6 @@ func (cache *Cache) unmarshalWorker(cq *cacheBucket, ch <-chan *sliceRef, pool *
 
 type sliceRef struct {
 	b []byte
-	l int
 }
 
 func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
@@ -111,8 +110,8 @@ func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
 			if length > cap(sr.b) {
 				sr.b = make([]byte, length)
 			}
-			sr.l = length
-			numread, readerr = io.ReadFull(r, sr.b[:length])
+			sr.b = sr.b[:length]
+			numread, readerr = io.ReadFull(r, sr.b)
 			*n += int64(numread)
 			if err == nil {
 				rdchans[bucketIdx] <- sr
