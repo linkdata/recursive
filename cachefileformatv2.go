@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"sync"
-	"sync/atomic"
 )
 
 const marshalWorkerBufferSize = 1024 * 64
@@ -25,9 +24,9 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, errmu *s
 	wf := func() error {
 		errmu.Lock()
 		written, err := w.Write(buf)
+		*n += int64(written)
 		errmu.Unlock()
 		buf = buf[:0]
-		atomic.AndInt64(n, int64(written))
 		return err
 	}
 	for _, cv := range qc.cache {
