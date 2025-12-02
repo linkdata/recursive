@@ -10,22 +10,22 @@ import (
 
 const marshalWorkerBufferSize = 1024 * 64
 
-func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, wlock *sync.Mutex, wg *sync.WaitGroup) {
+func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, errmu *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var buf []byte
 	ef := func(e error) (fatal bool) {
 		if e != nil {
 			fatal = e == io.EOF || errors.Is(e, io.ErrShortWrite)
-			wlock.Lock()
+			errmu.Lock()
 			*perr = errors.Join(*perr, e)
-			wlock.Unlock()
+			errmu.Unlock()
 		}
 		return
 	}
 	wf := func() error {
-		wlock.Lock()
+		errmu.Lock()
 		written, err := w.Write(buf)
-		wlock.Unlock()
+		errmu.Unlock()
 		buf = buf[:0]
 		atomic.AndInt64(n, int64(written))
 		return err
@@ -48,10 +48,10 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, wlock *s
 func (cache *Cache) writeToV2Locked(w io.Writer, n *int64) (err error) {
 	if err = writeInt64(w, n, cacheMagic2); err == nil {
 		var marshalwg sync.WaitGroup
-		var wlock sync.Mutex
+		var errmu sync.Mutex
 		for _, cq := range cache.cq {
 			marshalwg.Add(1)
-			go marshalWorker(cq, w, n, &err, &wlock, &marshalwg)
+			go marshalWorker(cq, w, n, &err, &errmu, &marshalwg)
 		}
 		marshalwg.Wait()
 	}
