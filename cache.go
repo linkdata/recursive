@@ -13,7 +13,7 @@ import (
 const DefaultMinTTL = 10 * time.Second
 const DefaultMaxTTL = 24 * 7 * time.Hour
 const DefaultNXTTL = time.Hour
-const MaxQtype = 260
+const cacheBucketCount = 32
 
 type Cache struct {
 	MinTTL time.Duration // always cache responses for at least this long
@@ -58,11 +58,8 @@ func (cache *Cache) Entries() (n int) {
 	return
 }
 
-func newBucketKey(qname string, qtype uint16) (key bucketKey, ok bool) {
-	if qtype <= MaxQtype {
-		key = bucketKey{qname: qname, qtype: qtype}
-		ok = true
-	}
+func newBucketKey(qname string, qtype uint16) (key bucketKey) {
+	key = bucketKey{qname: qname, qtype: qtype}
 	return
 }
 
@@ -77,20 +74,17 @@ func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
 func (cache *Cache) DnsSet(msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		question := msg.Question[0]
-		var key bucketKey
-		var ok bool
-		if key, ok = newBucketKey(question.Name, question.Qtype); ok {
-			msg = msg.Copy()
-			msg.Zero = true
-			ttl := cache.NXTTL
-			if msg.Rcode != dns.RcodeNameError {
-				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
-				if question.Qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
-					ttl = min(cache.MaxTTL, ttl)
-				}
+		key := newBucketKey(question.Name, question.Qtype)
+		msg = msg.Copy()
+		msg.Zero = true
+		ttl := cache.NXTTL
+		if msg.Rcode != dns.RcodeNameError {
+			ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
+			if question.Qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+				ttl = min(cache.MaxTTL, ttl)
 			}
-			cache.bucketFor(key).set(key, msg, ttl)
 		}
+		cache.bucketFor(key).set(key, msg, ttl)
 	}
 }
 
@@ -106,12 +100,9 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
 		cache.count.Add(1)
-		var key bucketKey
-		var ok bool
-		if key, ok = newBucketKey(qname, qtype); ok {
-			if msg, stale = cache.bucketFor(key).get(key, allowstale); msg != nil {
-				cache.hits.Add(1)
-			}
+		key := newBucketKey(qname, qtype)
+		if msg, stale = cache.bucketFor(key).get(key, allowstale); msg != nil {
+			cache.hits.Add(1)
 		}
 	}
 	return

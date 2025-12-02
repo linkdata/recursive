@@ -713,11 +713,7 @@ func snapshotCache(c *Cache) map[bucketKey]cacheValue {
 
 func mustBucketKey(t *testing.T, qname string, qtype uint16) (key bucketKey) {
 	t.Helper()
-
-	var ok bool
-	if key, ok = newBucketKey(qname, qtype); !ok {
-		t.Fatalf("invalid bucket key for qname %s qtype %d", qname, qtype)
-	}
+	key = newBucketKey(qname, qtype)
 	return
 }
 
@@ -732,10 +728,13 @@ func dnsMsgsEqual(a, b *dns.Msg) bool {
 }
 
 func TestCacheWriteTo(t *testing.T) {
+	// t.SkipNow()
 	c, _, err := loadCacheFile(t, "dnscache1.bin")
 	if err == nil {
-		saveCacheFile(t, c, "dnscache2-*.bin")
-		saveCacheFileWriteTo(t, "dnscache1-*.bin", c.WriteToV1)
+		fp1, _, _ := saveCacheFile(t, c, "dnscache2-*.bin")
+		defer os.Remove(fp1)
+		fp2, _, _ := saveCacheFileWriteTo(t, "dnscache1-*.bin", c.WriteToV1)
+		defer os.Remove(fp2)
 	}
 }
 

@@ -12,8 +12,6 @@ type bucketKey struct {
 	qtype uint16
 }
 
-const cacheBucketCount = 128
-
 type cacheBucket struct {
 	mu    sync.RWMutex
 	cache map[bucketKey]cacheValue
@@ -25,7 +23,7 @@ func newCacheBucket() *cacheBucket {
 
 func bucketIndexForKey(key bucketKey) (idx int) {
 	if len(key.qname) > 0 {
-		idx = int(key.qname[0] ^ byte(key.qtype&0x7F))
+		idx = int(key.qname[0]-32) & (cacheBucketCount - 1)
 	}
 	return
 }
