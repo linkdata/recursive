@@ -267,7 +267,7 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 
 	msg := newTestMessage(qname)
 	key := mustBucketKey(t, qname, dns.TypeA)
-	c.bucketFor(key).set(key, msg, -1)
+	c.bucketFor(key).set(msg, -1)
 	if entries := c.Entries(); entries != 1 {
 		t.Fatalf("Entries() = %d after expired insert", entries)
 	}
@@ -280,7 +280,7 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 
 	fresh := newTestMessage(dns.Fqdn("fresh.example"))
 	freshKey := mustBucketKey(t, dns.Fqdn("fresh.example"), dns.TypeA)
-	c.bucketFor(freshKey).set(freshKey, fresh, -60)
+	c.bucketFor(freshKey).set(fresh, -60)
 	c.Clean()
 	if entries := c.Entries(); entries != 0 {
 		t.Fatalf("Entries() = %d after Clean", entries)

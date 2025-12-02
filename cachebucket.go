@@ -24,8 +24,8 @@ func newCacheBucket() *cacheBucket {
 
 var bucketSeed = maphash.MakeSeed()
 
-func bucketIndexForKey(key bucketKey) (idx int) {
-	idx = int(maphash.String(bucketSeed, key.qname) & (cacheBucketCount - 1))
+func bucketIndexForQname(qname string) (idx int) {
+	idx = int(maphash.String(bucketSeed, qname) & (cacheBucketCount - 1))
 	return
 }
 
@@ -36,13 +36,17 @@ func (cq *cacheBucket) entries() (n int) {
 	return
 }
 
-func (cq *cacheBucket) setLocked(key bucketKey, msg *dns.Msg, expires int64) {
-	cq.cache[key] = cacheValue{Msg: msg, expires: expires}
+func questionBucketKey(q dns.Question) bucketKey {
+	return newBucketKey(q.Name, q.Qtype)
 }
 
-func (cq *cacheBucket) set(key bucketKey, msg *dns.Msg, expires int64) {
+func (cq *cacheBucket) setLocked(msg *dns.Msg, expires int64) {
+	cq.cache[questionBucketKey(msg.Question[0])] = cacheValue{Msg: msg, expires: expires}
+}
+
+func (cq *cacheBucket) set(msg *dns.Msg, expires int64) {
 	cq.mu.Lock()
-	cq.setLocked(key, msg, expires)
+	cq.setLocked(msg, expires)
 	cq.mu.Unlock()
 }
 

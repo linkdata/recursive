@@ -65,7 +65,7 @@ func newBucketKey(qname string, qtype uint16) (key bucketKey) {
 }
 
 func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
-	bucket = cache.cq[bucketIndexForKey(key)]
+	bucket = cache.cq[bucketIndexForQname(key.qname)]
 	return
 }
 
@@ -85,7 +85,7 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 				ttl = min(cache.MaxTTL, ttl)
 			}
 		}
-		cache.bucketFor(key).set(key, msg, time.Now().Unix()+ttl)
+		cache.bucketFor(key).set(msg, time.Now().Unix()+ttl)
 	}
 }
 

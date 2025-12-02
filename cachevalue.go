@@ -37,3 +37,7 @@ func (cv *cacheValue) UnmarshalBinary(b []byte) (err error) {
 	}
 	return
 }
+
+func (cv *cacheValue) bucketIndex() int {
+	return bucketIndexForQname(cv.Question[0].Name)
+}

@@ -37,6 +37,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
 					return
 				}
 			}
+			buf = binary.BigEndian.AppendUint16(buf, uint16(cv.bucketIndex()))
 			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b)))
 			buf = append(buf, b...)
 		}
@@ -57,60 +58,73 @@ func (cache *Cache) writeToV2Locked(w io.Writer, n *int64) (err error) {
 	return
 }
 
-func (cache *Cache) unmarshalWorker(r io.Reader, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
+func (cache *Cache) unmarshalWorker(cq *cacheBucket, ch <-chan *sliceRef, pool *sync.Pool, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
-	var err error
-	buf := make([]byte, 512)
-	ef := func(e error) (fatal bool) {
-		if e != nil {
-			fatal = e == io.EOF || errors.Is(e, io.ErrShortWrite)
-			if e != io.EOF {
-				pmu.Lock()
-				*perr = errors.Join(*perr, e)
-				pmu.Unlock()
+	for sr := range ch {
+		var err error
+		var cv cacheValue
+		if err = cv.UnmarshalBinary(sr.b[:sr.l]); err == nil {
+			if len(cv.Question) > 0 {
+				cq.setLocked(cv.Msg, cv.expires)
 			}
+		} else {
+			pmu.Lock()
+			*perr = errors.Join(*perr, err)
+			pmu.Unlock()
 		}
-		return
-	}
-	rf := func() (length int, err error) {
-		pmu.Lock()
-		defer pmu.Unlock()
-		var numread int
-		numread, err = io.ReadFull(r, buf[:2])
-		*n += int64(numread)
-		if err == nil {
-			length = int(binary.BigEndian.Uint16(buf[:2]))
-			if length > len(buf) {
-				buf = make([]byte, length)
-			}
-			numread, err = io.ReadFull(r, buf[:length])
-			*n += int64(numread)
-		}
-		return
-	}
-	for !ef(err) {
-		var length int
-		if length, err = rf(); err == nil {
-			var cv cacheValue
-			if err = cv.UnmarshalBinary(buf[:length]); err == nil {
-				if len(cv.Question) > 0 {
-					question := cv.Question[0]
-					key := newBucketKey(question.Name, question.Qtype)
-					cache.bucketFor(key).set(key, cv.Msg, cv.expires)
-				}
-			}
-		}
+		pool.Put(sr)
 	}
 }
 
-func (cache *Cache) readFromV2(r io.Reader, n *int64) (err error) {
-	cache.Clear()
+type sliceRef struct {
+	b []byte
+	l int
+}
+
+func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
+	cache.clearLocked()
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	for range cacheBucketCount {
+	var rdchans [cacheBucketCount]chan *sliceRef
+	var bufPool = sync.Pool{
+		New: func() any {
+			// The Pool's New function should generally only return pointer
+			// types, since a pointer can be put into the return interface
+			// value without an allocation:
+			return &sliceRef{b: make([]byte, 512)}
+		},
+	}
+	for i := range cacheBucketCount {
+		rdchans[i] = make(chan *sliceRef, 1024)
 		wg.Add(1)
-		go cache.unmarshalWorker(r, n, &err, &mu, &wg)
+		go cache.unmarshalWorker(cache.cq[i], rdchans[i], &bufPool, &err, &mu, &wg)
+	}
+	var readerr error
+	for readerr == nil {
+		sr := bufPool.Get().(*sliceRef)
+		var numread int
+		numread, readerr = io.ReadFull(r, sr.b[:4])
+		*n += int64(numread)
+		if readerr == nil {
+			bucketIdx := int(binary.BigEndian.Uint16(sr.b[:2]))
+			length := int(binary.BigEndian.Uint16(sr.b[2:]))
+			if length > cap(sr.b) {
+				sr.b = make([]byte, length)
+			}
+			sr.l = length
+			numread, readerr = io.ReadFull(r, sr.b[:length])
+			*n += int64(numread)
+			if err == nil {
+				rdchans[bucketIdx] <- sr
+			}
+		}
+	}
+	for _, ch := range rdchans {
+		close(ch)
 	}
 	wg.Wait()
+	if readerr == io.EOF {
+		readerr = nil
+	}
 	return
 }

@@ -55,8 +55,8 @@ func (cv *cacheValue) writeToV1Locked(w io.Writer) (n int64, err error) {
 func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
 	cache.clearLocked()
 	err = nil
-	for qtype := range uint16(260) {
-		numread, cqerr := cache.readQcacheFromV1Locked(r, qtype)
+	for range uint16(260) {
+		numread, cqerr := cache.readQcacheFromV1Locked(r)
 		*n += numread
 		err = errors.Join(err, cqerr)
 		if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
@@ -66,7 +66,7 @@ func (cache *Cache) readFromV1Locked(r io.Reader, n *int64) (err error) {
 	return
 }
 
-func (cache *Cache) readQcacheFromV1Locked(r io.Reader, qtype uint16) (n int64, err error) {
+func (cache *Cache) readQcacheFromV1Locked(r io.Reader) (n int64, err error) {
 	var gotmagic uint16
 	if gotmagic, err = readUint16(r, &n); err == nil {
 		err = ErrWrongMagic
@@ -81,7 +81,7 @@ func (cache *Cache) readQcacheFromV1Locked(r io.Reader, qtype uint16) (n int64, 
 						if len(cv.Question) > 0 {
 							question := cv.Question[0]
 							key := newBucketKey(question.Name, question.Qtype)
-							cache.bucketFor(key).setLocked(key, cv.Msg, cv.expires)
+							cache.bucketFor(key).setLocked(cv.Msg, cv.expires)
 						}
 					} else {
 						err = errors.Join(err, valueerr)
