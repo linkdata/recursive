@@ -1,7 +1,7 @@
 package recursive
 
 import (
-	"errors"
+	"encoding/binary"
 	"io"
 	"time"
 
@@ -9,42 +9,35 @@ import (
 )
 
 type cacheValue struct {
-	*dns.Msg
-	expires time.Time
+	*dns.Msg       // the message (with Zero flag set)
+	expires  int64 // expiry Unix time
 }
 
-var ErrBadRecord = errors.New("bad record")
+func (cv cacheValue) expiresAt() time.Time {
+	return time.Unix(cv.expires, 0)
+}
 
-func (cv *cacheValue) WriteTo(w io.Writer) (n int64, err error) {
-	if err = writeInt64(w, &n, cv.expires.UnixMilli()); err == nil {
-		var packed []byte
-		if packed, err = cv.Pack(); err == nil {
-			if err = writeInt64(w, &n, int64(len(packed))); err == nil {
-				var written int
-				written, err = w.Write(packed)
-				n += int64(written)
-			}
+func (cv *cacheValue) MarshalBinary() (b []byte, err error) {
+	var packed []byte
+	if packed, err = cv.Pack(); err == nil {
+		b = binary.AppendVarint(b, cv.expires)
+		b = append(b, packed...)
+	}
+	return
+}
+
+func (cv *cacheValue) UnmarshalBinary(b []byte) (err error) {
+	err = io.ErrShortBuffer
+	if expiry, n := binary.Varint(b); n > 0 {
+		var msg dns.Msg
+		if err = msg.Unpack(b[n:]); err == nil {
+			cv.Msg = &msg
+			cv.expires = expiry
 		}
 	}
 	return
 }
 
-func (cv *cacheValue) ReadFrom(r io.Reader) (n int64, err error) {
-	var expiry, packlen int64
-	if expiry, err = readInt64(r, &n); err == nil {
-		expires := time.UnixMilli(expiry)
-		if packlen, err = readInt64(r, &n); err == nil {
-			buf := make([]byte, int(packlen)) // #nosec G115
-			var numread int
-			if numread, err = io.ReadFull(r, buf); err == nil {
-				var msg dns.Msg
-				if err = msg.Unpack(buf); err == nil {
-					cv.Msg = &msg
-					cv.expires = expires
-				}
-			}
-			n += int64(numread)
-		}
-	}
-	return
+func (cv *cacheValue) bucketIndex() int {
+	return bucketIndexForQname(cv.Question[0].Name)
 }

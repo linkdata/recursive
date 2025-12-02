@@ -2,8 +2,6 @@ package recursive
 
 import (
 	"context"
-	"errors"
-	"io"
 	"math"
 	"net/netip"
 	"sync/atomic"
@@ -12,33 +10,33 @@ import (
 	"github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10 * time.Second
-const DefaultMaxTTL = 24 * 7 * time.Hour
-const DefaultNXTTL = time.Hour
-const MaxQtype = 260
+const DefaultMinTTL = 10
+const DefaultMaxTTL = 7 * 24 * 60 * 60
+const DefaultNXTTL = 60 * 60
+const cacheBucketCountBits = 5
+const cacheBucketCount = (1 << cacheBucketCountBits)
 
 type Cache struct {
-	MinTTL time.Duration // always cache responses for at least this long
-	MaxTTL time.Duration // never cache responses for longer than this (excepting successful NS responses)
-	NXTTL  time.Duration // cache NXDOMAIN responses for this long
+	MinTTL int64 // always cache responses for at least this long seconds
+	MaxTTL int64 // never cache responses for longer than this seconds (excepting successful NS responses)
+	NXTTL  int64 // cache NXDOMAIN responses for this long seconds
 	count  atomic.Uint64
 	hits   atomic.Uint64
-	cq     []*cacheQtype
+	cq     [cacheBucketCount]*cacheBucket
 }
 
 var _ CachingResolver = &Cache{}
 
 func NewCache() *Cache {
-	cq := make([]*cacheQtype, MaxQtype+1)
-	for i := range cq {
-		cq[i] = newCacheQtype()
-	}
-	return &Cache{
+	cache := &Cache{
 		MinTTL: DefaultMinTTL,
 		MaxTTL: DefaultMaxTTL,
 		NXTTL:  DefaultNXTTL,
-		cq:     cq,
 	}
+	for i := range cache.cq {
+		cache.cq[i] = newCacheBucket()
+	}
+	return cache
 }
 
 // HitRatio returns the hit ratio as a percentage.
@@ -61,23 +59,33 @@ func (cache *Cache) Entries() (n int) {
 	return
 }
 
+func newBucketKey(qname string, qtype uint16) (key bucketKey) {
+	key = bucketKey{qname: qname, qtype: qtype}
+	return
+}
+
+func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
+	bucket = cache.cq[bucketIndexForQname(key.qname)]
+	return
+}
+
 // DnsSet add a DNS message to the cache.
 //
 // Does nothing if the message has the Zero flag set, or does not have exactly one Question.
 func (cache *Cache) DnsSet(msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
-		if qtype := msg.Question[0].Qtype; qtype <= MaxQtype {
-			msg = msg.Copy()
-			msg.Zero = true
-			ttl := cache.NXTTL
-			if msg.Rcode != dns.RcodeNameError {
-				ttl = max(cache.MinTTL, time.Duration(minDNSMsgTTL(msg))*time.Second)
-				if qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
-					ttl = min(cache.MaxTTL, ttl)
-				}
+		question := msg.Question[0]
+		key := newBucketKey(question.Name, question.Qtype)
+		msg = msg.Copy()
+		msg.Zero = true
+		ttl := cache.NXTTL
+		if msg.Rcode != dns.RcodeNameError {
+			ttl = max(cache.MinTTL, minDNSMsgTTL(msg))
+			if question.Qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess {
+				ttl = min(cache.MaxTTL, ttl)
 			}
-			cache.cq[qtype].set(msg, ttl)
 		}
+		cache.bucketFor(key).set(msg, time.Now().Unix()+ttl)
 	}
 }
 
@@ -93,10 +101,9 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
 		cache.count.Add(1)
-		if qtype <= MaxQtype {
-			if msg, stale = cache.cq[qtype].get(qname, allowstale); msg != nil {
-				cache.hits.Add(1)
-			}
+		key := newBucketKey(qname, qtype)
+		if msg, stale = cache.bucketFor(key).get(key, allowstale); msg != nil {
+			cache.hits.Add(1)
 		}
 	}
 	return
@@ -105,6 +112,14 @@ func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.M
 func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
 	msg = cache.DnsGet(qname, qtype)
 	return
+}
+
+func (cache *Cache) clearLocked() {
+	if cache != nil {
+		for _, cq := range cache.cq {
+			cq.clearLocked()
+		}
+	}
 }
 
 func (cache *Cache) Clear() {
@@ -129,44 +144,6 @@ func (cache *Cache) Clean() {
 	cache.CleanBefore(time.Now())
 }
 
-const cacheMagic = int64(0xCACE0001)
-
-func (cache *Cache) WriteTo(w io.Writer) (n int64, err error) {
-	if cache != nil {
-		if err = writeInt64(w, &n, cacheMagic); err == nil {
-			for _, cq := range cache.cq {
-				written, cqerr := cq.WriteTo(w)
-				n += written
-				err = errors.Join(err, cqerr)
-			}
-		}
-	}
-	return
-}
-
-var ErrWrongMagic = errors.New("wrong magic number")
-
-func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
-	if cache != nil {
-		var gotmagic int64
-		if gotmagic, err = readInt64(r, &n); err == nil {
-			err = ErrWrongMagic
-			if gotmagic == cacheMagic {
-				err = nil
-				for _, cq := range cache.cq {
-					numread, cqerr := cq.ReadFrom(r)
-					n += numread
-					err = errors.Join(err, cqerr)
-					if cqerr == io.EOF || errors.Is(cqerr, io.ErrUnexpectedEOF) {
-						break
-					}
-				}
-			}
-		}
-	}
-	return
-}
-
 // Merge inserts all entries from other into cache.
 // If an entry exists in both, the one that expires last wins.
 func (cache *Cache) Merge(other *Cache) {
@@ -174,9 +151,9 @@ func (cache *Cache) Merge(other *Cache) {
 		for i := range other.cq {
 			other.cq[i].mu.RLock()
 			cache.cq[i].mu.Lock()
-			for qname, cv := range other.cq[i].cache {
-				if oldcv, ok := cache.cq[i].cache[qname]; !ok || cv.expires.After(oldcv.expires) {
-					cache.cq[i].cache[qname] = cv
+			for key, cv := range other.cq[i].cache {
+				if oldcv, ok := cache.cq[i].cache[key]; !ok || cv.expires > oldcv.expires {
+					cache.cq[i].cache[key] = cv
 				}
 			}
 			cache.cq[i].mu.Unlock()
@@ -196,7 +173,7 @@ func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (
 			}
 			qc.mu.RUnlock()
 			for _, cv := range cvs {
-				if err = fn(cv.Msg, cv.expires); err != nil {
+				if err = fn(cv.Msg, cv.expiresAt()); err != nil {
 					return
 				}
 			}
@@ -205,23 +182,23 @@ func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (
 	return
 }
 
-func minDNSMsgTTL(msg *dns.Msg) (minTTL int) {
-	minTTL = math.MaxInt
+func minDNSMsgTTL(msg *dns.Msg) (minTTL int64) {
+	minTTL = math.MaxInt64
 	if msg != nil {
 		for _, rr := range msg.Answer {
 			if rr != nil {
-				minTTL = min(minTTL, int(rr.Header().Ttl))
+				minTTL = min(minTTL, int64(rr.Header().Ttl))
 			}
 		}
 		for _, rr := range msg.Ns {
 			if rr != nil {
-				minTTL = min(minTTL, int(rr.Header().Ttl))
+				minTTL = min(minTTL, int64(rr.Header().Ttl))
 			}
 		}
 		for _, rr := range msg.Extra {
 			if rr != nil {
 				if rr.Header().Rrtype != dns.TypeOPT {
-					minTTL = min(minTTL, int(rr.Header().Ttl))
+					minTTL = min(minTTL, int64(rr.Header().Ttl))
 				}
 			}
 		}
