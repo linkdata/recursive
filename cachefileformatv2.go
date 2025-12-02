@@ -93,7 +93,7 @@ func (cache *Cache) readFromV2Locked(r io.Reader, n *int64) (err error) {
 			return &sliceRef{b: make([]byte, 512)}
 		},
 	}
-	for i := range cacheBucketCount {
+	for i := range rdchans {
 		rdchans[i] = make(chan *sliceRef, 1024)
 		wg.Add(1)
 		go cache.unmarshalWorker(cache.cq[i], rdchans[i], &bufPool, &err, &mu, &wg)
