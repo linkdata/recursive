@@ -731,10 +731,12 @@ func TestCacheWriteTo(t *testing.T) {
 	// t.SkipNow()
 	c, _, err := loadCacheFile(t, "dnscache1.bin")
 	if err == nil {
-		fp1, _, _ := saveCacheFile(t, c, "dnscache2-*.bin")
-		defer os.Remove(fp1)
-		fp2, _, _ := saveCacheFileWriteTo(t, "dnscache1-*.bin", c.WriteToV1)
-		defer os.Remove(fp2)
+		now := time.Now()
+		c.WriteTo(io.Discard)
+		t.Logf("v2 %v\n", time.Since(now))
+		now = time.Now()
+		c.WriteToV1(io.Discard)
+		t.Logf("v1 %v\n", time.Since(now))
 	}
 }
 
