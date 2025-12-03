@@ -63,13 +63,15 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
 	}
 	for _, cv := range qc.cache {
 		if b, err := cv.MarshalBinary(); err == nil {
-			if len(buf)+2+len(b) > marshalWorkerBufferSize {
-				if wf() {
-					return
+			if len(b) > 0 {
+				if len(buf)+2+len(b) > marshalWorkerBufferSize {
+					if wf() {
+						return
+					}
 				}
+				buf = binary.BigEndian.AppendUint16(buf, uint16(len(b))) // #nosec G115
+				buf = append(buf, b...)
 			}
-			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b))) // #nosec G115
-			buf = append(buf, b...)
 		} else {
 			pmu.Lock()
 			*perr = errors.Join(*perr, err)
@@ -104,18 +106,20 @@ func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) {
 		*n += int64(numread)
 		if readerr == nil {
 			length := int(binary.BigEndian.Uint16(buf[:2]))
-			if length > cap(buf) {
-				buf = make([]byte, length)
-			}
-			buf = buf[:length]
-			numread, readerr = io.ReadFull(r, buf)
-			*n += int64(numread)
-			if readerr == nil {
-				var cv cacheValue
-				if merr := cv.UnmarshalBinary(buf); merr == nil {
-					cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
-				} else {
-					err = errors.Join(err, merr)
+			if length > 0 {
+				if length > cap(buf) {
+					buf = make([]byte, length)
+				}
+				buf = buf[:length]
+				numread, readerr = io.ReadFull(r, buf)
+				*n += int64(numread)
+				if readerr == nil {
+					var cv cacheValue
+					if merr := cv.UnmarshalBinary(buf); merr == nil {
+						cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
+					} else {
+						err = errors.Join(err, merr)
+					}
 				}
 			}
 		}

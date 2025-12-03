@@ -836,3 +836,16 @@ func dnsMsgsEqual(a, b *dns.Msg) bool {
 	}
 	return a.String() == b.String()
 }
+
+func TestCacheReadFromFixture(t *testing.T) {
+	f, err := os.Open("dnscache.bin")
+	if err != nil {
+		t.Skip(err)
+	}
+	defer f.Close()
+	c := NewCache()
+	_, err = c.ReadFrom(f)
+	if err != nil {
+		t.Error(err)
+	}
+}
