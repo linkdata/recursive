@@ -23,22 +23,3 @@ func writeInt64(w io.Writer, written *int64, val int64) (err error) {
 	*written += int64(n)
 	return
 }
-
-func readUint16(r io.Reader, numread *int64) (val uint16, err error) {
-	b := [2]byte{}
-	var n int
-	if n, err = io.ReadFull(r, b[:]); err == nil {
-		val = uint16(binary.BigEndian.Uint16(b[:])) //#nosec
-	}
-	*numread += int64(n)
-	return
-}
-
-func writeUint16(w io.Writer, written *int64, val uint16) (err error) {
-	b := [2]byte{}
-	binary.BigEndian.PutUint16(b[:], val) //#nosec
-	var n int
-	n, err = w.Write(b[:])
-	*written += int64(n)
-	return
-}
