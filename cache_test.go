@@ -8,6 +8,7 @@ import (
 	"io"
 	"math"
 	"net"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -100,8 +101,8 @@ func newTestMessage(qname string) *dns.Msg {
 	return newTestMessageForType(nil, dns.TypeA, qname, 0)
 }
 
-func newCacheWithEntries(t *testing.T, entries int) *Cache {
-	t.Helper()
+func newCacheWithEntries(tb testing.TB, entries int) *Cache {
+	tb.Helper()
 
 	cache := NewCache()
 	if entries <= 0 {
@@ -139,7 +140,7 @@ func newCacheWithEntries(t *testing.T, entries int) *Cache {
 		for i := 0; i < counts[qt]; i++ {
 			prefix := fmt.Sprintf("%cgen%d", 'a'+(entryIdx%26), entryIdx/26)
 			qname := dns.Fqdn(fmt.Sprintf("%s-cache-%s-%d.example", prefix, dns.Type(qt), entryIdx))
-			cache.DnsSet(newTestMessageForType(t, qt, qname, entryIdx))
+			cache.DnsSet(newTestMessageForType(tb, qt, qname, entryIdx))
 			entryIdx++
 		}
 	}
@@ -147,9 +148,9 @@ func newCacheWithEntries(t *testing.T, entries int) *Cache {
 	return cache
 }
 
-func newTestMessageForType(t *testing.T, qtype uint16, qname string, idx int) *dns.Msg {
-	if t != nil {
-		t.Helper()
+func newTestMessageForType(tb testing.TB, qtype uint16, qname string, idx int) *dns.Msg {
+	if tb != nil {
+		tb.Helper()
 	}
 
 	const ttl = 300
@@ -171,18 +172,22 @@ func newTestMessageForType(t *testing.T, qtype uint16, qname string, idx int) *d
 			},
 		}
 	case dns.TypeAAAA:
-		ip := net.ParseIP(fmt.Sprintf("2001:db8::%x", idx+1))
-		if ip == nil {
-			if t != nil {
-				t.Fatalf("failed to parse ipv6 address for index %d", idx)
+		value := uint64(idx) + 1
+		addrStr := fmt.Sprintf("2001:db8::%x:%x:%x:%x", (value>>48)&0xffff, (value>>32)&0xffff, (value>>16)&0xffff, value&0xffff)
+		addr, addrErr := netip.ParseAddr(addrStr)
+		if addrErr == nil {
+			addrBytes := addr.As16()
+			msg.Answer = []dns.RR{
+				&dns.AAAA{
+					Hdr:  hdr,
+					AAAA: net.IP(addrBytes[:]),
+				},
 			}
-			panic(fmt.Sprintf("failed to parse ipv6 address for index %d", idx))
-		}
-		msg.Answer = []dns.RR{
-			&dns.AAAA{
-				Hdr:  hdr,
-				AAAA: ip,
-			},
+		} else {
+			if tb != nil {
+				tb.Fatalf("failed to parse ipv6 address for index %d: %v", idx, addrErr)
+			}
+			panic(fmt.Sprintf("failed to parse ipv6 address for index %d: %v", idx, addrErr))
 		}
 	case dns.TypeNS:
 		msg.Answer = []dns.RR{
@@ -199,13 +204,57 @@ func newTestMessageForType(t *testing.T, qtype uint16, qname string, idx int) *d
 			},
 		}
 	default:
-		if t != nil {
-			t.Fatalf("unsupported qtype %d", qtype)
+		if tb != nil {
+			tb.Fatalf("unsupported qtype %d", qtype)
 		}
 		panic(fmt.Sprintf("unsupported qtype %d", qtype))
 	}
 
 	return msg
+}
+
+func TestNewTestMessageForTypeHandlesLargeIndex(t *testing.T) {
+	t.Parallel()
+
+	const idx = 1_000_000
+	qname := dns.Fqdn("large-index.example.")
+
+	msg := newTestMessageForType(t, dns.TypeAAAA, qname, idx)
+	if msg == nil {
+		t.Fatalf("newTestMessageForType returned nil for index %d", idx)
+	}
+	if len(msg.Answer) != 1 {
+		t.Fatalf("expected 1 answer, got %d", len(msg.Answer))
+	}
+
+	aaaa, ok := msg.Answer[0].(*dns.AAAA)
+	if !ok {
+		t.Fatalf("unexpected record type %T", msg.Answer[0])
+	}
+	if len(msg.Question) == 0 || msg.Question[0].Name != qname {
+		t.Fatalf("unexpected question for index %d: %#v", idx, msg.Question)
+	}
+
+	parsedAddr := aaaa.AAAA.To16()
+	if parsedAddr == nil || len(parsedAddr) != net.IPv6len {
+		t.Fatalf("invalid IPv6 address in answer: %v", aaaa.AAAA)
+	}
+
+	var addrBytes [net.IPv6len]byte
+	copy(addrBytes[:], parsedAddr)
+	gotAddr := netip.AddrFrom16(addrBytes)
+
+	expected := [net.IPv6len]byte{0x20, 0x01, 0x0d, 0xb8}
+	value := uint64(idx) + 1
+	for i := len(expected) - 1; i >= len(expected)-8; i-- {
+		expected[i] = byte(value)
+		value >>= 8
+	}
+	expectedAddr := netip.AddrFrom16(expected)
+
+	if gotAddr != expectedAddr {
+		t.Fatalf("unexpected IPv6 address for index %d: got %s want %s", idx, gotAddr, expectedAddr)
+	}
 }
 
 func TestCacheHitRatioAndClear(t *testing.T) {
@@ -305,10 +354,15 @@ func TestCacheWalkVisitsEntries(t *testing.T) {
 	qnameAAAA := dns.Fqdn("walk-aaaa.example")
 	msgAAAA := new(dns.Msg)
 	msgAAAA.SetQuestion(qnameAAAA, dns.TypeAAAA)
+	addrAAAA, addrAAAAErr := netip.ParseAddr("2001:db8::5")
+	if addrAAAAErr != nil {
+		t.Fatalf("failed to parse walk IPv6 address: %v", addrAAAAErr)
+	}
+	addrAAAABuffer := addrAAAA.As16()
 	msgAAAA.Answer = []dns.RR{
 		&dns.AAAA{
 			Hdr:  dns.RR_Header{Name: qnameAAAA, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 300},
-			AAAA: net.ParseIP("2001:db8::5"),
+			AAAA: net.IP(addrAAAABuffer[:]),
 		},
 	}
 	expiresAAAA := now + (10 * 60)
@@ -471,6 +525,11 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 	qnameAAAA := dns.Fqdn("serialize-aaaa.example.")
 	msgAAAA := new(dns.Msg)
 	msgAAAA.SetQuestion(qnameAAAA, dns.TypeAAAA)
+	addrAAAA, addrAAAAErr := netip.ParseAddr("2001:db8::10")
+	if addrAAAAErr != nil {
+		t.Fatalf("failed to parse serialize IPv6 address: %v", addrAAAAErr)
+	}
+	addrAAAABuffer := addrAAAA.As16()
 	msgAAAA.Answer = []dns.RR{
 		&dns.AAAA{
 			Hdr: dns.RR_Header{
@@ -479,7 +538,7 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 				Class:  dns.ClassINET,
 				Ttl:    600,
 			},
-			AAAA: net.ParseIP("2001:db8::10"),
+			AAAA: net.IP(addrAAAABuffer[:]),
 		},
 	}
 	expiresAAAA := base + (10 * 60)
