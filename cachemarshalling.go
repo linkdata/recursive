@@ -49,36 +49,34 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) {
 func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
 	defer wg.Done()
 	var buf []byte
-	ef := func(e error) (fatal bool) {
-		if e != nil {
-			fatal = e == io.EOF || errors.Is(e, io.ErrShortWrite)
-			pmu.Lock()
-			*perr = errors.Join(*perr, e)
-			pmu.Unlock()
-		}
-		return
-	}
-	wf := func() error {
+	wf := func() (fatal bool) {
 		pmu.Lock()
+		defer pmu.Unlock()
 		written, err := w.Write(buf)
 		*n += int64(written)
-		pmu.Unlock()
+		if err != nil {
+			fatal = (err == io.EOF || errors.Is(err, io.ErrShortWrite))
+			*perr = errors.Join(*perr, err)
+		}
 		buf = buf[:0]
-		return err
+		return
 	}
 	for _, cv := range qc.cache {
-		b, err := cv.MarshalBinary()
-		if !ef(err) {
+		if b, err := cv.MarshalBinary(); err == nil {
 			if len(buf)+2+len(b) > marshalWorkerBufferSize {
-				if ef(wf()) {
+				if wf() {
 					return
 				}
 			}
 			buf = binary.BigEndian.AppendUint16(buf, uint16(len(b))) // #nosec G115
 			buf = append(buf, b...)
+		} else {
+			pmu.Lock()
+			*perr = errors.Join(*perr, err)
+			pmu.Unlock()
 		}
 	}
-	ef(wf())
+	wf()
 }
 
 func (cache *Cache) writeToLocked(w io.Writer, n *int64) (err error) {
