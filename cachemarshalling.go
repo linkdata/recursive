@@ -92,63 +92,34 @@ func (cache *Cache) writeToLocked(w io.Writer, n *int64) (err error) {
 	return
 }
 
-func (cache *Cache) unmarshalWorker(ch <-chan *sliceRef, pool *sync.Pool, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for sr := range ch {
-		var err error
-		var cv cacheValue
-		if err = cv.UnmarshalBinary(sr.b); err == nil {
-			if len(cv.Question) > 0 {
-				cache.cq[cv.bucketIndex()].set(cv.Msg, cv.expires)
-			}
-		} else {
-			pmu.Lock()
-			*perr = errors.Join(*perr, err)
-			pmu.Unlock()
-		}
-		pool.Put(sr)
-	}
-}
-
-type sliceRef struct {
-	b []byte
-}
-
 func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) {
 	cache.Clear()
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var bufPool = sync.Pool{
-		New: func() any {
-			return &sliceRef{b: make([]byte, 512)}
-		},
-	}
-	rdchan := make(chan *sliceRef, cacheBucketCount)
-	for range cacheBucketCount {
-		wg.Add(1)
-		go cache.unmarshalWorker(rdchan, &bufPool, &err, &mu, &wg)
-	}
+	cache.lockAll()
+	defer cache.unlockAll()
 	var readerr error
+	buf := make([]byte, 512)
 	for readerr == nil {
-		sr := bufPool.Get().(*sliceRef)
 		var numread int
-		numread, readerr = io.ReadFull(r, sr.b[:2])
+		numread, readerr = io.ReadFull(r, buf[:2])
 		*n += int64(numread)
 		if readerr == nil {
-			length := int(binary.BigEndian.Uint16(sr.b[:2]))
-			if length > cap(sr.b) {
-				sr.b = make([]byte, length)
+			length := int(binary.BigEndian.Uint16(buf[:2]))
+			if length > cap(buf) {
+				buf = make([]byte, length)
 			}
-			sr.b = sr.b[:length]
-			numread, readerr = io.ReadFull(r, sr.b)
+			buf = buf[:length]
+			numread, readerr = io.ReadFull(r, buf)
 			*n += int64(numread)
-			if err == nil {
-				rdchan <- sr
+			if readerr == nil {
+				var cv cacheValue
+				if merr := cv.UnmarshalBinary(buf); merr == nil {
+					cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
+				} else {
+					err = errors.Join(err, merr)
+				}
 			}
 		}
 	}
-	close(rdchan)
-	wg.Wait()
 	if readerr == io.EOF {
 		readerr = nil
 	}
