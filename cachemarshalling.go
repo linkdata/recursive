@@ -10,7 +10,7 @@ import (
 var ErrWrongMagic = errors.New("wrong magic number")
 
 const cacheMagic = int64(0xCACE0003)
-const marshalWorkerBufferSize = 1024 * 64
+const marshalWorkerBufferSize = 1024 * 8
 
 func (cache *Cache) lockAll() {
 	for _, cq := range cache.cq {
@@ -120,13 +120,10 @@ func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) {
 	var mu sync.Mutex
 	var bufPool = sync.Pool{
 		New: func() any {
-			// The Pool's New function should generally only return pointer
-			// types, since a pointer can be put into the return interface
-			// value without an allocation:
 			return &sliceRef{b: make([]byte, 512)}
 		},
 	}
-	rdchan := make(chan *sliceRef)
+	rdchan := make(chan *sliceRef, cacheBucketCount)
 	for range cacheBucketCount {
 		wg.Add(1)
 		go cache.unmarshalWorker(rdchan, &bufPool, &err, &mu, &wg)
