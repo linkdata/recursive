@@ -13,18 +13,12 @@ func BenchmarkCacheWriteToMillionEntries(b *testing.B) {
 		b.Fatalf("cache entry count = %d, want %d", entries, benchmarkCacheEntries)
 	}
 
-	var buf bytes.Buffer
-	written, err := cache.WriteTo(&buf)
-	if err != nil {
-		b.Fatalf("initial WriteTo returned error: %v", err)
-	}
-	if written <= 0 {
-		b.Fatalf("initial WriteTo wrote %d bytes", written)
-	}
+	buf, written := mustWriteCacheToBuffer(b, cache)
 
 	b.ReportAllocs()
 	b.SetBytes(int64(buf.Len()))
 
+	var err error
 	for b.Loop() {
 		buf.Reset()
 		written, err = cache.WriteTo(&buf)
@@ -43,14 +37,7 @@ func BenchmarkCacheReadFromMillionEntries(b *testing.B) {
 		b.Fatalf("cache entry count = %d, want %d", entries, benchmarkCacheEntries)
 	}
 
-	var buf bytes.Buffer
-	written, err := cache.WriteTo(&buf)
-	if err != nil {
-		b.Fatalf("initial WriteTo returned error: %v", err)
-	}
-	if written <= 0 {
-		b.Fatalf("initial WriteTo wrote %d bytes", written)
-	}
+	buf, written := mustWriteCacheToBuffer(b, cache)
 
 	data := buf.Bytes()
 	if len(data) == 0 {
