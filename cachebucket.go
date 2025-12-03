@@ -68,10 +68,6 @@ func (cq *cacheBucket) get(key bucketKey, allowstale bool) (msg *dns.Msg, stale 
 	return
 }
 
-func (cq *cacheBucket) clearLocked() {
-	cq.cleanLocked(time.Time{})
-}
-
 func (cq *cacheBucket) clear() {
 	cq.clean(time.Time{})
 }

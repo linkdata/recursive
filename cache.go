@@ -114,14 +114,6 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 	return
 }
 
-func (cache *Cache) clearLocked() {
-	if cache != nil {
-		for _, cq := range cache.cq {
-			cq.clearLocked()
-		}
-	}
-}
-
 func (cache *Cache) Clear() {
 	if cache != nil {
 		for _, cq := range cache.cq {
