@@ -529,6 +529,63 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 	assertEntry(t, dns.TypeAAAA, qnameAAAA, expiresAAAA)
 }
 
+func TestCacheWriteToReportsMarshalErrorsButWritesRemaining(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	base := int64(1_700_000_000)
+
+	goodQname := dns.Fqdn("marshal-good.example")
+	goodMsg := newTestMessage(goodQname)
+	goodExpires := base + (2 * 60)
+
+	badQname := "marshal-bad.example" // not FQDN to trigger dns.ErrFqdn in MarshalBinary
+	badMsg := new(dns.Msg)
+	badMsg.SetQuestion(badQname, dns.TypeA)
+
+	bucket := cache.cq[0]
+	bucket.mu.Lock()
+	bucket.cache[bucketKey{qname: goodQname, qtype: dns.TypeA}] = cacheValue{Msg: goodMsg, expires: goodExpires}
+	bucket.cache[bucketKey{qname: badQname, qtype: dns.TypeA}] = cacheValue{Msg: badMsg, expires: base + (5 * 60)}
+	bucket.mu.Unlock()
+
+	var buf bytes.Buffer
+	written, err := cache.WriteTo(&buf)
+	if err == nil {
+		t.Fatalf("WriteTo returned nil error, want marshal failure")
+	}
+	if !errors.Is(err, dns.ErrFqdn) {
+		t.Fatalf("WriteTo error %v, want %v", err, dns.ErrFqdn)
+	}
+	if written == 0 {
+		t.Fatalf("WriteTo wrote zero bytes")
+	}
+
+	dst := NewCache()
+	read, readErr := dst.ReadFrom(bytes.NewReader(buf.Bytes()))
+	if readErr != nil {
+		t.Fatalf("ReadFrom returned error: %v", readErr)
+	}
+	if read != written {
+		t.Fatalf("ReadFrom read %d bytes, want %d", read, written)
+	}
+
+	key := mustBucketKey(t, goodQname, dns.TypeA)
+	cq := dst.bucketFor(key)
+	cq.mu.RLock()
+	cv, ok := cq.cache[key]
+	cq.mu.RUnlock()
+	if !ok {
+		t.Fatalf("expected good entry for %s to be written", goodQname)
+	}
+	if cv.expires != goodExpires {
+		t.Fatalf("expires mismatch: got %d want %d", cv.expires, goodExpires)
+	}
+	if entries := dst.Entries(); entries != 1 {
+		t.Fatalf("dst cache entries = %d, want 1 (only successfully marshaled entry)", entries)
+	}
+}
+
 func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	t.Parallel()
 
