@@ -93,16 +93,28 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 //
 // If an expired message is found, it is removed from the cache and nil is returned.
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
-	msg, _ = cache.Get(qname, qtype, false)
+	msg, _ = cache.Get(qname, qtype, nil)
 	return
 }
 
-// Get allows getting stale DNS entries from the cache if allowstale is true.
-func (cache *Cache) Get(qname string, qtype uint16, allowstale bool) (msg *dns.Msg, stale bool) {
+func defaultAllowFn(msg *dns.Msg, expiry time.Time) bool {
+	return time.Since(expiry) < 0
+}
+
+// Get allows filtering DNS entries from the cache and control of eviction.
+//
+// If and entry is found, and allowfn returns true, the entry is returned.
+// Otherwise, the entry is purged from the cache,
+//
+// The default allowfn returns false if the entry is expired.
+func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, expiry time.Time) bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
+		if allowfn == nil {
+			allowfn = defaultAllowFn
+		}
 		cache.count.Add(1)
 		key := newBucketKey(qname, qtype)
-		if msg, stale = cache.bucketFor(key).get(key, allowstale); msg != nil {
+		if msg, stale = cache.bucketFor(key).get(key, allowfn); msg != nil {
 			cache.hits.Add(1)
 		}
 	}

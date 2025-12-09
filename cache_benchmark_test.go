@@ -13,12 +13,13 @@ func BenchmarkCacheWriteToMillionEntries(b *testing.B) {
 		b.Fatalf("cache entry count = %d, want %d", entries, benchmarkCacheEntries)
 	}
 
-	buf, written := mustWriteCacheToBuffer(b, cache)
+	buf, _ := mustWriteCacheToBuffer(b, cache)
 
 	b.ReportAllocs()
 	b.SetBytes(int64(buf.Len()))
 
 	var err error
+	var written int64
 	for b.Loop() {
 		buf.Reset()
 		written, err = cache.WriteTo(&buf)
