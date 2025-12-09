@@ -148,11 +148,7 @@ func (cache *Cache) Clean() {
 }
 
 func (cache *Cache) Clear() {
-	if cache != nil {
-		for _, cq := range cache.cq {
-			cq.clean(time.Time{}, func(msg *dns.Msg, stale bool) bool { return false })
-		}
-	}
+	cache.CleanAllow(time.Time{}, func(msg *dns.Msg, stale bool) bool { return false })
 }
 
 // Merge inserts all entries from other into cache.
