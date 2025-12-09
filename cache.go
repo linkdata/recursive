@@ -97,8 +97,8 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	return
 }
 
-func defaultAllowFn(msg *dns.Msg, expiry time.Time) bool {
-	return time.Since(expiry) < 0
+func defaultAllowFn(msg *dns.Msg, stale bool) bool {
+	return !stale
 }
 
 // Get allows filtering DNS entries from the cache and control of eviction.
@@ -106,8 +106,8 @@ func defaultAllowFn(msg *dns.Msg, expiry time.Time) bool {
 // If and entry is found, and allowfn returns true, the entry is returned.
 // Otherwise, the entry is purged from the cache,
 //
-// The default allowfn returns false if the entry is expired.
-func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, expiry time.Time) bool) (msg *dns.Msg, stale bool) {
+// The default allowfn returns false if the entry is stale.
+func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, stale bool) bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
 		if allowfn == nil {
 			allowfn = defaultAllowFn

@@ -50,12 +50,13 @@ func (cq *cacheBucket) set(msg *dns.Msg, expires int64) {
 	cq.mu.Unlock()
 }
 
-func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, expiry time.Time) bool) (msg *dns.Msg, stale bool) {
+func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, stale bool) bool) (msg *dns.Msg, stale bool) {
 	cq.mu.RLock()
 	cv := cq.cache[key]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		if allowfn(cv.Msg, cv.expiresAt()) {
+		stale = time.Since(cv.expiresAt()) > 0
+		if allowfn(cv.Msg, stale) {
 			msg = cv.Msg
 		} else {
 			cq.mu.Lock()
