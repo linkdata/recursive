@@ -126,26 +126,33 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 	return
 }
 
-func (cache *Cache) Clear() {
+// CleanAllow calls allowfn with 't' as the time to use to determine staleness.
+// If allowfn returns false, the cache entry is removed.
+func (cache *Cache) CleanAllow(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
 	if cache != nil {
+		now := time.Now()
 		for _, cq := range cache.cq {
-			cq.clear()
+			cq.clean(now, allowfn)
 		}
 	}
 }
 
 // CleanBefore removes entries that expired before t from the cache.
 func (cache *Cache) CleanBefore(t time.Time) {
-	if cache != nil && !t.IsZero() {
-		for _, cq := range cache.cq {
-			cq.clean(t)
-		}
-	}
+	cache.CleanAllow(t, defaultAllowFn)
 }
 
 // Clean removes stale entries from the cache.
 func (cache *Cache) Clean() {
 	cache.CleanBefore(time.Now())
+}
+
+func (cache *Cache) Clear() {
+	if cache != nil {
+		for _, cq := range cache.cq {
+			cq.clean(time.Time{}, func(msg *dns.Msg, stale bool) bool { return false })
+		}
+	}
 }
 
 // Merge inserts all entries from other into cache.

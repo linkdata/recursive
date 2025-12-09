@@ -67,20 +67,16 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, stale bool)
 	return
 }
 
-func (cq *cacheBucket) clear() {
-	cq.clean(time.Time{})
-}
-
-func (cq *cacheBucket) cleanLocked(t time.Time) {
+func (cq *cacheBucket) cleanLocked(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
 	for key, cv := range cq.cache {
-		if t.IsZero() || cv.expiresAt().Before(t) {
+		if !allowfn(cv.Msg, cv.expiresAt().Before(t)) {
 			delete(cq.cache, key)
 		}
 	}
 }
 
-func (cq *cacheBucket) clean(t time.Time) {
+func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
-	cq.cleanLocked(t)
+	cq.cleanLocked(t, allowfn)
 }
