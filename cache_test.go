@@ -287,6 +287,68 @@ func TestCacheHitRatioAndClear(t *testing.T) {
 	}
 }
 
+func TestCacheGetAllowsFilteringAndStaleAccess(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname := dns.Fqdn("get-allow.example.")
+	entryMsg := newTestMessage(qname)
+	key := mustBucketKey(t, qname, dns.TypeA)
+
+	freshExpiry := time.Now().Add(45 * time.Second).Unix()
+	cache.bucketFor(key).set(entryMsg, freshExpiry)
+
+	allowCalled := false
+	got, stale := cache.Get(qname, dns.TypeA, func(msg *dns.Msg, ttl time.Duration) bool {
+		allowCalled = true
+		return ttl > time.Minute
+	})
+	if !allowCalled {
+		t.Fatalf("allowfn was not invoked for fresh entry")
+	}
+	if stale {
+		t.Fatalf("stale reported true for fresh entry")
+	}
+	if got != nil {
+		t.Fatalf("expected nil message when allowfn rejects entry")
+	}
+	if entries := cache.Entries(); entries != 0 {
+		t.Fatalf("Entries() = %d after rejected entry, want 0", entries)
+	}
+	if ratio := cache.HitRatio(); ratio != 0 {
+		t.Fatalf("HitRatio() = %f after rejected entry, want 0", ratio)
+	}
+
+	expiredExpiry := time.Now().Add(-5 * time.Second).Unix()
+	cache.bucketFor(key).set(entryMsg, expiredExpiry)
+
+	allowCalled = false
+	var observedTTL time.Duration
+	got, stale = cache.Get(qname, dns.TypeA, func(msg *dns.Msg, ttl time.Duration) bool {
+		allowCalled = true
+		observedTTL = ttl
+		return true
+	})
+	if !allowCalled {
+		t.Fatalf("allowfn was not invoked for expired entry")
+	}
+	if got == nil {
+		t.Fatalf("expected message when allowfn permits expired entry")
+	}
+	if !stale {
+		t.Fatalf("stale reported false for expired entry")
+	}
+	if observedTTL >= 0 {
+		t.Fatalf("expected negative ttl for expired entry, got %v", observedTTL)
+	}
+	if entries := cache.Entries(); entries != 1 {
+		t.Fatalf("Entries() = %d after expired entry, want 1", entries)
+	}
+	if ratio := cache.HitRatio(); ratio != 50 {
+		t.Fatalf("HitRatio() = %f after expired entry fetch, want 50", ratio)
+	}
+}
+
 func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 	t.Parallel()
 
