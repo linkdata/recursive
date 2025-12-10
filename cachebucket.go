@@ -85,9 +85,8 @@ func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, ttl time.Du
 
 func clampTTLSeconds(ttl time.Duration) (secs uint32) {
 	if ttl > 0 {
-		if ttl/time.Second > time.Duration(^uint32(0)) {
-			secs = ^uint32(0)
-		} else {
+		secs = ^uint32(0)
+		if ttl <= time.Duration(^uint32(0))*time.Second {
 			secs = uint32(ttl / time.Second)
 		}
 	}
