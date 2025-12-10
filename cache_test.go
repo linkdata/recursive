@@ -76,6 +76,44 @@ func TestCacheNegativeUsesNXTTL(t *testing.T) {
 	assertTTLWithin(t, entry, cache.NXTTL, tolerance)
 }
 
+func TestCacheDnsGetReturnsRemainingTTL(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	cache.MinTTL = 0
+	qname := dns.Fqdn("ttl-adjust.example.")
+
+	msg := new(dns.Msg)
+	msg.SetQuestion(qname, dns.TypeA)
+	msg.Answer = append(msg.Answer, &dns.A{
+		Hdr: dns.RR_Header{
+			Name:   qname,
+			Rrtype: dns.TypeA,
+			Class:  dns.ClassINET,
+			Ttl:    4,
+		},
+		A: net.IPv4(192, 0, 2, 10),
+	})
+
+	cache.DnsSet(msg)
+	time.Sleep(time.Second)
+
+	cached := cache.DnsGet(qname, dns.TypeA)
+	if cached == nil {
+		t.Fatalf("DnsGet returned nil for %s", qname)
+	}
+	if !cached.Zero {
+		t.Fatalf("expected cached message to keep Zero set")
+	}
+	ttl := cached.Answer[0].Header().Ttl
+	if ttl > 3 {
+		t.Fatalf("ttl was not reduced after cache lookup got=%d", ttl)
+	}
+	if ttl == 0 {
+		t.Fatalf("ttl unexpectedly reached zero after short wait")
+	}
+}
+
 func newTestMessage(qname string) *dns.Msg {
 	return newTestMessageForType(nil, dns.TypeA, qname, 0)
 }
@@ -516,7 +554,7 @@ func TestCacheWriteToReadFromRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	src := NewCache()
-	base := int64(1_700_000_000)
+	base := time.Now().Unix()
 
 	qnameA := dns.Fqdn("serialize-a.example.")
 	msgA := newTestMessage(qnameA)
@@ -560,7 +598,7 @@ func TestCacheWriteToReportsMarshalErrorsButWritesRemaining(t *testing.T) {
 	t.Parallel()
 
 	cache := NewCache()
-	base := int64(1_700_000_000)
+	base := time.Now().Unix()
 
 	goodQname := dns.Fqdn("marshal-good.example")
 	goodMsg := newTestMessage(goodQname)
@@ -620,7 +658,7 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	if msgTXT.Len() <= chunkSize {
 		t.Fatalf("test requires message larger than chunk size, got len=%d chunk=%d", msgTXT.Len(), chunkSize)
 	}
-	expiresTXT := int64(1_700_000_000) + (15 * 60)
+	expiresTXT := time.Now().Unix() + (15 * 60)
 	key := mustBucketKey(t, qnameTXT, dns.TypeTXT)
 	src.bucketFor(key).set(msgTXT, expiresTXT)
 
@@ -634,6 +672,66 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	mustReadCacheFromReader(t, dst, chunked, written)
 
 	mustCacheEntry(t, dst, qnameTXT, dns.TypeTXT, expiresTXT)
+}
+
+func TestCacheReadFromRejectsInvalidEntries(t *testing.T) {
+	t.Parallel()
+
+	var buf bytes.Buffer
+	var written int64
+	if err := writeInt64(&buf, &written, cacheMagic); err != nil {
+		t.Fatalf("writeInt64 returned error: %v", err)
+	}
+
+	now := time.Now()
+
+	invalid := cacheValue{Msg: new(dns.Msg), expires: now.Add(time.Hour).Unix()}
+	invalidPacked, invalidErr := invalid.MarshalBinary()
+	if invalidErr != nil {
+		t.Fatalf("MarshalBinary for invalid entry returned error: %v", invalidErr)
+	}
+
+	appendCacheBytes := func(data []byte) {
+		if len(data) > math.MaxUint16 {
+			t.Fatalf("entry too large to encode length: %d bytes", len(data))
+		}
+		length := uint16(len(data))
+		buf.Write([]byte{byte(length >> 8), byte(length)})
+		n, _ := buf.Write(data)
+		written += int64(n + 2)
+	}
+
+	appendCacheBytes(invalidPacked)
+
+	validQname := dns.Fqdn("import-valid.example.")
+	valid := cacheValue{
+		Msg:     newTestMessage(validQname),
+		expires: now.Add(2 * time.Hour).Unix(),
+	}
+	validPacked, validErr := valid.MarshalBinary()
+	if validErr != nil {
+		t.Fatalf("MarshalBinary for valid entry returned error: %v", validErr)
+	}
+	appendCacheBytes(validPacked)
+
+	dst := NewCache()
+	read, err := dst.ReadFrom(bytes.NewReader(buf.Bytes()))
+	if read != written {
+		t.Fatalf("ReadFrom read %d bytes want %d", read, written)
+	}
+	if !errors.Is(err, ErrInvalidCacheEntry) {
+		t.Fatalf("ReadFrom error = %v want ErrInvalidCacheEntry", err)
+	}
+	if entries := dst.Entries(); entries != 1 {
+		t.Fatalf("dst cache entries = %d want 1 (only valid entry)", entries)
+	}
+	cached := dst.DnsGet(validQname, dns.TypeA)
+	if cached == nil {
+		t.Fatalf("expected cached entry for %s", validQname)
+	}
+	if cached.Question[0].Name != validQname {
+		t.Fatalf("cached question mismatch got=%s want=%s", cached.Question[0].Name, validQname)
+	}
 }
 
 type chunkedReader struct {

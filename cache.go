@@ -210,8 +210,28 @@ func minDNSMsgTTL(msg *dns.Msg) (minTTL int64) {
 			}
 		}
 	}
-	if minTTL == math.MaxInt {
+	if minTTL == math.MaxInt64 {
 		minTTL = -1
 	}
 	return
+}
+
+func clampMessageTTL(msg *dns.Msg, ttlSeconds uint32) {
+	for _, rr := range msg.Answer {
+		clampRRHeaderTTL(rr, ttlSeconds)
+	}
+	for _, rr := range msg.Ns {
+		clampRRHeaderTTL(rr, ttlSeconds)
+	}
+	for _, rr := range msg.Extra {
+		clampRRHeaderTTL(rr, ttlSeconds)
+	}
+}
+
+func clampRRHeaderTTL(rr dns.RR, ttlSeconds uint32) {
+	if hdr := rr.Header(); hdr.Rrtype != dns.TypeOPT {
+		if hdr.Ttl > ttlSeconds {
+			hdr.Ttl = ttlSeconds
+		}
+	}
 }

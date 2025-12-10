@@ -8,6 +8,7 @@ import (
 )
 
 var ErrWrongMagic = errors.New("wrong magic number")
+var ErrInvalidCacheEntry = errors.New("invalid cache entry")
 
 const cacheMagic = int64(0xCACE0003)
 const marshalWorkerBufferSize = 1024 * 8
@@ -116,7 +117,13 @@ func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) {
 				if readerr == nil {
 					var cv cacheValue
 					if merr := cv.UnmarshalBinary(buf); merr == nil {
-						cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
+						// the cache is explicitly allowed to contain expired entries
+						// but may not contain entries without questions
+						if cv.Msg != nil && len(cv.Msg.Question) > 0 {
+							cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
+						} else {
+							err = errors.Join(err, ErrInvalidCacheEntry)
+						}
 					} else {
 						err = errors.Join(err, merr)
 					}

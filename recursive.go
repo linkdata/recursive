@@ -5,7 +5,6 @@ package recursive
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/netip"
@@ -56,10 +55,12 @@ var _ Resolver = &Recursive{}
 var (
 	// ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
 	ErrInvalidCookie = errors.New("invalid cookie")
+	// ErrMismatchedQuestion is returned when a response question does not match the query.
+	ErrMismatchedQuestion = errors.New("mismatched response question")
 	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
-	ErrMaxDepth = fmt.Errorf("recursion depth exceeded %d", maxDepth)
+	ErrMaxDepth = errors.New("recursion depth exceeded 16")
 	// ErrMaxSteps is returned when resolving exceeds the step limit.
-	ErrMaxSteps = fmt.Errorf("resolve steps exceeded %d", maxSteps)
+	ErrMaxSteps = errors.New("resolve steps exceeded 4096")
 	// ErrNoResponse is returned when no authoritative server could be successfully queried.
 	// It is equivalent to SERVFAIL.
 	ErrNoResponse = errors.New("no authoritative response")

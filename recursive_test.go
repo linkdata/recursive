@@ -3,10 +3,13 @@ package recursive
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"errors"
+	"io"
 	"net"
 	"net/netip"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -22,8 +25,27 @@ func init() {
 	testSvc.OrderRootsTimeout(context.Background(), time.Millisecond*100)
 }
 
+var networkOnce sync.Once
+var networkCheckErr error
+
+func requireNetwork(t *testing.T) {
+	t.Helper()
+	networkOnce.Do(func() {
+		conn, err := net.DialTimeout("udp", net.JoinHostPort("1.1.1.1", "53"), time.Second)
+		if err != nil {
+			networkCheckErr = err
+			return
+		}
+		_ = conn.Close()
+	})
+	if networkCheckErr != nil {
+		t.Skipf("skipping network-dependent test: %v", networkCheckErr)
+	}
+}
+
 func Test_A_console_aws_amazon_com(t *testing.T) {
 	t.Parallel()
+	requireNetwork(t)
 	/*
 		This domain tests that CNAME chains are followed.
 	*/
@@ -101,6 +123,7 @@ func Test_A_console_aws_amazon_com(t *testing.T) {
 
 func Test_TXT_qnamemintest_internet_nl(t *testing.T) {
 	t.Parallel()
+	requireNetwork(t)
 	/*
 		This domain tests that QNAME minimization works.
 	*/
@@ -145,6 +168,7 @@ func Test_TXT_qnamemintest_internet_nl(t *testing.T) {
 
 func Test_NS_bankgirot_nu(t *testing.T) {
 	t.Parallel()
+	requireNetwork(t)
 	/*
 	   This domain has delegation servers that do not respond.
 	   We expect the final queries to time out, but since we
@@ -208,6 +232,7 @@ func Test_NS_bankgirot_nu(t *testing.T) {
 
 func Test_A_nonexistant_example_com(t *testing.T) {
 	t.Parallel()
+	requireNetwork(t)
 	r := testSvc
 	var buf bytes.Buffer
 	defer func() {
@@ -277,8 +302,8 @@ func TestResolverCacheStoreAndGet(t *testing.T) {
 	if cachedAgain == nil {
 		t.Fatal("expected cached response on second lookup")
 	}
-	if cachedAgain != cached {
-		t.Fatalf("expected cache to return the same message pointer got=%p want=%p", cachedAgain, cached)
+	if !dnsMsgsEqual(cachedAgain, cached) {
+		t.Fatalf("expected equivalent cached responses got=%v want=%v", cachedAgain.Question, cached.Question)
 	}
 	if cachedAgain.Question[0].Name != qname {
 		t.Fatalf("cached question changed got=%s want=%s", cachedAgain.Question[0].Name, qname)
@@ -434,10 +459,91 @@ func TestPrependRecordsKeepsFinalAuthorityForCNAME(t *testing.T) {
 	}
 }
 
+func TestExchangeRejectsMismatchedResponseQuestion(t *testing.T) {
+	t.Parallel()
+
+	clientConn, serverConn := net.Pipe()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		defer serverConn.Close()
+		var lenbuf [2]byte
+		if _, readErr := io.ReadFull(serverConn, lenbuf[:]); readErr == nil {
+			msgLen := int(binary.BigEndian.Uint16(lenbuf[:]))
+			buf := make([]byte, msgLen)
+			if _, readErr = io.ReadFull(serverConn, buf); readErr != nil {
+				return
+			}
+			var req dns.Msg
+			if unpackErr := req.Unpack(buf); unpackErr == nil {
+				resp := new(dns.Msg)
+				resp.SetQuestion(dns.Fqdn("poisoned.example."), dns.TypeA)
+				resp.Id = req.Id
+				resp.MsgHdr.Response = true
+				resp.MsgHdr.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("poisoned.example."),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(203, 0, 113, 10),
+					},
+				}
+				if packed, packErr := resp.Pack(); packErr == nil {
+					var out bytes.Buffer
+					_ = binary.Write(&out, binary.BigEndian, uint16(len(packed)))
+					out.Write(packed)
+					_, _ = serverConn.Write(out.Bytes())
+				}
+			}
+		}
+	}()
+
+	cache := NewCache()
+	cache.MinTTL = 0
+	rec := NewWithOptions(&singleUseDialer{conn: clientConn}, cache, nil, nil, nil)
+	rec.DNSPort = 0
+	q := &query{Recursive: rec, cache: cache, start: time.Now()}
+	qname := dns.Fqdn("legit.example.")
+
+	msg, err := q.exchangeWithNetwork(context.Background(), "tcp", qname, dns.TypeA, netip.MustParseAddr("127.0.0.1"))
+	<-done
+
+	if !errors.Is(err, ErrMismatchedQuestion) {
+		t.Fatalf("expected ErrMismatchedQuestion, got %v", err)
+	}
+	if msg != nil {
+		t.Fatalf("expected no message on mismatched question, got %v", msg)
+	}
+	if poisoned := cache.DnsGet(dns.Fqdn("poisoned.example."), dns.TypeA); poisoned != nil {
+		t.Fatalf("poisoned response was cached: %v", poisoned)
+	}
+}
+
 type recordingCacher struct {
 	msg      *dns.Msg
 	getCount int
 	setCount int
+}
+
+type singleUseDialer struct {
+	conn net.Conn
+}
+
+func (d *singleUseDialer) Dial(network, address string) (net.Conn, error) {
+	return d.DialContext(context.Background(), network, address)
+}
+
+func (d *singleUseDialer) DialContext(context.Context, string, string) (net.Conn, error) {
+	if d.conn == nil {
+		return nil, errors.New("no connection available")
+	}
+	conn := d.conn
+	d.conn = nil
+	return conn, nil
 }
 
 func (c *recordingCacher) DnsSet(msg *dns.Msg) {

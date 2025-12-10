@@ -416,29 +416,32 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 
 			m.Extra = append(m.Extra, opt)
 			c := dns.Client{UDPSize: msgsize}
-			msg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn)
-
-			if useCookies && msg != nil {
-				newsrvcookie := srvcookie
-				if opt := msg.IsEdns0(); opt != nil {
-					for _, rr := range opt.Option {
-						switch rr := rr.(type) {
-						case *dns.EDNS0_COOKIE:
-							if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok {
-								newsrvcookie = after
-							} else {
-								msg = nil
-								err = ErrInvalidCookie
+			var rawmsg *dns.Msg
+			if rawmsg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil {
+				if msg, err = validateResponseQuestion(rawmsg, qname, qtype); err == nil {
+					if useCookies {
+						newsrvcookie := srvcookie
+						if opt := msg.IsEdns0(); opt != nil {
+							for _, rr := range opt.Option {
+								switch rr := rr.(type) {
+								case *dns.EDNS0_COOKIE:
+									if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok {
+										newsrvcookie = after
+									} else {
+										msg = nil
+										err = ErrInvalidCookie
+									}
+								}
 							}
 						}
-					}
-				}
-				if err == nil && newsrvcookie != "" {
-					if !hasSrvCookie || srvcookie != newsrvcookie {
-						if q.logw != nil {
-							fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+						if err == nil && newsrvcookie != "" {
+							if !hasSrvCookie || srvcookie != newsrvcookie {
+								if q.logw != nil {
+									fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+								}
+								q.setSrvCookie(q.start, nsaddr, newsrvcookie)
+							}
 						}
-						q.setSrvCookie(q.start, nsaddr, newsrvcookie)
 					}
 				}
 			}
@@ -621,6 +624,22 @@ func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) {
 	if msg.Zero {
 		clone = msg.Copy()
 		clone.Zero = false
+	}
+	return
+}
+
+func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg *dns.Msg, err error) {
+	err = ErrMismatchedQuestion
+	if msg != nil {
+		if len(msg.Question) == 1 {
+			q := msg.Question[0]
+			if strings.EqualFold(dns.CanonicalName(q.Name), dns.CanonicalName(qname)) {
+				if q.Qtype == qtype && q.Qclass == dns.ClassINET {
+					err = nil
+					outmsg = msg
+				}
+			}
+		}
 	}
 	return
 }

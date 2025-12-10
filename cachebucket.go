@@ -55,10 +55,11 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 	cv := cq.cache[key]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		ttl := -time.Since(cv.expiresAt())
+		ttl := time.Until(cv.expiresAt())
 		stale = ttl < 0
 		if allowfn(cv.Msg, ttl) {
 			msg = cv.Msg
+			clampMessageTTL(msg, clampTTLSeconds(ttl))
 		} else {
 			cq.mu.Lock()
 			delete(cq.cache, key)
@@ -80,4 +81,15 @@ func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, ttl time.Du
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
 	cq.cleanLocked(t, allowfn)
+}
+
+func clampTTLSeconds(ttl time.Duration) (secs uint32) {
+	if ttl > 0 {
+		if ttl/time.Second > time.Duration(^uint32(0)) {
+			secs = ^uint32(0)
+		} else {
+			secs = uint32(ttl / time.Second)
+		}
+	}
+	return
 }
