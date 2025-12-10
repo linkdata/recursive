@@ -50,13 +50,12 @@ func (cq *cacheBucket) set(msg *dns.Msg, expires int64) {
 	cq.mu.Unlock()
 }
 
-func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, stale bool) bool) (msg *dns.Msg, stale bool) {
+func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool) {
 	cq.mu.RLock()
 	cv := cq.cache[key]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		stale = time.Since(cv.expiresAt()) > 0
-		if allowfn(cv.Msg, stale) {
+		if allowfn(cv.Msg, -time.Since(cv.expiresAt())) {
 			msg = cv.Msg
 		} else {
 			cq.mu.Lock()
@@ -67,15 +66,15 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, stale bool)
 	return
 }
 
-func (cq *cacheBucket) cleanLocked(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
+func (cq *cacheBucket) cleanLocked(t time.Time, allowfn func(msg *dns.Msg, ttl time.Duration) bool) {
 	for key, cv := range cq.cache {
-		if !allowfn(cv.Msg, cv.expiresAt().Before(t)) {
+		if !allowfn(cv.Msg, cv.expiresAt().Sub(t)) {
 			delete(cq.cache, key)
 		}
 	}
 }
 
-func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
+func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, ttl time.Duration) bool) {
 	cq.mu.Lock()
 	defer cq.mu.Unlock()
 	cq.cleanLocked(t, allowfn)

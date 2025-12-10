@@ -97,8 +97,8 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	return
 }
 
-func defaultAllowFn(msg *dns.Msg, stale bool) bool {
-	return !stale
+func defaultAllowFn(msg *dns.Msg, ttl time.Duration) bool {
+	return ttl > 0
 }
 
 // Get allows filtering DNS entries from the cache and control of eviction.
@@ -107,7 +107,7 @@ func defaultAllowFn(msg *dns.Msg, stale bool) bool {
 // Otherwise, the entry is purged from the cache,
 //
 // The default allowfn returns false if the entry is stale.
-func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, stale bool) bool) (msg *dns.Msg, stale bool) {
+func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool) {
 	if cache != nil {
 		if allowfn == nil {
 			allowfn = defaultAllowFn
@@ -128,7 +128,7 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 
 // CleanAllow calls allowfn with 't' as the time to use to determine staleness.
 // If allowfn returns false, the cache entry is removed.
-func (cache *Cache) CleanAllow(t time.Time, allowfn func(msg *dns.Msg, stale bool) bool) {
+func (cache *Cache) CleanAllow(t time.Time, allowfn func(msg *dns.Msg, ttl time.Duration) bool) {
 	if cache != nil {
 		now := time.Now()
 		for _, cq := range cache.cq {
@@ -148,7 +148,7 @@ func (cache *Cache) Clean() {
 }
 
 func (cache *Cache) Clear() {
-	cache.CleanAllow(time.Time{}, func(msg *dns.Msg, stale bool) bool { return false })
+	cache.CleanAllow(time.Time{}, func(msg *dns.Msg, ttl time.Duration) bool { return false })
 }
 
 // Merge inserts all entries from other into cache.
