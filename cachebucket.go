@@ -55,7 +55,9 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 	cv := cq.cache[key]
 	cq.mu.RUnlock()
 	if cv.Msg != nil {
-		if allowfn(cv.Msg, -time.Since(cv.expiresAt())) {
+		ttl := -time.Since(cv.expiresAt())
+		stale = ttl < 0
+		if allowfn(cv.Msg, ttl) {
 			msg = cv.Msg
 		} else {
 			cq.mu.Lock()
