@@ -42,8 +42,8 @@ type Recursive struct {
 	rootServers         []netip.Addr
 	clicookie           string
 	srvcookies          map[netip.Addr]srvCookie
-	udperrs             map[netip.Addr]netError
-	tcperrs             map[netip.Addr]netError
+	udperrs             map[netip.Addr]CachedNetError
+	tcperrs             map[netip.Addr]CachedNetError
 }
 
 func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) {
@@ -105,8 +105,8 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
 		rootServers:   roots,
 		clicookie:     makeCookie(),
 		srvcookies:    make(map[netip.Addr]srvCookie),
-		udperrs:       make(map[netip.Addr]netError),
-		tcperrs:       make(map[netip.Addr]netError),
+		udperrs:       make(map[netip.Addr]CachedNetError),
+		tcperrs:       make(map[netip.Addr]CachedNetError),
 	}
 }
 
@@ -159,11 +159,11 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 			ok = true
 		}
 		ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
-		ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+		ok = ok || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, net.ErrClosed)
 		errstr := err.Error()
 		ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
 		if ok {
-			var m map[netip.Addr]netError
+			var m map[netip.Addr]CachedNetError
 			switch protocol {
 			case "udp":
 				isUdpErr = true
@@ -173,7 +173,7 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 			}
 			if m != nil {
 				r.mu.Lock()
-				m[nsaddr] = netError{Err: err, When: time.Now()}
+				m[nsaddr] = CachedNetError{Err: err, When: time.Now(), Protocol: protocol, Address: nsaddr}
 				r.mu.Unlock()
 			}
 		}

@@ -87,7 +87,7 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 			var nsAddrs []netip.Addr
 
 			if nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
-				q.logf("DELEGATION ERROR %q: %v\n", zone, err)
+				q.logf("DELEGATION ERROR %q: @%v %v\n", zone, srv, err)
 				return
 			}
 
@@ -337,7 +337,7 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 			}
 		}
 	}
-	if err == nil && (resp == nil || resp.Truncated) {
+	if err == nil && (resp == nil || (resp.Truncated && resp.Rcode != dns.RcodeNameError)) {
 		resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
 	}
 	if resp != nil && q.cache != nil {
@@ -472,7 +472,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 
 func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) {
 	if err = ctx.Err(); err == nil {
-		var m map[netip.Addr]netError
+		var m map[netip.Addr]CachedNetError
 		switch protocol {
 		case "udp", "udp4", "udp6":
 			m = r.udperrs

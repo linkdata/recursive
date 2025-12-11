@@ -11,7 +11,7 @@ import (
 )
 
 func TestSetNetErrorRecords(t *testing.T) {
-	r := &Recursive{udperrs: make(map[netip.Addr]netError), tcperrs: make(map[netip.Addr]netError)}
+	r := &Recursive{udperrs: make(map[netip.Addr]CachedNetError), tcperrs: make(map[netip.Addr]CachedNetError)}
 
 	addr6 := netip.MustParseAddr("2001:db8::1")
 	is6, isUdp := r.setNetError("udp", addr6, io.EOF)
@@ -121,7 +121,7 @@ func TestNetErrorErrorString(t *testing.T) {
 	t.Parallel()
 
 	base := errors.New("network unreachable")
-	ne := netError{Err: base}
+	ne := CachedNetError{Err: base}
 
 	if got := ne.Error(); got != base.Error() {
 		t.Fatalf("Error() = %q, want %q", got, base.Error())
