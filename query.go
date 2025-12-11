@@ -65,6 +65,23 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	return
 }
 
+func (q *query) using() (using []string) {
+	if q.logw != nil {
+		q.mu.RLock()
+		if q.useIPv4 {
+			using = append(using, "IPv4")
+		}
+		if q.useIPv6 {
+			using = append(using, "IPv6")
+		}
+		if q.useUDP {
+			using = append(using, "UDP")
+		}
+		q.mu.RUnlock()
+	}
+	return
+}
+
 func (q *query) queryDelegation(ctx context.Context, qname string) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil {
 		defer func() {
@@ -87,7 +104,7 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 			var nsAddrs []netip.Addr
 
 			if nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil {
-				q.logf("DELEGATION ERROR %q: @%v %v\n", zone, srv, err)
+				q.logf("DELEGATION ERROR %q: @%s %v (using %v)\n", zone, srv, err, q.using())
 				return
 			}
 
@@ -330,24 +347,27 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 			return
 		}
 	}
-	if q.usingUDP() {
-		if resp, err = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr); err != nil {
-			if q.maybeDisableUdp(err) {
-				err = nil
-			}
+	q.mu.RLock()
+	useUDP := q.useUDP
+	useIPv4 := q.useIPv4
+	useIPv6 := q.useIPv6
+	q.mu.RUnlock()
+	if (useIPv4 && nsaddr.Is4()) || (useIPv6 && nsaddr.Is6()) {
+		if useUDP {
+			resp, _ = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr)
 		}
-	}
-	if err == nil && (resp == nil || (resp.Truncated && resp.Rcode != dns.RcodeNameError)) {
-		resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
-	}
-	if resp != nil && q.cache != nil {
-		q.cache.DnsSet(resp)
+		if resp == nil || (resp.Truncated && resp.Rcode != dns.RcodeNameError) {
+			resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
+		}
+		if resp != nil && q.cache != nil {
+			q.cache.DnsSet(resp)
+		}
 	}
 	return
 }
 
 func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname string, qtype uint16, nsaddr netip.Addr) (msg *dns.Msg, err error) {
-	if err = q.getUsable(ctx, protocol, nsaddr); err == nil {
+	if err = q.getCachedNetError(ctx, protocol, nsaddr); err == nil {
 		var network string
 		if nsaddr.Is4() {
 			network = protocol + "4"
@@ -470,29 +490,23 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 	return
 }
 
-func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) {
+func (r *Recursive) getCachedNetError(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) {
 	if err = ctx.Err(); err == nil {
-		var m map[netip.Addr]CachedNetError
+		var m map[netip.Addr]*CachedNetError
 		switch protocol {
 		case "udp", "udp4", "udp6":
 			m = r.udperrs
 		case "tcp", "tcp4", "tcp6":
 			m = r.tcperrs
 		}
-		err = net.ErrClosed
 		if m != nil {
 			r.mu.RLock()
-			ne, hasNetError := m[nsaddr]
-			if !hasNetError {
-				if (r.useIPv4 && nsaddr.Is4()) || (r.useIPv6 && nsaddr.Is6()) {
-					err = nil
-				}
-			}
+			ne := m[nsaddr]
 			r.mu.RUnlock()
-			if hasNetError {
-				err = ne
-				if time.Since(ne.When) > time.Minute {
-					err = nil
+			if ne != nil {
+				if time.Since(ne.When) < time.Minute {
+					err = ne
+				} else {
 					r.mu.Lock()
 					delete(m, nsaddr)
 					r.mu.Unlock()

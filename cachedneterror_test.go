@@ -6,12 +6,16 @@ import (
 	"io"
 	"net"
 	"net/netip"
+	"strings"
 	"syscall"
 	"testing"
 )
 
 func TestSetNetErrorRecords(t *testing.T) {
-	r := &Recursive{udperrs: make(map[netip.Addr]CachedNetError), tcperrs: make(map[netip.Addr]CachedNetError)}
+	r := &Recursive{
+		udperrs: make(map[netip.Addr]*CachedNetError),
+		tcperrs: make(map[netip.Addr]*CachedNetError),
+	}
 
 	addr6 := netip.MustParseAddr("2001:db8::1")
 	is6, isUdp := r.setNetError("udp", addr6, io.EOF)
@@ -117,14 +121,14 @@ func TestMaybeDisableUdpTimeout(t *testing.T) {
 	}
 }
 
-func TestNetErrorErrorString(t *testing.T) {
+func TestCachedNetErrorErrorString(t *testing.T) {
 	t.Parallel()
 
 	base := errors.New("network unreachable")
-	ne := CachedNetError{Err: base}
+	ne := &CachedNetError{Err: base}
 
-	if got := ne.Error(); got != base.Error() {
-		t.Fatalf("Error() = %q, want %q", got, base.Error())
+	if got := ne.Error(); !strings.Contains(got, base.Error()) {
+		t.Fatalf("Error() = %q does not contain %q", got, base.Error())
 	}
 	if !errors.Is(ne, base) {
 		t.Fatalf("netError does not unwrap to base error")

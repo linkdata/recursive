@@ -13,10 +13,10 @@ type CachedNetError struct {
 	Address  netip.Addr
 }
 
-func (ne CachedNetError) Error() string {
+func (ne *CachedNetError) Error() string {
 	return fmt.Sprintf("(cached) %v %v: %v", ne.Protocol, ne.Address, ne.Err.Error())
 }
 
-func (ne CachedNetError) Unwrap() error {
+func (ne *CachedNetError) Unwrap() error {
 	return ne.Err
 }
