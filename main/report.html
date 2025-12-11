@@ -59,23 +59,23 @@
 				
 				<option value="file1">github.com/linkdata/recursive/cachebucket.go (100.0%)</option>
 				
-				<option value="file2">github.com/linkdata/recursive/cachemarshalling.go (93.4%)</option>
+				<option value="file2">github.com/linkdata/recursive/cachedneterror.go (100.0%)</option>
 				
-				<option value="file3">github.com/linkdata/recursive/cachevalue.go (100.0%)</option>
+				<option value="file3">github.com/linkdata/recursive/cachemarshalling.go (93.4%)</option>
 				
-				<option value="file4">github.com/linkdata/recursive/cookie.go (100.0%)</option>
+				<option value="file4">github.com/linkdata/recursive/cachevalue.go (100.0%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/disable.go (100.0%)</option>
+				<option value="file5">github.com/linkdata/recursive/cookie.go (100.0%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
+				<option value="file6">github.com/linkdata/recursive/disable.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/ioutil.go (100.0%)</option>
+				<option value="file7">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
 				
-				<option value="file8">github.com/linkdata/recursive/neterror.go (100.0%)</option>
+				<option value="file8">github.com/linkdata/recursive/ioutil.go (100.0%)</option>
 				
 				<option value="file9">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
 				
-				<option value="file10">github.com/linkdata/recursive/query.go (83.3%)</option>
+				<option value="file10">github.com/linkdata/recursive/query.go (82.4%)</option>
 				
 				<option value="file11">github.com/linkdata/recursive/recursive.go (100.0%)</option>
 				
@@ -163,12 +163,12 @@ func (cache *Cache) Entries() (n int) <span class="cov2" title="22">{
         <span class="cov2" title="22">return</span>
 }
 
-func newBucketKey(qname string, qtype uint16) (key bucketKey) <span class="cov10" title="5001296">{
+func newBucketKey(qname string, qtype uint16) (key bucketKey) <span class="cov10" title="5001294">{
         key = bucketKey{qname: qname, qtype: qtype}
         return
 }</span>
 
-func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) <span class="cov9" title="2000662">{
+func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) <span class="cov9" title="2000661">{
         bucket = cache.cq[bucketIndexForQname(key.qname)]
         return
 }</span>
@@ -176,20 +176,20 @@ func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) <span class="
 // DnsSet add a DNS message to the cache.
 //
 // Does nothing if the message has the Zero flag set, or does not have exactly one Question.
-func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov9" title="2000359">{
-        if cache != nil &amp;&amp; msg != nil &amp;&amp; !msg.Zero &amp;&amp; len(msg.Question) == 1 </span><span class="cov9" title="2000359">{
+func (cache *Cache) DnsSet(msg *dns.Msg) <span class="cov9" title="2000358">{
+        if cache != nil &amp;&amp; msg != nil &amp;&amp; !msg.Zero &amp;&amp; len(msg.Question) == 1 </span><span class="cov9" title="2000358">{
                 question := msg.Question[0]
                 key := newBucketKey(question.Name, question.Qtype)
                 msg = msg.Copy()
                 msg.Zero = true
                 ttl := cache.NXTTL
-                if msg.Rcode != dns.RcodeNameError </span><span class="cov9" title="2000353">{
+                if msg.Rcode != dns.RcodeNameError </span><span class="cov9" title="2000352">{
                         ttl = max(cache.MinTTL, minDNSMsgTTL(msg))
                         if question.Qtype != dns.TypeNS || msg.Rcode != dns.RcodeSuccess </span><span class="cov9" title="1933610">{
                                 ttl = min(cache.MaxTTL, ttl)
                         }</span>
                 }
-                <span class="cov9" title="2000359">cache.bucketFor(key).set(msg, time.Now().Unix()+ttl)</span>
+                <span class="cov9" title="2000358">cache.bucketFor(key).set(msg, time.Now().Unix()+ttl)</span>
         }
 }
 
@@ -201,7 +201,7 @@ func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) <span clas
         return
 }</span>
 
-func defaultAllowFn(msg *dns.Msg, ttl time.Duration) bool <span class="cov4" title="177">{
+func defaultAllowFn(msg *dns.Msg, ttl time.Duration) bool <span class="cov4" title="178">{
         return ttl &gt; 0
 }</span>
 
@@ -218,7 +218,7 @@ func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, t
                 }</span>
                 <span class="cov4" title="279">cache.count.Add(1)
                 key := newBucketKey(qname, qtype)
-                if msg, stale = cache.bucketFor(key).get(key, allowfn); msg != nil </span><span class="cov4" title="176">{
+                if msg, stale = cache.bucketFor(key).get(key, allowfn); msg != nil </span><span class="cov4" title="177">{
                         cache.hits.Add(1)
                 }</span>
         }
@@ -276,13 +276,13 @@ func (cache *Cache) Merge(other *Cache) <span class="cov1" title="2">{
 // Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
 func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (err error) <span class="cov1" title="2">{
         if cache != nil &amp;&amp; fn != nil </span><span class="cov1" title="2">{
-                for _, qc := range cache.cq </span><span class="cov3" title="44">{
+                for _, qc := range cache.cq </span><span class="cov3" title="43">{
                         var cvs []cacheValue
                         qc.mu.RLock()
                         for _, cv := range qc.cache </span><span class="cov1" title="3">{
                                 cvs = append(cvs, cv)
                         }</span>
-                        <span class="cov3" title="44">qc.mu.RUnlock()
+                        <span class="cov3" title="43">qc.mu.RUnlock()
                         for _, cv := range cvs </span><span class="cov1" title="3">{
                                 if err = fn(cv.Msg, cv.expiresAt()); err != nil </span><span class="cov1" title="1">{
                                         return
@@ -293,48 +293,48 @@ func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (
         <span class="cov1" title="1">return</span>
 }
 
-func minDNSMsgTTL(msg *dns.Msg) (minTTL int64) <span class="cov9" title="2000353">{
+func minDNSMsgTTL(msg *dns.Msg) (minTTL int64) <span class="cov9" title="2000352">{
         minTTL = math.MaxInt64
-        if msg != nil </span><span class="cov9" title="2000353">{
+        if msg != nil </span><span class="cov9" title="2000352">{
                 for _, rr := range msg.Answer </span><span class="cov9" title="2000305">{
                         if rr != nil </span><span class="cov9" title="2000305">{
                                 minTTL = min(minTTL, int64(rr.Header().Ttl))
                         }</span>
                 }
-                <span class="cov9" title="2000353">for _, rr := range msg.Ns </span><span class="cov4" title="329">{
-                        if rr != nil </span><span class="cov4" title="329">{
+                <span class="cov9" title="2000352">for _, rr := range msg.Ns </span><span class="cov4" title="316">{
+                        if rr != nil </span><span class="cov4" title="316">{
                                 minTTL = min(minTTL, int64(rr.Header().Ttl))
                         }</span>
                 }
-                <span class="cov9" title="2000353">for _, rr := range msg.Extra </span><span class="cov4" title="509">{
-                        if rr != nil </span><span class="cov4" title="509">{
-                                if rr.Header().Rrtype != dns.TypeOPT </span><span class="cov4" title="416">{
+                <span class="cov9" title="2000352">for _, rr := range msg.Extra </span><span class="cov4" title="482">{
+                        if rr != nil </span><span class="cov4" title="482">{
+                                if rr.Header().Rrtype != dns.TypeOPT </span><span class="cov4" title="390">{
                                         minTTL = min(minTTL, int64(rr.Header().Ttl))
                                 }</span>
                         }
                 }
         }
-        <span class="cov9" title="2000353">if minTTL == math.MaxInt64 </span><span class="cov0" title="0">{
+        <span class="cov9" title="2000352">if minTTL == math.MaxInt64 </span><span class="cov0" title="0">{
                 minTTL = -1
         }</span>
-        <span class="cov9" title="2000353">return</span>
+        <span class="cov9" title="2000352">return</span>
 }
 
-func clampMessageTTL(msg *dns.Msg, ttlSeconds uint32) <span class="cov4" title="176">{
+func clampMessageTTL(msg *dns.Msg, ttlSeconds uint32) <span class="cov4" title="177">{
         for _, rr := range msg.Answer </span><span class="cov3" title="46">{
                 clampRRHeaderTTL(rr, ttlSeconds)
         }</span>
-        <span class="cov4" title="176">for _, rr := range msg.Ns </span><span class="cov5" title="1013">{
+        <span class="cov4" title="177">for _, rr := range msg.Ns </span><span class="cov5" title="1026">{
                 clampRRHeaderTTL(rr, ttlSeconds)
         }</span>
-        <span class="cov4" title="176">for _, rr := range msg.Extra </span><span class="cov5" title="1867">{
+        <span class="cov4" title="177">for _, rr := range msg.Extra </span><span class="cov5" title="1894">{
                 clampRRHeaderTTL(rr, ttlSeconds)
         }</span>
 }
 
-func clampRRHeaderTTL(rr dns.RR, ttlSeconds uint32) <span class="cov5" title="2926">{
-        if hdr := rr.Header(); hdr.Rrtype != dns.TypeOPT </span><span class="cov5" title="2757">{
-                if hdr.Ttl &gt; ttlSeconds </span><span class="cov4" title="551">{
+func clampRRHeaderTTL(rr dns.RR, ttlSeconds uint32) <span class="cov5" title="2966">{
+        if hdr := rr.Header(); hdr.Rrtype != dns.TypeOPT </span><span class="cov5" title="2796">{
+                if hdr.Ttl &gt; ttlSeconds </span><span class="cov4" title="578">{
                         hdr.Ttl = ttlSeconds
                 }</span>
         }
@@ -367,7 +367,7 @@ func newCacheBucket() *cacheBucket <span class="cov5" title="1152">{
 
 var bucketSeed = maphash.MakeSeed()
 
-func bucketIndexForQname(qname string) (idx int) <span class="cov10" title="3000923">{
+func bucketIndexForQname(qname string) (idx int) <span class="cov10" title="3000922">{
         idx = int(maphash.String(bucketSeed, qname) &amp; (cacheBucketCount - 1)) // #nosec G115
         return
 }</span>
@@ -379,15 +379,15 @@ func (cq *cacheBucket) entries() (n int) <span class="cov4" title="704">{
         return
 }</span>
 
-func questionBucketKey(q dns.Question) bucketKey <span class="cov9" title="3000636">{
+func questionBucketKey(q dns.Question) bucketKey <span class="cov9" title="3000635">{
         return newBucketKey(q.Name, q.Qtype)
 }</span>
 
-func (cq *cacheBucket) setLocked(msg *dns.Msg, expires int64) <span class="cov9" title="3000636">{
+func (cq *cacheBucket) setLocked(msg *dns.Msg, expires int64) <span class="cov9" title="3000635">{
         cq.cache[questionBucketKey(msg.Question[0])] = cacheValue{Msg: msg, expires: expires}
 }</span>
 
-func (cq *cacheBucket) set(msg *dns.Msg, expires int64) <span class="cov9" title="2000375">{
+func (cq *cacheBucket) set(msg *dns.Msg, expires int64) <span class="cov9" title="2000374">{
         cq.mu.Lock()
         cq.setLocked(msg, expires)
         cq.mu.Unlock()
@@ -397,10 +397,10 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
         cq.mu.RLock()
         cv := cq.cache[key]
         cq.mu.RUnlock()
-        if cv.Msg != nil </span><span class="cov4" title="178">{
+        if cv.Msg != nil </span><span class="cov4" title="179">{
                 ttl := time.Until(cv.expiresAt())
                 stale = ttl &lt; 0
-                if allowfn(cv.Msg, ttl) </span><span class="cov4" title="176">{
+                if allowfn(cv.Msg, ttl) </span><span class="cov4" title="177">{
                         msg = cv.Msg
                         clampMessageTTL(msg, clampTTLSeconds(ttl))
                 }</span> else<span class="cov1" title="2"> {
@@ -426,18 +426,42 @@ func (cq *cacheBucket) clean(t time.Time, allowfn func(msg *dns.Msg, ttl time.Du
         cq.cleanLocked(t, allowfn)
 }</span>
 
-func clampTTLSeconds(ttl time.Duration) (secs uint32) <span class="cov4" title="176">{
-        if ttl &gt; 0 </span><span class="cov4" title="175">{
+func clampTTLSeconds(ttl time.Duration) (secs uint32) <span class="cov4" title="177">{
+        if ttl &gt; 0 </span><span class="cov4" title="176">{
                 secs = ^uint32(0)
-                if ttl &lt;= time.Duration(^uint32(0))*time.Second </span><span class="cov4" title="175">{
+                if ttl &lt;= time.Duration(^uint32(0))*time.Second </span><span class="cov4" title="176">{
                         secs = uint32(ttl / time.Second) // #nosec G115
                 }</span>
         }
-        <span class="cov4" title="176">return</span>
+        <span class="cov4" title="177">return</span>
 }
 </pre>
 		
 		<pre class="file" id="file2" style="display: none">package recursive
+
+import (
+        "fmt"
+        "net/netip"
+        "time"
+)
+
+type CachedNetError struct {
+        When     time.Time
+        Err      error
+        Protocol string
+        Address  netip.Addr
+}
+
+func (ne *CachedNetError) Error() string <span class="cov8" title="1">{
+        return fmt.Sprintf("(cached) %v %v: %v", ne.Protocol, ne.Address, ne.Err.Error())
+}</span>
+
+func (ne *CachedNetError) Unwrap() error <span class="cov8" title="1">{
+        return ne.Err
+}</span>
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package recursive
 
 import (
         "encoding/binary"
@@ -489,7 +513,7 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov2
 func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) <span class="cov4" title="352">{
         defer wg.Done()
         var buf []byte
-        wf := func() (fatal bool) </span><span class="cov7" title="39467">{
+        wf := func() (fatal bool) </span><span class="cov7" title="39453">{
                 pmu.Lock()
                 defer pmu.Unlock()
                 written, err := w.Write(buf)
@@ -498,13 +522,13 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
                         fatal = (err == io.EOF || errors.Is(err, io.ErrShortWrite))
                         *perr = errors.Join(*perr, err)
                 }</span>
-                <span class="cov7" title="39467">buf = buf[:0]
+                <span class="cov7" title="39453">buf = buf[:0]
                 return</span>
         }
         <span class="cov4" title="352">for _, cv := range qc.cache </span><span class="cov10" title="3000261">{
                 if b, err := cv.MarshalBinary(); err == nil </span><span class="cov9" title="3000260">{
                         if len(b) &gt; 0 </span><span class="cov9" title="3000260">{
-                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39115">{
+                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39101">{
                                         if wf() </span><span class="cov0" title="0">{
                                                 return
                                         }</span>
@@ -578,7 +602,7 @@ func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) <span class="cov
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package recursive
+		<pre class="file" id="file4" style="display: none">package recursive
 
 import (
         "encoding/binary"
@@ -593,7 +617,7 @@ type cacheValue struct {
         expires  int64 // expiry Unix time
 }
 
-func (cv cacheValue) expiresAt() time.Time <span class="cov4" title="183">{
+func (cv cacheValue) expiresAt() time.Time <span class="cov4" title="184">{
         return time.Unix(cv.expires, 0)
 }</span>
 
@@ -623,7 +647,7 @@ func (cv *cacheValue) bucketIndex() int <span class="cov9" title="1000261">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file4" style="display: none">package recursive
+		<pre class="file" id="file5" style="display: none">package recursive
 
 import (
         crand "crypto/rand"
@@ -652,8 +676,8 @@ func makeCookie() string <span class="cov6" title="1004">{
         <span class="cov6" title="1004">return fmt.Sprintf("%016x", x)</span>
 }
 
-func maskCookie(s string) string <span class="cov2" title="10">{
-        if len(s) &gt; 5 </span><span class="cov2" title="9">{
+func maskCookie(s string) string <span class="cov3" title="22">{
+        if len(s) &gt; 5 </span><span class="cov3" title="21">{
                 return "..." + s[len(s)-5:]
         }</span>
         <span class="cov1" title="1">return s</span>
@@ -669,7 +693,7 @@ func (r *Recursive) ResetCookies() <span class="cov1" title="1">{
 
 func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" title="8">{
         cutoff := now.Add(-srvCookieTTL)
-        for addr, c := range r.srvcookies </span><span class="cov7" title="8196">{
+        for addr, c := range r.srvcookies </span><span class="cov7" title="8197">{
                 if c.ts.Before(cutoff) </span><span class="cov1" title="1">{
                         delete(r.srvcookies, addr)
                 }</span>
@@ -685,7 +709,7 @@ func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" ti
         for addr, c := range r.srvcookies </span><span class="cov7" title="8193">{
                 l = append(l, ac{addr: addr, ts: c.ts})
         }</span>
-        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="109851">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="110860">{ return l[i].ts.Before(l[j].ts) }</span>)
         <span class="cov1" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov1" title="1">{
                 delete(r.srvcookies, l[i].addr)
         }</span>
@@ -697,23 +721,23 @@ func (r *Recursive) cleanupSrvCookies(now time.Time) <span class="cov2" title="6
         r.cleanupSrvCookiesLocked(now)
 }</span>
 
-func (r *Recursive) getSrvCookieLocked(addr netip.Addr) (s string, found bool) <span class="cov4" title="99">{
+func (r *Recursive) getSrvCookieLocked(addr netip.Addr) (s string, found bool) <span class="cov4" title="98">{
         c, ok := r.srvcookies[addr]
-        if ok &amp;&amp; time.Since(c.ts) &lt; srvCookieTTL </span><span class="cov1" title="3">{
+        if ok &amp;&amp; time.Since(c.ts) &lt; srvCookieTTL </span><span class="cov2" title="7">{
                 s = c.value
                 found = true
         }</span>
-        <span class="cov4" title="99">return</span>
+        <span class="cov4" title="98">return</span>
 }
 
-func (r *Recursive) setSrvCookie(now time.Time, addr netip.Addr, val string) <span class="cov1" title="2">{
+func (r *Recursive) setSrvCookie(now time.Time, addr netip.Addr, val string) <span class="cov2" title="6">{
         r.mu.Lock()
         defer r.mu.Unlock()
         r.srvcookies[addr] = srvCookie{value: val, ts: now}
 }</span>
 </pre>
 		
-		<pre class="file" id="file5" style="display: none">package recursive
+		<pre class="file" id="file6" style="display: none">package recursive
 
 import (
         "errors"
@@ -722,14 +746,14 @@ import (
         "syscall"
 )
 
-func (r *Recursive) usingUDP() (yes bool) <span class="cov10" title="100">{
+func (r *Recursive) usingUDP() (yes bool) <span class="cov2" title="2">{
         r.mu.RLock()
         yes = r.useUDP
         r.mu.RUnlock()
         return
 }</span>
 
-func (r *Recursive) usingIPv6() (yes bool) <span class="cov8" title="39">{
+func (r *Recursive) usingIPv6() (yes bool) <span class="cov10" title="39">{
         r.mu.RLock()
         yes = r.useIPv6
         r.mu.RUnlock()
@@ -747,7 +771,7 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) <span class="cov
                                 r.useIPv6 = false
                                 disabled = true
                                 var idx int
-                                for i := range r.rootServers </span><span class="cov3" title="4">{
+                                for i := range r.rootServers </span><span class="cov4" title="4">{
                                         if r.rootServers[i].Is4() </span><span class="cov2" title="2">{
                                                 r.rootServers[idx] = r.rootServers[i]
                                                 idx++
@@ -775,7 +799,7 @@ func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov3
 }
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package recursive
+		<pre class="file" id="file7" style="display: none">package recursive
 
 import (
         "context"
@@ -821,7 +845,7 @@ func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov7" tit
                         return uint16(rcodeErr)
                 }</span>
 
-                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="151">{
+                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="167">{
                         if errors.Is(err, sample) </span><span class="cov5" title="13">{
                                 return code
                         }</span>
@@ -830,7 +854,7 @@ func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov7" tit
                 <span class="cov6" title="18">if errors.Is(err, os.ErrNotExist) </span><span class="cov1" title="1">{
                         return dns.ExtendedErrorCodeNoReachableAuthority
                 }</span>
-                <span class="cov6" title="17">if errors.Is(err, os.ErrExist) </span><span class="cov1" title="1">{
+                <span class="cov5" title="17">if errors.Is(err, os.ErrExist) </span><span class="cov1" title="1">{
                         return dns.ExtendedErrorCodeInvalidData
                 }</span>
                 <span class="cov5" title="16">if errors.Is(err, os.ErrDeadlineExceeded) ||
@@ -900,7 +924,7 @@ func ErrorFromExtendedErrorCode(code uint16) (err error) <span class="cov4" titl
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file8" style="display: none">package recursive
 
 import (
         "encoding/binary"
@@ -924,24 +948,6 @@ func writeInt64(w io.Writer, written *int64, val int64) (err error) <span class=
         n, err = w.Write(b[:])
         *written += int64(n)
         return
-}</span>
-</pre>
-		
-		<pre class="file" id="file8" style="display: none">package recursive
-
-import "time"
-
-type netError struct {
-        Err  error
-        When time.Time
-}
-
-func (ne netError) Error() string <span class="cov8" title="1">{
-        return ne.Err.Error()
-}</span>
-
-func (ne netError) Unwrap() error <span class="cov8" title="1">{
-        return ne.Err
 }</span>
 </pre>
 		
@@ -977,12 +983,12 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
                 go timeRoot(ctx, r, &amp;wg, rt)
         }</span>
         <span class="cov2" title="2">wg.Wait()
-        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="154">{ return l[i].rtt &lt; l[j].rtt }</span>)
+        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="160">{ return l[i].rtt &lt; l[j].rtt }</span>)
         <span class="cov2" title="2">var newRootServers []netip.Addr
         useIPv4 := false
         useIPv6 := false
         for _, rt := range l </span><span class="cov8" title="52">{
-                if rt.rtt &lt;= cutoff </span><span class="cov6" title="23">{
+                if rt.rtt &lt;= cutoff </span><span class="cov6" title="24">{
                         useIPv4 = useIPv4 || rt.addr.Is4()
                         useIPv6 = useIPv6 || rt.addr.Is6()
                         newRootServers = append(newRootServers, rt.addr)
@@ -1063,6 +1069,23 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
         <span class="cov5" title="71">return</span>
 }
 
+func (q *query) using() (using []string) <span class="cov1" title="1">{
+        if q.logw != nil </span><span class="cov0" title="0">{
+                q.mu.RLock()
+                if q.useIPv4 </span><span class="cov0" title="0">{
+                        using = append(using, "IPv4")
+                }</span>
+                <span class="cov0" title="0">if q.useIPv6 </span><span class="cov0" title="0">{
+                        using = append(using, "IPv6")
+                }</span>
+                <span class="cov0" title="0">if q.useUDP </span><span class="cov0" title="0">{
+                        using = append(using, "UDP")
+                }</span>
+                <span class="cov0" title="0">q.mu.RUnlock()</span>
+        }
+        <span class="cov1" title="1">return</span>
+}
+
 func (q *query) queryDelegation(ctx context.Context, qname string) (servers []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) <span class="cov5" title="71">{
         if err = q.dive("DELEGATION QUERY %q\n", qname); err == nil </span><span class="cov5" title="71">{
                 defer func() </span><span class="cov5" title="71">{
@@ -1085,7 +1108,7 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
                         var nsAddrs []netip.Addr
 
                         if nsAddrs, resp, srv, err = q.queryForDelegation(ctx, zone, servers, qname); err != nil </span><span class="cov1" title="1">{
-                                q.logf("DELEGATION ERROR %q: %v\n", zone, err)
+                                q.logf("DELEGATION ERROR %q: @%s %v (using %v)\n", zone, srv, err, q.using())
                                 return
                         }</span>
 
@@ -1293,7 +1316,7 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) <span cl
         if q.logw != nil </span><span class="cov6" title="340">{
                 if msg != nil </span><span class="cov6" title="340">{
                         var elapsed string
-                        if rtt != 0 </span><span class="cov5" title="98">{
+                        if rtt != 0 </span><span class="cov5" title="97">{
                                 elapsed = fmt.Sprintf("%v, ", rtt.Round(time.Millisecond))
                         }</span>
                         <span class="cov6" title="340">fmt.Fprintf(q.logw, " =&gt; %s [%v+%v+%v A/N/E] (%s%d bytes",
@@ -1322,38 +1345,41 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) <span cl
 
 func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr) (resp *dns.Msg, err error) <span class="cov6" title="307">{
         if q.cache != nil </span><span class="cov6" title="307">{
-                if resp = q.cache.DnsGet(qname, qtype); resp != nil </span><span class="cov6" title="209">{
+                if resp = q.cache.DnsGet(qname, qtype); resp != nil </span><span class="cov6" title="210">{
                         q.logf("CACHED: %s %q", dns.Type(qtype), qname)
                         q.logResponse(0, resp, nil)
                         return
                 }</span>
         }
-        <span class="cov5" title="98">if q.usingUDP() </span><span class="cov5" title="98">{
-                if resp, err = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr); err != nil </span><span class="cov0" title="0">{
-                        if q.maybeDisableUdp(err) </span><span class="cov0" title="0">{
-                                err = nil
-                        }</span>
-                }
+        <span class="cov5" title="97">q.mu.RLock()
+        useUDP := q.useUDP
+        useIPv4 := q.useIPv4
+        useIPv6 := q.useIPv6
+        q.mu.RUnlock()
+        if (useIPv4 &amp;&amp; nsaddr.Is4()) || (useIPv6 &amp;&amp; nsaddr.Is6()) </span><span class="cov5" title="97">{
+                if useUDP </span><span class="cov5" title="97">{
+                        resp, _ = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr)
+                }</span>
+                <span class="cov5" title="97">if resp == nil || (resp.Truncated &amp;&amp; resp.Rcode != dns.RcodeNameError) </span><span class="cov0" title="0">{
+                        resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
+                }</span>
+                <span class="cov5" title="97">if resp != nil &amp;&amp; q.cache != nil </span><span class="cov5" title="97">{
+                        q.cache.DnsSet(resp)
+                }</span>
         }
-        <span class="cov5" title="98">if err == nil &amp;&amp; (resp == nil || resp.Truncated) </span><span class="cov0" title="0">{
-                resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
-        }</span>
-        <span class="cov5" title="98">if resp != nil &amp;&amp; q.cache != nil </span><span class="cov5" title="98">{
-                q.cache.DnsSet(resp)
-        }</span>
-        <span class="cov5" title="98">return</span>
+        <span class="cov5" title="97">return</span>
 }
 
-func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname string, qtype uint16, nsaddr netip.Addr) (msg *dns.Msg, err error) <span class="cov5" title="99">{
-        if err = q.getUsable(ctx, protocol, nsaddr); err == nil </span><span class="cov5" title="99">{
+func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname string, qtype uint16, nsaddr netip.Addr) (msg *dns.Msg, err error) <span class="cov5" title="98">{
+        if err = q.getCachedNetError(ctx, protocol, nsaddr); err == nil </span><span class="cov5" title="98">{
                 var network string
-                if nsaddr.Is4() </span><span class="cov5" title="99">{
+                if nsaddr.Is4() </span><span class="cov5" title="98">{
                         network = protocol + "4"
                 }</span> else<span class="cov0" title="0"> {
                         network = protocol + "6"
                 }</span>
 
-                <span class="cov5" title="99">if q.rateLimiter != nil </span><span class="cov0" title="0">{
+                <span class="cov5" title="98">if q.rateLimiter != nil </span><span class="cov0" title="0">{
                         select </span>{
                         case &lt;-ctx.Done():<span class="cov0" title="0">
                                 err = ctx.Err()
@@ -1362,33 +1388,33 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         }
                 }
 
-                <span class="cov5" title="99">if q.logw != nil </span><span class="cov5" title="98">{
+                <span class="cov5" title="98">if q.logw != nil </span><span class="cov5" title="97">{
                         var protostr string
                         var dash6str string
                         if protocol != "udp" </span><span class="cov0" title="0">{
                                 protostr = " +" + protocol
                         }</span>
-                        <span class="cov5" title="98">if nsaddr.Is6() </span><span class="cov0" title="0">{
+                        <span class="cov5" title="97">if nsaddr.Is6() </span><span class="cov0" title="0">{
                                 dash6str = " -6"
                         }</span>
-                        <span class="cov5" title="98">q.logf("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, dns.Type(qtype), qname)</span>
+                        <span class="cov5" title="97">q.logf("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, dns.Type(qtype), qname)</span>
                 }
 
-                <span class="cov5" title="99">var nconn net.Conn
+                <span class="cov5" title="98">var nconn net.Conn
                 var rtt time.Duration
 
                 q.mu.RLock()
-                if q.Timeout &gt; 0 </span><span class="cov5" title="99">{
+                if q.Timeout &gt; 0 </span><span class="cov5" title="98">{
                         ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
                         defer cancel()
                         ctx = ctx2
                 }</span>
-                <span class="cov5" title="99">clicookie := q.clicookie
+                <span class="cov5" title="98">clicookie := q.clicookie
                 srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
                 msgsize := q.MsgSize
                 q.mu.RUnlock()
 
-                if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov5" title="99">{
+                if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil </span><span class="cov5" title="98">{
                         dnsconn := &amp;dns.Conn{Conn: nconn, UDPSize: msgsize}
                         defer dnsconn.Close()
 
@@ -1402,28 +1428,28 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 
                         // an existing but empty string for srvcookie means cookies are disabled for this server
                         useCookies := !hasSrvCookie || srvcookie != ""
-                        if useCookies </span><span class="cov5" title="99">{
+                        if useCookies </span><span class="cov5" title="98">{
                                 opt.Option = append(opt.Option, &amp;dns.EDNS0_COOKIE{
                                         Code:   dns.EDNS0COOKIE,
                                         Cookie: clicookie + srvcookie,
                                 })
-                                if hasSrvCookie &amp;&amp; q.logw != nil </span><span class="cov2" title="3">{
+                                if hasSrvCookie &amp;&amp; q.logw != nil </span><span class="cov2" title="7">{
                                         fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
                                 }</span>
                         }
 
-                        <span class="cov5" title="99">m.Extra = append(m.Extra, opt)
+                        <span class="cov5" title="98">m.Extra = append(m.Extra, opt)
                         c := dns.Client{UDPSize: msgsize}
                         var rawmsg *dns.Msg
-                        if rawmsg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil </span><span class="cov5" title="99">{
-                                if msg, err = validateResponseQuestion(rawmsg, qname, qtype); err == nil </span><span class="cov5" title="98">{
-                                        if useCookies </span><span class="cov5" title="98">{
+                        if rawmsg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil </span><span class="cov5" title="98">{
+                                if msg, err = validateResponseQuestion(rawmsg, qname, qtype); err == nil </span><span class="cov5" title="97">{
+                                        if useCookies </span><span class="cov5" title="97">{
                                                 newsrvcookie := srvcookie
-                                                if opt := msg.IsEdns0(); opt != nil </span><span class="cov5" title="98">{
-                                                        for _, rr := range opt.Option </span><span class="cov2" title="5">{
+                                                if opt := msg.IsEdns0(); opt != nil </span><span class="cov5" title="97">{
+                                                        for _, rr := range opt.Option </span><span class="cov3" title="11">{
                                                                 switch rr := rr.(type) </span>{
-                                                                case *dns.EDNS0_COOKIE:<span class="cov2" title="5">
-                                                                        if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok </span><span class="cov2" title="5">{
+                                                                case *dns.EDNS0_COOKIE:<span class="cov3" title="11">
+                                                                        if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok </span><span class="cov3" title="11">{
                                                                                 newsrvcookie = after
                                                                         }</span> else<span class="cov0" title="0"> {
                                                                                 msg = nil
@@ -1432,12 +1458,12 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                                                                 }
                                                         }
                                                 }
-                                                <span class="cov5" title="98">if err == nil &amp;&amp; newsrvcookie != "" </span><span class="cov2" title="5">{
-                                                        if !hasSrvCookie || srvcookie != newsrvcookie </span><span class="cov1" title="2">{
-                                                                if q.logw != nil </span><span class="cov1" title="2">{
+                                                <span class="cov5" title="97">if err == nil &amp;&amp; newsrvcookie != "" </span><span class="cov3" title="11">{
+                                                        if !hasSrvCookie || srvcookie != newsrvcookie </span><span class="cov2" title="6">{
+                                                                if q.logw != nil </span><span class="cov2" title="6">{
                                                                         fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
                                                                 }</span>
-                                                                <span class="cov1" title="2">q.setSrvCookie(q.start, nsaddr, newsrvcookie)</span>
+                                                                <span class="cov2" title="6">q.setSrvCookie(q.start, nsaddr, newsrvcookie)</span>
                                                         }
                                                 }
                                         }
@@ -1445,52 +1471,46 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
                         }
                 }
 
-                <span class="cov5" title="99">isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
+                <span class="cov5" title="98">isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
                 ipv6disabled := isIpv6Err &amp;&amp; q.maybeDisableIPv6(err)
                 udpDisabled := isUdpErr &amp;&amp; q.maybeDisableUdp(err)
 
-                if q.logw != nil </span><span class="cov5" title="98">{
+                if q.logw != nil </span><span class="cov5" title="97">{
                         if ipv6disabled </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " (IPv6 disabled)")
                         }</span>
-                        <span class="cov5" title="98">if udpDisabled </span><span class="cov0" title="0">{
+                        <span class="cov5" title="97">if udpDisabled </span><span class="cov0" title="0">{
                                 fmt.Fprintf(q.logw, " (UDP disabled)")
                         }</span>
-                        <span class="cov5" title="98">q.logResponse(rtt, msg, err)</span>
+                        <span class="cov5" title="97">q.logResponse(rtt, msg, err)</span>
                 }
 
-                <span class="cov5" title="99">if !hasSrvCookie &amp;&amp; msg != nil &amp;&amp; msg.Rcode == dns.RcodeFormatError </span><span class="cov0" title="0">{
+                <span class="cov5" title="98">if !hasSrvCookie &amp;&amp; msg != nil &amp;&amp; msg.Rcode == dns.RcodeFormatError </span><span class="cov0" title="0">{
                         q.logf("got FORMERR, disabling cookies for %v and retrying\n", nsaddr)
                         q.setSrvCookie(q.start, nsaddr, "")
                         return q.exchangeWithNetwork(ctx, protocol, qname, qtype, nsaddr)
                 }</span>
         }
-        <span class="cov5" title="99">return</span>
+        <span class="cov5" title="98">return</span>
 }
 
-func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) <span class="cov5" title="99">{
-        if err = ctx.Err(); err == nil </span><span class="cov5" title="99">{
-                var m map[netip.Addr]netError
+func (r *Recursive) getCachedNetError(ctx context.Context, protocol string, nsaddr netip.Addr) (err error) <span class="cov5" title="98">{
+        if err = ctx.Err(); err == nil </span><span class="cov5" title="98">{
+                var m map[netip.Addr]*CachedNetError
                 switch protocol </span>{
-                case "udp", "udp4", "udp6":<span class="cov5" title="98">
+                case "udp", "udp4", "udp6":<span class="cov5" title="97">
                         m = r.udperrs</span>
                 case "tcp", "tcp4", "tcp6":<span class="cov1" title="1">
                         m = r.tcperrs</span>
                 }
-                <span class="cov5" title="99">err = net.ErrClosed
-                if m != nil </span><span class="cov5" title="99">{
+                <span class="cov5" title="98">if m != nil </span><span class="cov5" title="98">{
                         r.mu.RLock()
-                        ne, hasNetError := m[nsaddr]
-                        if !hasNetError </span><span class="cov5" title="99">{
-                                if (r.useIPv4 &amp;&amp; nsaddr.Is4()) || (r.useIPv6 &amp;&amp; nsaddr.Is6()) </span><span class="cov5" title="99">{
-                                        err = nil
-                                }</span>
-                        }
-                        <span class="cov5" title="99">r.mu.RUnlock()
-                        if hasNetError </span><span class="cov0" title="0">{
-                                err = ne
-                                if time.Since(ne.When) &gt; time.Minute </span><span class="cov0" title="0">{
-                                        err = nil
+                        ne := m[nsaddr]
+                        r.mu.RUnlock()
+                        if ne != nil </span><span class="cov0" title="0">{
+                                if time.Since(ne.When) &lt; time.Minute </span><span class="cov0" title="0">{
+                                        err = ne
+                                }</span> else<span class="cov0" title="0"> {
                                         r.mu.Lock()
                                         delete(m, nsaddr)
                                         r.mu.Unlock()
@@ -1498,12 +1518,12 @@ func (r *Recursive) getUsable(ctx context.Context, protocol string, nsaddr netip
                         }
                 }
         }
-        <span class="cov5" title="99">return</span>
+        <span class="cov5" title="98">return</span>
 }
 
 func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov6" title="145">{
         if r.Deterministic </span><span class="cov6" title="145">{
-                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7541">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7475">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
         } else<span class="cov0" title="0"> {
                 rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
         }
@@ -1626,20 +1646,20 @@ func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) <span class="cov3" title="9">{
         <span class="cov3" title="9">return</span>
 }
 
-func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg *dns.Msg, err error) <span class="cov5" title="99">{
+func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg *dns.Msg, err error) <span class="cov5" title="98">{
         err = ErrMismatchedQuestion
-        if msg != nil </span><span class="cov5" title="99">{
-                if len(msg.Question) == 1 </span><span class="cov5" title="99">{
+        if msg != nil </span><span class="cov5" title="98">{
+                if len(msg.Question) == 1 </span><span class="cov5" title="98">{
                         q := msg.Question[0]
-                        if strings.EqualFold(dns.CanonicalName(q.Name), dns.CanonicalName(qname)) </span><span class="cov5" title="98">{
-                                if q.Qtype == qtype &amp;&amp; q.Qclass == dns.ClassINET </span><span class="cov5" title="98">{
+                        if strings.EqualFold(dns.CanonicalName(q.Name), dns.CanonicalName(qname)) </span><span class="cov5" title="97">{
+                                if q.Qtype == qtype &amp;&amp; q.Qclass == dns.ClassINET </span><span class="cov5" title="97">{
                                         err = nil
                                         outmsg = msg
                                 }</span>
                         }
                 }
         }
-        <span class="cov5" title="99">return</span>
+        <span class="cov5" title="98">return</span>
 }
 </pre>
 		
@@ -1687,8 +1707,8 @@ type Recursive struct {
         rootServers         []netip.Addr
         clicookie           string
         srvcookies          map[netip.Addr]srvCookie
-        udperrs             map[netip.Addr]netError
-        tcperrs             map[netip.Addr]netError
+        udperrs             map[netip.Addr]*CachedNetError
+        tcperrs             map[netip.Addr]*CachedNetError
 }
 
 func (r *Recursive) DnsResolve(ctx context.Context, qname string, qtype uint16) (msg *dns.Msg, srv netip.Addr, err error) <span class="cov1" title="1">{
@@ -1750,8 +1770,8 @@ func NewWithOptions(dialer proxy.ContextDialer, cache Cacher, roots4, roots6 []n
                 rootServers:   roots,
                 clicookie:     makeCookie(),
                 srvcookies:    make(map[netip.Addr]srvCookie),
-                udperrs:       make(map[netip.Addr]netError),
-                tcperrs:       make(map[netip.Addr]netError),
+                udperrs:       make(map[netip.Addr]*CachedNetError),
+                tcperrs:       make(map[netip.Addr]*CachedNetError),
         }</span>
 }
 
@@ -1795,7 +1815,7 @@ func (r *Recursive) GetRoots() (root4, root6 []netip.Addr) <span class="cov1" ti
         <span class="cov1" title="1">return</span>
 }
 
-func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) <span class="cov10" title="102">{
+func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (isIpv6err, isUdpErr bool) <span class="cov10" title="101">{
         if err != nil </span><span class="cov3" title="4">{
                 isIpv6err = nsaddr.Is6()
                 var ne net.Error
@@ -1804,11 +1824,11 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
                         ok = true
                 }</span>
                 <span class="cov3" title="4">ok = ok || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded)
-                ok = ok || errors.Is(err, syscall.ECONNREFUSED)
+                ok = ok || errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, net.ErrClosed)
                 errstr := err.Error()
                 ok = ok || strings.Contains(errstr, "timeout") || strings.Contains(errstr, "refused")
                 if ok </span><span class="cov3" title="3">{
-                        var m map[netip.Addr]netError
+                        var m map[netip.Addr]*CachedNetError
                         switch protocol </span>{
                         case "udp":<span class="cov2" title="2">
                                 isUdpErr = true
@@ -1818,12 +1838,12 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
                         }
                         <span class="cov3" title="3">if m != nil </span><span class="cov3" title="3">{
                                 r.mu.Lock()
-                                m[nsaddr] = netError{Err: err, When: time.Now()}
+                                m[nsaddr] = &amp;CachedNetError{Err: err, When: time.Now(), Protocol: protocol, Address: nsaddr}
                                 r.mu.Unlock()
                         }</span>
                 }
         }
-        <span class="cov10" title="102">return</span>
+        <span class="cov10" title="101">return</span>
 }
 </pre>
 		
@@ -1850,16 +1870,16 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
         }</span>
         <span class="cov8" title="52">rt.rtt = time.Hour
         var rtt time.Duration
-        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="103">{
+        for i := 0; i &lt; numProbes; i++ </span><span class="cov10" title="102">{
                 now := time.Now()
                 conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
-                if err != nil </span><span class="cov7" title="29">{
+                if err != nil </span><span class="cov7" title="28">{
                         return
                 }</span>
                 <span class="cov9" title="74">rtt += time.Since(now)
                 _ = conn.Close()</span>
         }
-        <span class="cov7" title="23">rt.rtt = rtt / numProbes</span>
+        <span class="cov7" title="24">rt.rtt = rtt / numProbes</span>
 }
 </pre>
 		
