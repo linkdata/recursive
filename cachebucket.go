@@ -59,7 +59,11 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 		stale = ttl < 0
 		if allowfn(cv.Msg, ttl) {
 			msg = cv.Msg
-			clampMessageTTL(msg, clampTTLSeconds(ttl))
+			clampTTL := clampTTLSeconds(ttl)
+			if minDNSMsgTTL(msg) > clampTTL {
+				msg = cv.Msg.Copy()
+				clampMessageTTL(msg, clampTTL)
+			}
 		} else {
 			cq.mu.Lock()
 			delete(cq.cache, key)

@@ -73,7 +73,7 @@ func TestCacheNegativeUsesNXTTL(t *testing.T) {
 	})
 	cache.DnsSet(msg)
 	entry := mustCacheValue(t, cache, qname, dns.TypeAAAA)
-	assertTTLWithin(t, entry, cache.NXTTL, tolerance)
+	assertTTLWithin(t, entry, int64(cache.NXTTL), tolerance)
 }
 
 func TestCacheDnsGetReturnsRemainingTTL(t *testing.T) {

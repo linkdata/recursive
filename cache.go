@@ -17,9 +17,9 @@ const cacheBucketCountBits = 5
 const cacheBucketCount = (1 << cacheBucketCountBits)
 
 type Cache struct {
-	MinTTL int64 // always cache responses for at least this long seconds
-	MaxTTL int64 // never cache responses for longer than this seconds (excepting successful NS responses)
-	NXTTL  int64 // cache NXDOMAIN responses for this long seconds
+	MinTTL uint32 // always cache responses for at least this long seconds
+	MaxTTL uint32 // never cache responses for longer than this seconds (excepting successful NS responses)
+	NXTTL  uint32 // cache NXDOMAIN responses for this long seconds
 	count  atomic.Uint64
 	hits   atomic.Uint64
 	cq     [cacheBucketCount]*cacheBucket
@@ -85,7 +85,7 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 				ttl = min(cache.MaxTTL, ttl)
 			}
 		}
-		cache.bucketFor(key).set(msg, time.Now().Unix()+ttl)
+		cache.bucketFor(key).set(msg, time.Now().Unix()+int64(ttl))
 	}
 }
 
@@ -189,29 +189,29 @@ func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (
 	return
 }
 
-func minDNSMsgTTL(msg *dns.Msg) (minTTL int64) {
-	minTTL = math.MaxInt64
+func minDNSMsgTTL(msg *dns.Msg) (minTTL uint32) {
+	minTTL = math.MaxUint32
 	if msg != nil {
 		for _, rr := range msg.Answer {
 			if rr != nil {
-				minTTL = min(minTTL, int64(rr.Header().Ttl))
+				minTTL = min(minTTL, rr.Header().Ttl)
 			}
 		}
 		for _, rr := range msg.Ns {
 			if rr != nil {
-				minTTL = min(minTTL, int64(rr.Header().Ttl))
+				minTTL = min(minTTL, rr.Header().Ttl)
 			}
 		}
 		for _, rr := range msg.Extra {
 			if rr != nil {
 				if rr.Header().Rrtype != dns.TypeOPT {
-					minTTL = min(minTTL, int64(rr.Header().Ttl))
+					minTTL = min(minTTL, rr.Header().Ttl)
 				}
 			}
 		}
 	}
-	if minTTL == math.MaxInt64 {
-		minTTL = -1
+	if minTTL == math.MaxUint32 {
+		minTTL = 0
 	}
 	return
 }
