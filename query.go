@@ -275,17 +275,23 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 			q.logf("GLUE ANSWER %v\n", addrs)
 		}()
 		resolved := map[netip.Addr]struct{}{}
+		q.mu.RLock()
+		useIPv4 := q.useIPv4
+		useIPv6 := q.useIPv6
+		q.mu.RUnlock()
 		for _, host := range nsOwners {
-			if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeA); err == nil {
-				for _, rr := range msg.Answer {
-					if a, ok := rr.(*dns.A); ok {
-						if addr := ipToAddr(a.A); addr.IsValid() {
-							resolved[addr] = struct{}{}
+			if useIPv4 {
+				if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeA); err == nil {
+					for _, rr := range msg.Answer {
+						if a, ok := rr.(*dns.A); ok {
+							if addr := ipToAddr(a.A); addr.IsValid() {
+								resolved[addr] = struct{}{}
+							}
 						}
 					}
 				}
 			}
-			if len(resolved) == 0 && q.usingIPv6() {
+			if useIPv6 {
 				if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeAAAA); err == nil {
 					for _, rr := range msg.Answer {
 						if a, ok := rr.(*dns.AAAA); ok {

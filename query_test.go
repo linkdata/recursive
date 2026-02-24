@@ -2,6 +2,7 @@ package recursive
 
 import (
 	"context"
+	"net"
 	"net/netip"
 	"testing"
 
@@ -94,5 +95,69 @@ func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
 	}
 	if len(addrs) != 1 || addrs[0] != referralAddr {
 		t.Fatalf("unexpected delegation addresses: %#v", addrs)
+	}
+}
+
+func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	root := netip.MustParseAddr("2001:db8::1")
+	nsHost := dns.Fqdn("ns1.example.net")
+	ipv4 := net.IPv4(192, 0, 2, 53)
+	ipv6 := net.ParseIP("2001:db8::53")
+
+	for _, zone := range []string{dns.Fqdn("net"), dns.Fqdn("example.net"), nsHost} {
+		msg := new(dns.Msg)
+		msg.SetQuestion(zone, dns.TypeNS)
+		msg.Rcode = dns.RcodeSuccess
+		msg.Authoritative = true
+		cache.DnsSet(msg)
+	}
+
+	msgA := new(dns.Msg)
+	msgA.SetQuestion(nsHost, dns.TypeA)
+	msgA.Rcode = dns.RcodeSuccess
+	msgA.Answer = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   nsHost,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: ipv4,
+		},
+	}
+	cache.DnsSet(msgA)
+
+	msgAAAA := new(dns.Msg)
+	msgAAAA.SetQuestion(nsHost, dns.TypeAAAA)
+	msgAAAA.Rcode = dns.RcodeSuccess
+	msgAAAA.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   nsHost,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: ipv6,
+		},
+	}
+	cache.DnsSet(msgAAAA)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{}, []netip.Addr{root}, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs := q.resolveNSAddrs(context.Background(), []string{nsHost})
+	if len(addrs) != 1 {
+		t.Fatalf("resolveNSAddrs returned %d addrs, want 1", len(addrs))
+	}
+	if !addrs[0].Is6() {
+		t.Fatalf("resolveNSAddrs returned non-IPv6 addr %v in IPv6-only mode", addrs[0])
+	}
+	if got := addrs[0].String(); got != "2001:db8::53" {
+		t.Fatalf("resolveNSAddrs returned %s, want 2001:db8::53", got)
 	}
 }
