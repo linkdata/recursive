@@ -532,6 +532,97 @@ func TestQueryForDelegationRetriesFullQnameOnMinimizedNXDOMAIN(t *testing.T) {
 	}
 }
 
+// TestQueryForDelegationIgnoresNonAuthoritativeNXDOMAINOnFallback verifies that
+// a non-authoritative NXDOMAIN received after the resolver has already fallen
+// back to the full qname does not terminate resolution early; the resolver must
+// continue trying other parent servers.
+func TestQueryForDelegationIgnoresNonAuthoritativeNXDOMAINOnFallback(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent1 := netip.MustParseAddr("192.0.2.1")
+	parent2 := netip.MustParseAddr("192.0.2.2")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	parent1Addr := netip.AddrPortFrom(parent1, 53).String()
+	parent2Addr := netip.AddrPortFrom(parent2, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			parent1Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+
+				if req.Question[0].Name == zone {
+					resp.Rcode = dns.RcodeRefused
+					return resp
+				}
+				if req.Question[0].Name == fullQname {
+					resp.Rcode = dns.RcodeNameError
+					resp.Authoritative = false
+					return resp
+				}
+
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+			parent2Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+
+				if req.Question[0].Name == fullQname {
+					resp.Rcode = dns.RcodeSuccess
+					ns := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					}
+					glue := &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					}
+					resp.Ns = []dns.RR{ns}
+					resp.Extra = []dns.RR{glue}
+					return resp
+				}
+
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{parent1, parent2}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent1, parent2}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("expected fallback referral %v, got %v", referralAddr, addrs)
+	}
+	if calls := dialer.callsTo(parent2Addr); calls == 0 {
+		t.Fatalf("expected parent2 to be queried after non-authoritative NXDOMAIN")
+	}
+}
+
 // TestQueryForDelegationDoesNotPoisonCacheWithMinimizedNXDOMAIN verifies that
 // an NXDOMAIN response seen during a minimized NS query does not poison future
 // exact-zone NS lookups via cache reuse.

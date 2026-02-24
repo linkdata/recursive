@@ -160,7 +160,7 @@ retryWithoutQMIN:
 				if maybeRetryWithoutQMIN() {
 					goto retryWithoutQMIN
 				}
-				if resp.Rcode == dns.RcodeNameError {
+				if resp.Rcode == dns.RcodeNameError && resp.Authoritative {
 					return
 				}
 			}
