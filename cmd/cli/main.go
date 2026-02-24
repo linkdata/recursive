@@ -33,6 +33,14 @@ var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
 var flagDeterministic = flag.Bool("deterministic", false, "do not randomize NS server order")
 
+func closeWithLog(name string, closer io.Closer) {
+	if closer != nil {
+		if err := closer.Close(); err != nil {
+			log.Printf("close %s: %v", name, err)
+		}
+	}
+}
+
 func recordFn(_ *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
 	fmt.Println("\n;;; ----------------------------------------------------------------------")
 	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, dns.Type(qtype), qname)
@@ -74,7 +82,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer f.Close()
+		defer closeWithLog(*flagCpuprofile, f)
 		_ = pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
@@ -142,7 +150,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer f.Close()
+		defer closeWithLog(*flagMemprofile, f)
 		runtime.GC() // get up-to-date statistics
 		if err := pprof.WriteHeapProfile(f); err != nil {
 			log.Fatal("could not write memory profile: ", err)

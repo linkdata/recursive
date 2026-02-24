@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,10 +23,18 @@ type Roots struct {
 	Roots6 []netip.Addr
 }
 
+func closeWithJoin(perr *error, c io.Closer) {
+	if c != nil {
+		if err := c.Close(); err != nil {
+			*perr = errors.Join(*perr, err)
+		}
+	}
+}
+
 func main() {
 	resp, err := http.Get("https://www.internic.net/domain/named.root")
 	if err == nil {
-		defer resp.Body.Close()
+		defer closeWithJoin(&err, resp.Body)
 		var body []byte
 		if body, err = io.ReadAll(resp.Body); err == nil {
 			var root4, root6 []netip.Addr
@@ -58,7 +67,7 @@ func main() {
 					of = os.Stdout
 				} else {
 					if of, err = os.Create(os.Args[1]); err == nil {
-						defer of.Close()
+						defer closeWithJoin(&err, of)
 					}
 				}
 				if err == nil {
