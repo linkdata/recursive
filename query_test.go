@@ -593,6 +593,69 @@ func TestPrependRecordsDoesNotDuplicateOPT(t *testing.T) {
 	}
 }
 
+func TestQueryFinalDoesNotReuseCachedServerFailureAcrossServers(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	qtype := dns.TypeA
+
+	srv1 := netip.MustParseAddr("192.0.2.1")
+	srv2 := netip.MustParseAddr("192.0.2.2")
+	srv1Addr := netip.AddrPortFrom(srv1, 53).String()
+	srv2Addr := netip.AddrPortFrom(srv2, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srv1Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+			srv2Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 123),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	cache := NewCache()
+	rec := NewWithOptions(dialer, cache, []netip.Addr{srv1, srv2}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv1, srv2})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if resp.Rcode != dns.RcodeSuccess {
+		t.Fatalf("expected success from second server, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if gotSrv != srv2 {
+		t.Fatalf("expected answer from second server %v, got %v", srv2, gotSrv)
+	}
+}
+
 type scriptedDNSServerDialer struct {
 	mu       sync.Mutex
 	handlers map[string]func(req *dns.Msg) *dns.Msg
