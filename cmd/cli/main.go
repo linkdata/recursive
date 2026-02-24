@@ -41,6 +41,36 @@ func closeWithLog(name string, closer io.Closer) {
 	}
 }
 
+func setResolverQueryTimeout(rec *recursive.Recursive, timeoutSeconds int) {
+	if rec != nil {
+		if timeoutSeconds > 0 {
+			rec.Timeout = time.Second * time.Duration(timeoutSeconds)
+		}
+	}
+}
+
+func newOrderRootsContext(timeoutSeconds int) (ctx context.Context, cancel context.CancelFunc) {
+	timeout := time.Second * time.Duration(timeoutSeconds)
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	} else {
+		ctx, cancel = context.WithCancel(context.Background())
+	}
+	return
+}
+
+// Query contexts are intentionally detached from startup contexts so one expired
+// setup timeout does not cancel subsequent queries.
+func newPerQueryContext(_ context.Context, maxwaitMillis int) (ctx context.Context, cancel context.CancelFunc) {
+	timeout := time.Millisecond * time.Duration(maxwaitMillis)
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+	} else {
+		ctx, cancel = context.WithCancel(context.Background())
+	}
+	return
+}
+
 func recordFn(_ *recursive.Recursive, nsaddr netip.Addr, qtype uint16, qname string, m *dns.Msg, err error) {
 	fmt.Println("\n;;; ----------------------------------------------------------------------")
 	fmt.Printf("; <<>> recursive <<>> @%s %s %s\n", nsaddr, dns.Type(qtype), qname)
@@ -111,8 +141,8 @@ func main() {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(*flagTimeout))
-	defer cancel()
+	orderRootsCtx, cancelOrderRootsCtx := newOrderRootsContext(*flagTimeout)
+	defer cancelOrderRootsCtx()
 
 	maxrate := int32(*flagRatelimit) // #nosec G115
 	var rateLimiter <-chan struct{}
@@ -121,7 +151,8 @@ func main() {
 	}
 
 	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
-	rec.OrderRoots(ctx)
+	setResolverQueryTimeout(rec, *flagTimeout)
+	rec.OrderRoots(orderRootsCtx)
 	if *flagDeterministic {
 		rec.Deterministic = true
 	}
@@ -136,8 +167,8 @@ func main() {
 			time.Sleep(time.Millisecond * time.Duration(*flagSleep))
 		}
 		for _, qname := range qnames {
-			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
-			retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype)
+			queryCtx, cancel := newPerQueryContext(orderRootsCtx, *flagMaxwait)
+			retv, srv, err := rec.ResolveWithOptions(queryCtx, recursive.DefaultCache, dbgout, qname, qtype)
 			recordFn(rec, srv, qtype, qname, retv, err)
 			cancel()
 		}
