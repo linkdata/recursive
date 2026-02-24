@@ -143,13 +143,13 @@ retryWithoutQMIN:
 					return
 				}
 			}
-			if queryName != fullQname {
+			if resp.Rcode == dns.RcodeNameError {
+				return
+			}
+			if resp.Rcode != dns.RcodeSuccess && queryName != fullQname {
 				q.logf("DELEGATION RETRY without QNAME minimization\n")
 				queryName = fullQname
 				goto retryWithoutQMIN
-			}
-			if resp.Rcode == dns.RcodeNameError {
-				return
 			}
 		}
 	}
