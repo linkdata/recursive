@@ -130,9 +130,8 @@ func (cache *Cache) DnsResolve(ctx context.Context, qname string, qtype uint16) 
 // If allowfn returns false, the cache entry is removed.
 func (cache *Cache) CleanAllow(t time.Time, allowfn func(msg *dns.Msg, ttl time.Duration) bool) {
 	if cache != nil {
-		now := time.Now()
 		for _, cq := range cache.cq {
-			cq.clean(now, allowfn)
+			cq.clean(t, allowfn)
 		}
 	}
 }

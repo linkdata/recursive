@@ -415,6 +415,27 @@ func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 	}
 }
 
+func TestCacheCleanBeforeUsesProvidedTime(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname := dns.Fqdn("clean-before-time.example.")
+	key := mustBucketKey(t, qname, dns.TypeA)
+	msg := newTestMessage(qname)
+	now := time.Now()
+	cache.bucketFor(key).set(msg, now.Add(5*time.Minute).Unix())
+
+	if entries := cache.Entries(); entries != 1 {
+		t.Fatalf("Entries() = %d before CleanBefore, want 1", entries)
+	}
+
+	cache.CleanBefore(now.Add(10 * time.Minute))
+
+	if entries := cache.Entries(); entries != 0 {
+		t.Fatalf("Entries() = %d after CleanBefore with future cutoff, want 0", entries)
+	}
+}
+
 func TestCacheWalkVisitsEntries(t *testing.T) {
 	t.Parallel()
 
