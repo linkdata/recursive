@@ -28,7 +28,6 @@ var flagMaxwait = flag.Int("maxwait", 60*1000, "max time to wait for result in m
 var flagCount = flag.Int("count", 1, "repeat count")
 var flagSleep = flag.Int("sleep", 0, "sleep ms between repeats")
 var flagDebug = flag.Bool("debug", false, "print debug output")
-var flagRecord = flag.Bool("record", false, "write a record of all queries made")
 var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no limit")
 var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
@@ -95,7 +94,7 @@ func main() {
 	if *flag4 {
 		roots4 = recursive.Roots4
 	}
-	if *flag6 || true {
+	if *flag6 {
 		roots6 = recursive.Roots6
 	}
 
@@ -131,9 +130,7 @@ func main() {
 		for _, qname := range qnames {
 			ctx, cancel := context.WithTimeout(ctx, time.Millisecond*time.Duration(*flagMaxwait))
 			retv, srv, err := rec.ResolveWithOptions(ctx, recursive.DefaultCache, dbgout, qname, qtype)
-			if !*flagRecord {
-				recordFn(rec, srv, qtype, qname, retv, err)
-			}
+			recordFn(rec, srv, qtype, qname, retv, err)
 			cancel()
 		}
 	}
