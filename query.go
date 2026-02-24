@@ -315,27 +315,27 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) {
 			if rtt != 0 {
 				elapsed = fmt.Sprintf("%v, ", rtt.Round(time.Millisecond))
 			}
-			fmt.Fprintf(q.logw, " => %s [%v+%v+%v A/N/E] (%s%d bytes",
+			_, _ = fmt.Fprintf(q.logw, " => %s [%v+%v+%v A/N/E] (%s%d bytes",
 				dns.RcodeToString[msg.Rcode],
 				len(msg.Answer), len(msg.Ns), len(msg.Extra),
 				elapsed, msg.Len())
 			if msg.MsgHdr.Truncated {
-				fmt.Fprintf(q.logw, " TRNC")
+				_, _ = fmt.Fprintf(q.logw, " TRNC")
 			}
 			if msg.MsgHdr.Authoritative {
-				fmt.Fprintf(q.logw, " AUTH")
+				_, _ = fmt.Fprintf(q.logw, " AUTH")
 			}
 			if opt := msg.IsEdns0(); opt != nil {
 				if er := uint16(opt.ExtendedRcode()); /*#nosec G115*/ er != 0 {
-					fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
+					_, _ = fmt.Fprintf(q.logw, " EDNS=%s", dns.ExtendedErrorCodeToString[er])
 				}
 			}
-			fmt.Fprintf(q.logw, ")")
+			_, _ = fmt.Fprintf(q.logw, ")")
 		}
 		if err != nil {
-			fmt.Fprintf(q.logw, " ERROR: %v", err)
+			_, _ = fmt.Fprintf(q.logw, " ERROR: %v", err)
 		}
-		fmt.Fprintln(q.logw)
+		_, _ = fmt.Fprintln(q.logw)
 	}
 }
 
@@ -430,7 +430,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 					Cookie: clicookie + srvcookie,
 				})
 				if hasSrvCookie && q.logw != nil {
-					fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
+					_, _ = fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
 				}
 			}
 
@@ -457,7 +457,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 						if err == nil && newsrvcookie != "" {
 							if !hasSrvCookie || srvcookie != newsrvcookie {
 								if q.logw != nil {
-									fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+									_, _ = fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
 								}
 								q.setSrvCookie(q.start, nsaddr, newsrvcookie)
 							}
@@ -473,10 +473,10 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 
 		if q.logw != nil {
 			if ipv6disabled {
-				fmt.Fprintf(q.logw, " (IPv6 disabled)")
+				_, _ = fmt.Fprintf(q.logw, " (IPv6 disabled)")
 			}
 			if udpDisabled {
-				fmt.Fprintf(q.logw, " (UDP disabled)")
+				_, _ = fmt.Fprintf(q.logw, " (UDP disabled)")
 			}
 			q.logResponse(rtt, msg, err)
 		}
