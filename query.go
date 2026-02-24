@@ -545,7 +545,10 @@ func dnameSynthesize(resp *dns.Msg, qname string) (tgt string) {
 				prefix := strings.TrimSuffix(q, owner)
 				// Avoid double dots when concatenating
 				prefix = strings.TrimSuffix(prefix, ".")
-				tgt = dns.CanonicalName(strings.Trim(prefix, ".") + "." + d.Target)
+				tgt = dns.CanonicalName(d.Target)
+				if prefix != "" {
+					tgt = dns.CanonicalName(strings.Trim(prefix, ".") + "." + d.Target)
+				}
 				break
 			}
 		}

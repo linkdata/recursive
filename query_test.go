@@ -35,3 +35,19 @@ func TestDnameRecords(t *testing.T) {
 		t.Fatalf("expected second record to be CNAME, got %T", records[1])
 	}
 }
+
+func TestDnameSynthesizeAtOwner(t *testing.T) {
+	t.Parallel()
+
+	rr, err := dns.NewRR("example.com. 3600 IN DNAME target.example.net.")
+	if err != nil {
+		t.Fatalf("failed to build DNAME RR: %v", err)
+	}
+
+	msg := &dns.Msg{Answer: []dns.RR{rr}}
+	got := dnameSynthesize(msg, dns.Fqdn("example.com"))
+	want := dns.Fqdn("target.example.net")
+	if got != want {
+		t.Fatalf("dnameSynthesize() = %q, want %q", got, want)
+	}
+}
