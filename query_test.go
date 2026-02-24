@@ -361,6 +361,156 @@ func TestQueryForDelegationRetriesOtherParentsAfterFallbackFailure(t *testing.T)
 	}
 }
 
+// TestQueryForDelegationRetriesFullQnameOnMinimizedNXDOMAIN verifies that when
+// a parent server returns NXDOMAIN for a QNAME-minimized zone query, the resolver
+// retries with the full qname before giving up. Per RFC 9156, some servers
+// incorrectly return NXDOMAIN for minimized NS queries even though the actual
+// domain exists.
+func TestQueryForDelegationRetriesFullQnameOnMinimizedNXDOMAIN(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	parentAddr := netip.AddrPortFrom(parent, 53).String()
+
+	var queryCount int
+	var mu sync.Mutex
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			parentAddr: func(req *dns.Msg) *dns.Msg {
+				mu.Lock()
+				queryCount++
+				mu.Unlock()
+
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+
+				// Minimized query (NS example.com.) returns NXDOMAIN
+				if req.Question[0].Name == zone {
+					resp.Rcode = dns.RcodeNameError
+					return resp
+				}
+
+				// Full query (NS www.example.com.) returns a referral
+				if req.Question[0].Name == fullQname {
+					resp.Rcode = dns.RcodeSuccess
+					ns := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					}
+					glue := &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					}
+					resp.Ns = []dns.RR{ns}
+					resp.Extra = []dns.RR{glue}
+					return resp
+				}
+
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{parent}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	mu.Lock()
+	qc := queryCount
+	mu.Unlock()
+	if qc < 2 {
+		t.Fatalf("expected at least 2 queries (minimized + full), got %d", qc)
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("expected delegation to %v, got %v", referralAddr, addrs)
+	}
+}
+
+// TestPrependRecordsDoesNotDuplicateOPT verifies that prependRecords does not
+// create messages with duplicate OPT pseudo-records when combining Extra
+// sections from intermediate and final responses (RFC 6891 violation).
+func TestPrependRecordsDoesNotDuplicateOPT(t *testing.T) {
+	t.Parallel()
+
+	cnameOwner := dns.Fqdn("alias.example.")
+	targetName := dns.Fqdn("target.example.")
+
+	finalAnswer := &dns.A{
+		Hdr: dns.RR_Header{
+			Name:   targetName,
+			Rrtype: dns.TypeA,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		A: net.IPv4(192, 0, 2, 100),
+	}
+	finalOPT := &dns.OPT{
+		Hdr: dns.RR_Header{
+			Name:   ".",
+			Rrtype: dns.TypeOPT,
+		},
+	}
+	finalOPT.SetUDPSize(1232)
+	finalMsg := newResponseMsg(targetName, dns.TypeA, dns.RcodeSuccess, []dns.RR{finalAnswer}, nil, []dns.RR{finalOPT})
+
+	cname := &dns.CNAME{
+		Hdr: dns.RR_Header{
+			Name:   cnameOwner,
+			Rrtype: dns.TypeCNAME,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		Target: targetName,
+	}
+	initialOPT := &dns.OPT{
+		Hdr: dns.RR_Header{
+			Name:   ".",
+			Rrtype: dns.TypeOPT,
+		},
+	}
+	initialOPT.SetUDPSize(4096)
+	initialMsg := newResponseMsg(cnameOwner, dns.TypeA, dns.RcodeSuccess, []dns.RR{cname}, nil, []dns.RR{initialOPT})
+
+	prependRecords(finalMsg, initialMsg, cnameOwner, cnameChainRecords)
+
+	var optCount int
+	for _, rr := range finalMsg.Extra {
+		if _, ok := rr.(*dns.OPT); ok {
+			optCount++
+		}
+	}
+	if optCount > 1 {
+		t.Fatalf("prependRecords created %d OPT records, RFC 6891 allows at most 1", optCount)
+	}
+	if optCount < 1 {
+		t.Fatalf("prependRecords removed all OPT records, expected 1")
+	}
+}
+
 type scriptedDNSServerDialer struct {
 	mu       sync.Mutex
 	handlers map[string]func(req *dns.Msg) *dns.Msg

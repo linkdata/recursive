@@ -28,9 +28,9 @@ type query struct {
 func (q *query) dive(format string, args ...any) (err error) {
 	err = ErrMaxSteps
 	if q.steps < maxSteps {
-		q.steps++
 		err = ErrMaxDepth
 		if q.depth < maxDepth {
+			q.steps++
 			err = nil
 			if format != "" {
 				q.logf(format, args...)
@@ -143,13 +143,15 @@ retryWithoutQMIN:
 					return
 				}
 			}
-			if resp.Rcode == dns.RcodeNameError {
-				return
-			}
-			if resp.Rcode != dns.RcodeSuccess && queryName != fullQname {
-				q.logf("DELEGATION RETRY without QNAME minimization\n")
-				queryName = fullQname
-				goto retryWithoutQMIN
+			if resp.Rcode != dns.RcodeSuccess {
+				if queryName != fullQname {
+					q.logf("DELEGATION RETRY without QNAME minimization\n")
+					queryName = fullQname
+					goto retryWithoutQMIN
+				}
+				if resp.Rcode == dns.RcodeNameError {
+					return
+				}
 			}
 		}
 	}
@@ -638,8 +640,15 @@ func prependRecords(msg *dns.Msg, resp *dns.Msg, qname string, gather func([]dns
 		}
 	}
 	if len(resp.Extra) > 0 {
-		extras := append([]dns.RR(nil), resp.Extra...)
-		msg.Extra = append(extras, msg.Extra...)
+		var extras []dns.RR
+		for _, rr := range resp.Extra {
+			if rr.Header().Rrtype != dns.TypeOPT {
+				extras = append(extras, rr)
+			}
+		}
+		if len(extras) > 0 {
+			msg.Extra = append(extras, msg.Extra...)
+		}
 	}
 }
 
