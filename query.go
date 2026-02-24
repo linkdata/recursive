@@ -229,7 +229,8 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 		for _, svr = range authServers {
 			if resp, err = q.exchange(ctx, qname, qtype, svr); resp != nil && err == nil {
 				if resp.Rcode == dns.RcodeSuccess {
-					if !hasRRType(resp.Answer, qtype) {
+					terminal := hasRRType(resp.Answer, qtype)
+					if !terminal {
 						if tgt := cnameTarget(resp, qname); tgt != "" {
 							q.logf("CNAME @%s %s %q => %q\n", svr, dns.Type(qtype), qname, tgt)
 							var msg *dns.Msg
@@ -240,6 +241,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								prependRecords(msg, resp, qname, cnameChainRecords)
 								resp = msg
 								svr = origin
+								terminal = true
 							}
 						} else if tgt := dnameSynthesize(resp, qname); tgt != "" {
 							q.logf("DNAME @%s %s %q => %q\n", svr, dns.Type(qtype), qname, tgt)
@@ -251,6 +253,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								prependRecords(msg, resp, qname, dnameRecords)
 								resp = msg
 								svr = origin
+								terminal = true
 							}
 						} else if qtype == dns.TypeNS {
 							answers := delegationRecords(resp, qname)
@@ -261,7 +264,15 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								resp.Answer = answers
 								resp.Extra = nil
 								resp.Ns = nil
+								terminal = true
 							}
+						}
+						if err != nil {
+							return
+						}
+						if !terminal && !resp.Authoritative {
+							resp = nil
+							continue
 						}
 					}
 					return
