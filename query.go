@@ -129,6 +129,13 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
 	queryName := zone
+	maybeRetryWithoutQMIN := func() (yes bool) {
+		if yes = queryName != fullQname; yes {
+			q.logf("DELEGATION RETRY without QNAME minimization\n")
+			queryName = fullQname
+		}
+		return
+	}
 retryWithoutQMIN:
 	for _, srv = range parentServers {
 		if resp, err = q.exchange(ctx, queryName, dns.TypeNS, srv); resp != nil && err == nil {
@@ -139,14 +146,18 @@ retryWithoutQMIN:
 						nsAddrs = q.resolveNSAddrs(ctx, nsNames)
 					}
 				}
-				if len(nsAddrs) > 0 || resp.Authoritative {
+				if len(nsAddrs) > 0 {
+					return
+				}
+				if resp.Authoritative && len(nsNames) == 0 {
+					if maybeRetryWithoutQMIN() {
+						goto retryWithoutQMIN
+					}
 					return
 				}
 			}
 			if resp.Rcode != dns.RcodeSuccess {
-				if queryName != fullQname {
-					q.logf("DELEGATION RETRY without QNAME minimization\n")
-					queryName = fullQname
+				if maybeRetryWithoutQMIN() {
 					goto retryWithoutQMIN
 				}
 				if resp.Rcode == dns.RcodeNameError {

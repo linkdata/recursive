@@ -176,6 +176,88 @@ func TestQueryForDelegationDoesNotFallbackOnEmptyMinimizedSuccess(t *testing.T) 
 	}
 }
 
+func TestQueryForDelegationFallbacksOnAuthoritativeEmptyMinimizedSuccess(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	parentAddr := netip.AddrPortFrom(parent, 53).String()
+
+	var queryCount int
+	var mu sync.Mutex
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			parentAddr: func(req *dns.Msg) *dns.Msg {
+				mu.Lock()
+				queryCount++
+				mu.Unlock()
+
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+
+				if req.Question[0].Name == zone {
+					resp.Rcode = dns.RcodeSuccess
+					resp.Authoritative = true
+					return resp
+				}
+				if req.Question[0].Name == fullQname {
+					resp.Rcode = dns.RcodeSuccess
+					ns := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					}
+					glue := &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					}
+					resp.Ns = []dns.RR{ns}
+					resp.Extra = []dns.RR{glue}
+					return resp
+				}
+
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{parent}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	mu.Lock()
+	qc := queryCount
+	mu.Unlock()
+	if qc < 2 {
+		t.Fatalf("expected at least 2 queries (minimized + full), got %d", qc)
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("expected fallback referral %v, got %v", referralAddr, addrs)
+	}
+}
+
 func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	t.Parallel()
 
