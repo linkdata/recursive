@@ -392,7 +392,7 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 
 func isReusableCachedResponse(resp *dns.Msg) (ok bool) {
 	if resp != nil && !resp.Truncated {
-		ok = resp.Rcode == dns.RcodeSuccess || resp.Rcode == dns.RcodeNameError
+		ok = (resp.Rcode == dns.RcodeSuccess) || (resp.Rcode == dns.RcodeNameError && resp.Authoritative)
 	}
 	return
 }

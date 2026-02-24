@@ -532,6 +532,131 @@ func TestQueryForDelegationRetriesFullQnameOnMinimizedNXDOMAIN(t *testing.T) {
 	}
 }
 
+// TestQueryForDelegationDoesNotPoisonCacheWithMinimizedNXDOMAIN verifies that
+// an NXDOMAIN response seen during a minimized NS query does not poison future
+// exact-zone NS lookups via cache reuse.
+func TestQueryForDelegationDoesNotPoisonCacheWithMinimizedNXDOMAIN(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	parentAddr := netip.AddrPortFrom(parent, 53).String()
+
+	var minimizedQueries int
+	var mu sync.Mutex
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			parentAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+
+				if req.Question[0].Name == zone {
+					mu.Lock()
+					minimizedQueries++
+					seen := minimizedQueries
+					mu.Unlock()
+
+					// First minimized query incorrectly returns NXDOMAIN.
+					if seen == 1 {
+						resp.Rcode = dns.RcodeNameError
+						return resp
+					}
+
+					// Subsequent exact-zone lookups are valid referrals.
+					resp.Rcode = dns.RcodeSuccess
+					ns := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					}
+					glue := &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					}
+					resp.Ns = []dns.RR{ns}
+					resp.Extra = []dns.RR{glue}
+					return resp
+				}
+
+				if req.Question[0].Name == fullQname {
+					resp.Rcode = dns.RcodeSuccess
+					ns := &dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					}
+					glue := &dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					}
+					resp.Ns = []dns.RR{ns}
+					resp.Extra = []dns.RR{glue}
+					return resp
+				}
+
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+		},
+	}
+
+	cache := NewCache()
+	rec := NewWithOptions(dialer, cache, []netip.Addr{parent}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	// First: minimized lookup path should fallback to full qname and succeed.
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("first queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("first queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("first query returned unexpected addrs: %v", addrs)
+	}
+
+	// Second: exact-zone lookup should not be served by cached minimized NXDOMAIN.
+	addrs, resp, _, err = q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, zone)
+	if err != nil {
+		t.Fatalf("second queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("second queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("second query returned unexpected addrs: %v", addrs)
+	}
+	if calls := dialer.callsToNetwork("tcp4", parentAddr); calls < 3 {
+		t.Fatalf("expected second query to hit network (not poisoned cache), total tcp calls=%d", calls)
+	}
+}
+
 // TestPrependRecordsDoesNotDuplicateOPT verifies that prependRecords does not
 // create messages with duplicate OPT pseudo-records when combining Extra
 // sections from intermediate and final responses (RFC 6891 violation).
