@@ -126,7 +126,6 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 }
 
 // queryForDelegation performs the QMIN step at `zone` against `parentServers`.
-// If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
 func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
 	queryName := zone
