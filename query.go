@@ -51,11 +51,12 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	if servers, resp, srv, err = q.queryDelegation(ctx, qname); err == nil {
 		if resp != nil && resp.Rcode == dns.RcodeNameError {
 			// no need to query final
-			if resp.Question[0].Qtype != qtype {
+			if len(resp.Question) == 1 && (!strings.EqualFold(resp.Question[0].Name, qname) || resp.Question[0].Qtype != qtype) {
 				if resp.Zero {
 					resp = resp.Copy()
 					resp.Zero = false
 				}
+				resp.Question[0].Name = qname
 				resp.Question[0].Qtype = qtype
 			}
 		} else {
@@ -109,6 +110,11 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 				q.logf("DELEGATION ERROR %q: @%s %v (using %v)\n", zone, srv, err, q.using())
 				return
 			}
+			if resp != nil && resp.Rcode == dns.RcodeNameError {
+				if len(resp.Question) == 1 && strings.EqualFold(resp.Question[0].Name, qname) {
+					return
+				}
+			}
 
 			if len(nsAddrs) > 0 {
 				// got a new set of servers to query
@@ -128,13 +134,12 @@ retryWithoutQMIN:
 	for _, srv = range parentServers {
 		if resp, err = q.exchange(ctx, queryName, dns.TypeNS, srv); resp != nil && err == nil {
 			if resp.Rcode != dns.RcodeSuccess {
-				if resp.Rcode != dns.RcodeNameError {
-					// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
-					if queryName != fullQname {
-						q.logf("DELEGATION RETRY without QNAME minimization\n")
-						queryName = fullQname
-						goto retryWithoutQMIN
-					}
+				// some authoritative servers answer minimized NS queries incorrectly.
+				// retry with full qname before accepting non-success.
+				if queryName != fullQname {
+					q.logf("DELEGATION RETRY without QNAME minimization\n")
+					queryName = fullQname
+					goto retryWithoutQMIN
 				}
 				// NXDOMAIN at parent or we failed even without QMIN
 				return

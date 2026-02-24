@@ -161,3 +161,53 @@ func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 		t.Fatalf("resolveNSAddrs returned %s, want 2001:db8::53", got)
 	}
 }
+
+func TestResolveNXDOMAINUsesOriginalQuestionName(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	root := netip.MustParseAddr("192.0.2.1")
+	qname := dns.Fqdn("host.missing.example.com")
+
+	com := new(dns.Msg)
+	com.SetQuestion(dns.Fqdn("com"), dns.TypeNS)
+	com.Rcode = dns.RcodeSuccess
+	com.Authoritative = true
+	cache.DnsSet(com)
+
+	example := new(dns.Msg)
+	example.SetQuestion(dns.Fqdn("example.com"), dns.TypeNS)
+	example.Rcode = dns.RcodeSuccess
+	example.Authoritative = true
+	cache.DnsSet(example)
+
+	missing := new(dns.Msg)
+	missing.SetQuestion(dns.Fqdn("missing.example.com"), dns.TypeNS)
+	missing.Rcode = dns.RcodeNameError
+	cache.DnsSet(missing)
+
+	full := new(dns.Msg)
+	full.SetQuestion(qname, dns.TypeNS)
+	full.Rcode = dns.RcodeNameError
+	cache.DnsSet(full)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{root}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	resp, _, err := q.resolve(context.Background(), qname, dns.TypeA)
+	if err != nil {
+		t.Fatalf("resolve returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("resolve returned nil response")
+	}
+	if x := resp.Rcode; x != dns.RcodeNameError {
+		t.Fatalf("unexpected rcode %s", dns.RcodeToString[x])
+	}
+	if x := resp.Question[0].Name; x != qname {
+		t.Fatalf("unexpected question name got=%q want=%q", x, qname)
+	}
+	if x := resp.Question[0].Qtype; x != dns.TypeA {
+		t.Fatalf("unexpected question qtype got=%s want=%s", dns.Type(x), dns.Type(dns.TypeA))
+	}
+}
