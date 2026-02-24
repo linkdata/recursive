@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -612,6 +613,45 @@ func TestCacheMergePrefersLatestExpiration(t *testing.T) {
 	cv := mustCacheEntry(t, dst, qname, dns.TypeA, longExpires)
 	if cv.Msg != longMsg {
 		t.Fatalf("merge did not replace with longer lived msg")
+	}
+}
+
+func TestCacheMergeConcurrentCrossMergeDoesNotBlock(t *testing.T) {
+	left := NewCache()
+	right := NewCache()
+	var ready sync.WaitGroup
+	var done sync.WaitGroup
+	start := make(chan struct{})
+	ready.Add(2)
+	done.Add(2)
+	left.cq[0].mu.RLock()
+	right.cq[0].mu.RLock()
+	go func() {
+		ready.Done()
+		<-start
+		left.Merge(right)
+		done.Done()
+	}()
+	go func() {
+		ready.Done()
+		<-start
+		right.Merge(left)
+		done.Done()
+	}()
+	ready.Wait()
+	close(start)
+	time.Sleep(20 * time.Millisecond)
+	left.cq[0].mu.RUnlock()
+	right.cq[0].mu.RUnlock()
+	waitDone := make(chan struct{})
+	go func() {
+		done.Wait()
+		close(waitDone)
+	}()
+	select {
+	case <-waitDone:
+	case <-time.After(time.Second):
+		t.Fatal("concurrent cross-merge blocked")
 	}
 }
 

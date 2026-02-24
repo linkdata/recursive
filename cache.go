@@ -154,16 +154,26 @@ func (cache *Cache) Clear() {
 // If an entry exists in both, the one that expires last wins.
 func (cache *Cache) Merge(other *Cache) {
 	if cache != nil && other != nil && cache != other {
+		type mergeEntry struct {
+			key bucketKey
+			cv  cacheValue
+		}
 		for i := range other.cq {
+			var entries []mergeEntry
 			other.cq[i].mu.RLock()
-			cache.cq[i].mu.Lock()
 			for key, cv := range other.cq[i].cache {
-				if oldcv, ok := cache.cq[i].cache[key]; !ok || cv.expires > oldcv.expires {
-					cache.cq[i].cache[key] = cv
-				}
+				entries = append(entries, mergeEntry{key: key, cv: cv})
 			}
-			cache.cq[i].mu.Unlock()
 			other.cq[i].mu.RUnlock()
+			if len(entries) > 0 {
+				cache.cq[i].mu.Lock()
+				for _, entry := range entries {
+					if oldcv, ok := cache.cq[i].cache[entry.key]; !ok || entry.cv.expires > oldcv.expires {
+						cache.cq[i].cache[entry.key] = entry.cv
+					}
+				}
+				cache.cq[i].mu.Unlock()
+			}
 		}
 	}
 }
