@@ -380,7 +380,7 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 		if useUDP {
 			resp, _ = q.exchangeWithNetwork(ctx, "udp", qname, qtype, nsaddr)
 		}
-		if resp == nil || (resp.Truncated && resp.Rcode != dns.RcodeNameError) {
+		if resp == nil || resp.Truncated {
 			resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
 		}
 		if resp != nil && q.cache != nil && isReusableCachedResponse(resp) {

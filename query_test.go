@@ -656,18 +656,83 @@ func TestQueryFinalDoesNotReuseCachedServerFailureAcrossServers(t *testing.T) {
 	}
 }
 
-type scriptedDNSServerDialer struct {
-	mu       sync.Mutex
-	handlers map[string]func(req *dns.Msg) *dns.Msg
-	calls    []string
+func TestExchangeRetriesTCPOnTruncatedNXDOMAIN(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	qtype := dns.TypeA
+	srv := netip.MustParseAddr("192.0.2.1")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		networkHandlers: map[string]func(req *dns.Msg) *dns.Msg{
+			"udp4|" + srvAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeNameError
+				resp.Truncated = true
+				return resp
+			},
+			"tcp4|" + srvAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 123),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, err := q.exchange(context.Background(), qname, qtype, srv)
+	if err != nil {
+		t.Fatalf("exchange returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("exchange returned nil response")
+	}
+	if resp.Rcode != dns.RcodeSuccess {
+		t.Fatalf("expected successful TCP response, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if calls := dialer.callsToNetwork("tcp4", srvAddr); calls < 1 {
+		t.Fatalf("expected TCP retry after truncated UDP NXDOMAIN, got %d tcp calls", calls)
+	}
 }
 
-func (d *scriptedDNSServerDialer) DialContext(_ context.Context, _, address string) (net.Conn, error) {
+type scriptedDNSServerDialer struct {
+	mu              sync.Mutex
+	handlers        map[string]func(req *dns.Msg) *dns.Msg
+	networkHandlers map[string]func(req *dns.Msg) *dns.Msg
+	calls           []string
+	networkCalls    []string
+}
+
+func (d *scriptedDNSServerDialer) DialContext(_ context.Context, network, address string) (net.Conn, error) {
 	clientConn, serverConn := net.Pipe()
 
 	d.mu.Lock()
 	d.calls = append(d.calls, address)
+	key := network + "|" + address
+	d.networkCalls = append(d.networkCalls, key)
 	handler := d.handlers[address]
+	if nh := d.networkHandlers[key]; nh != nil {
+		handler = nh
+	}
 	d.mu.Unlock()
 
 	go func() {
@@ -706,6 +771,18 @@ func (d *scriptedDNSServerDialer) callsTo(address string) (n int) {
 	defer d.mu.Unlock()
 	for _, call := range d.calls {
 		if call == address {
+			n++
+		}
+	}
+	return
+}
+
+func (d *scriptedDNSServerDialer) callsToNetwork(network, address string) (n int) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	key := network + "|" + address
+	for _, call := range d.networkCalls {
+		if call == key {
 			n++
 		}
 	}
