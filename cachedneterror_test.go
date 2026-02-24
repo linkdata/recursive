@@ -101,7 +101,7 @@ func TestMaybeDisableUdpString(t *testing.T) {
 	r := &Recursive{useUDP: true}
 	err := &net.OpError{Op: "dial", Net: "udp", Err: errors.New("network not implemented")}
 	r.maybeDisableUdp(err)
-	if r.usingIPv6() {
+	if r.usingUDP() {
 		t.Fatalf("expected UDP to be disabled on string error")
 	}
 	if r.useUDP {
