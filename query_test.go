@@ -131,6 +131,51 @@ func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
 	}
 }
 
+func TestQueryForDelegationDoesNotFallbackOnEmptyMinimizedSuccess(t *testing.T) {
+	t.Parallel()
+
+	parent := netip.MustParseAddr("192.0.2.1")
+	cache := NewCache()
+
+	minimizedEmpty := new(dns.Msg)
+	minimizedEmpty.SetQuestion("example.com.", dns.TypeNS)
+	minimizedEmpty.Rcode = dns.RcodeSuccess
+	cache.DnsSet(minimizedEmpty)
+
+	fallbackReferral := new(dns.Msg)
+	fallbackReferral.SetQuestion("www.example.com.", dns.TypeNS)
+	fallbackReferral.Rcode = dns.RcodeSuccess
+
+	ns, err := dns.NewRR("example.com. 3600 IN NS ns1.example.net.")
+	if err != nil {
+		t.Fatalf("failed to build NS record: %v", err)
+	}
+	a, err := dns.NewRR("ns1.example.net. 3600 IN A 192.0.2.53")
+	if err != nil {
+		t.Fatalf("failed to build A record: %v", err)
+	}
+	fallbackReferral.Ns = []dns.RR{ns}
+	fallbackReferral.Extra = []dns.RR{a}
+	cache.DnsSet(fallbackReferral)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{parent}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), "example.com.", []netip.Addr{parent}, "www.example.com.")
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 0 {
+		t.Fatalf("unexpected delegation addresses: %#v", addrs)
+	}
+	if resp.Question[0].Name != "example.com." {
+		t.Fatalf("unexpected question name: %q", resp.Question[0].Name)
+	}
+}
+
 func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	t.Parallel()
 
