@@ -95,7 +95,9 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 			q.logf("DELEGATION ANSWER %q: %s with %d servers\n", qname, rcode, len(servers))
 		}()
 
+		q.mu.RLock()
 		servers = append([]netip.Addr(nil), q.rootServers...)
+		q.mu.RUnlock()
 		labels := dns.SplitDomainName(qname)
 
 		// Walk down: "." -> "com." -> "example.com."
@@ -121,15 +123,16 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 // If servers REFUSE/NOTIMP the minimized NS query, retry with non-QMIN (ask NS for the full qname).
 func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
+	queryName := zone
 retryWithoutQMIN:
 	for _, srv = range parentServers {
-		if resp, err = q.exchange(ctx, zone, dns.TypeNS, srv); resp != nil && err == nil {
+		if resp, err = q.exchange(ctx, queryName, dns.TypeNS, srv); resp != nil && err == nil {
 			if resp.Rcode != dns.RcodeSuccess {
 				if resp.Rcode != dns.RcodeNameError {
 					// probably dns.RcodeRefused or dns.RcodeNotImplemented, retry without QMIN
-					if zone != fullQname {
+					if queryName != fullQname {
 						q.logf("DELEGATION RETRY without QNAME minimization\n")
-						zone = fullQname
+						queryName = fullQname
 						goto retryWithoutQMIN
 					}
 				}

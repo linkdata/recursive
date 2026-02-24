@@ -1,6 +1,8 @@
 package recursive
 
 import (
+	"context"
+	"net/netip"
 	"testing"
 
 	"github.com/miekg/dns"
@@ -49,5 +51,48 @@ func TestDnameSynthesizeAtOwner(t *testing.T) {
 	want := dns.Fqdn("target.example.net")
 	if got != want {
 		t.Fatalf("dnameSynthesize() = %q, want %q", got, want)
+	}
+}
+
+func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
+	t.Parallel()
+
+	parent := netip.MustParseAddr("192.0.2.1")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	cache := NewCache()
+
+	minimizedRefused := new(dns.Msg)
+	minimizedRefused.SetQuestion("example.com.", dns.TypeNS)
+	minimizedRefused.Rcode = dns.RcodeRefused
+	cache.DnsSet(minimizedRefused)
+
+	fallbackReferral := new(dns.Msg)
+	fallbackReferral.SetQuestion("www.example.com.", dns.TypeNS)
+	fallbackReferral.Rcode = dns.RcodeSuccess
+
+	ns, err := dns.NewRR("example.com. 3600 IN NS ns1.example.net.")
+	if err != nil {
+		t.Fatalf("failed to build NS record: %v", err)
+	}
+	a, err := dns.NewRR("ns1.example.net. 3600 IN A 192.0.2.53")
+	if err != nil {
+		t.Fatalf("failed to build A record: %v", err)
+	}
+	fallbackReferral.Ns = []dns.RR{ns}
+	fallbackReferral.Extra = []dns.RR{a}
+	cache.DnsSet(fallbackReferral)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{parent}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), "example.com.", []netip.Addr{parent}, "www.example.com.")
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("unexpected delegation addresses: %#v", addrs)
 	}
 }
