@@ -19,7 +19,23 @@ func writeInt64(w io.Writer, written *int64, val int64) (err error) {
 	b := [8]byte{}
 	binary.BigEndian.PutUint64(b[:], uint64(val)) //#nosec
 	var n int
-	n, err = w.Write(b[:])
+	n, err = writeAll(w, b[:])
 	*written += int64(n)
+	return
+}
+
+func writeAll(w io.Writer, p []byte) (n int, err error) {
+	for len(p) > 0 && err == nil {
+		var written int
+		written, err = w.Write(p)
+		n += written
+		if err == nil {
+			if written > 0 {
+				p = p[written:]
+			} else {
+				err = io.ErrShortWrite
+			}
+		}
+	}
 	return
 }

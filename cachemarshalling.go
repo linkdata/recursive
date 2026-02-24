@@ -9,9 +9,11 @@ import (
 
 var ErrWrongMagic = errors.New("wrong magic number")
 var ErrInvalidCacheEntry = errors.New("invalid cache entry")
+var ErrCacheEntryTooLarge = errors.New("cache entry too large")
 
 const cacheMagic = int64(0xCACE0003)
 const marshalWorkerBufferSize = 1024 * 8
+const maxCacheEntrySize = int(^uint16(0))
 
 func (cache *Cache) lockAll() {
 	for _, cq := range cache.cq {
@@ -53,7 +55,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
 	wf := func() (fatal bool) {
 		pmu.Lock()
 		defer pmu.Unlock()
-		written, err := w.Write(buf)
+		written, err := writeAll(w, buf)
 		*n += int64(written)
 		if err != nil {
 			fatal = (err == io.EOF || errors.Is(err, io.ErrShortWrite))
@@ -64,7 +66,11 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
 	}
 	for _, cv := range qc.cache {
 		if b, err := cv.MarshalBinary(); err == nil {
-			if len(b) > 0 {
+			if len(b) > maxCacheEntrySize {
+				pmu.Lock()
+				*perr = errors.Join(*perr, ErrCacheEntryTooLarge)
+				pmu.Unlock()
+			} else if len(b) > 0 {
 				if len(buf)+2+len(b) > marshalWorkerBufferSize {
 					if wf() {
 						return
@@ -119,7 +125,7 @@ func (cache *Cache) readFrom(r io.Reader, n *int64) (err error) {
 					if merr := cv.UnmarshalBinary(buf); merr == nil {
 						// the cache is explicitly allowed to contain expired entries
 						// but may not contain entries without questions
-						if cv.Msg != nil && len(cv.Msg.Question) > 0 {
+						if cv.Msg != nil && len(cv.Question) > 0 {
 							cache.cq[cv.bucketIndex()].setLocked(cv.Msg, cv.expires)
 						} else {
 							err = errors.Join(err, ErrInvalidCacheEntry)

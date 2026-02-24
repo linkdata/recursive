@@ -739,6 +739,105 @@ func TestCacheWriteToReadFromHandlesShortReads(t *testing.T) {
 	mustCacheEntry(t, dst, qnameTXT, dns.TypeTXT, expiresTXT)
 }
 
+func TestCacheWriteToHandlesShortWriter(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname := dns.Fqdn("serialize-shortwrite.example.")
+	msg := newTestMessage(qname)
+	expires := time.Now().Unix() + (5 * 60)
+	key := mustBucketKey(t, qname, dns.TypeA)
+	cache.bucketFor(key).set(msg, expires)
+
+	var sink bytes.Buffer
+	written, err := cache.WriteTo(&shortWriter{w: &sink})
+	if err != nil {
+		t.Fatalf("WriteTo returned error: %v", err)
+	}
+	if written <= 0 {
+		t.Fatalf("WriteTo wrote %d bytes", written)
+	}
+
+	dst := NewCache()
+	mustReadCacheFromReader(t, dst, bytes.NewReader(sink.Bytes()), written)
+	mustCacheEntry(t, dst, qname, dns.TypeA, expires)
+}
+
+func TestCacheWriteToReturnsShortWriteWhenWriterStalls(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname := dns.Fqdn("serialize-shortwrite-stall.example.")
+	msg := newTestMessage(qname)
+	key := mustBucketKey(t, qname, dns.TypeA)
+	cache.bucketFor(key).set(msg, time.Now().Unix()+(5*60))
+
+	written, err := cache.WriteTo(&zeroWriter{})
+	if !errors.Is(err, io.ErrShortWrite) {
+		t.Fatalf("WriteTo error = %v want %v", err, io.ErrShortWrite)
+	}
+	if written != 0 {
+		t.Fatalf("WriteTo wrote %d bytes on stalled writer", written)
+	}
+}
+
+func TestCacheWriteToSkipsOversizedEntries(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	base := time.Now().Unix()
+
+	goodQname := dns.Fqdn("marshal-good-size.example.")
+	goodMsg := newTestMessage(goodQname)
+	goodExpires := base + (3 * 60)
+	goodKey := mustBucketKey(t, goodQname, dns.TypeA)
+	cache.bucketFor(goodKey).set(goodMsg, goodExpires)
+
+	oversizeQname := dns.Fqdn("marshal-oversize.example.")
+	oversizeMsg := new(dns.Msg)
+	oversizeMsg.SetQuestion(oversizeQname, dns.TypeTXT)
+	txtPayload := strings.Repeat("x", 250)
+	var oversizePacked []byte
+	var packErr error
+	for len(oversizePacked) <= int(^uint16(0)) && packErr == nil {
+		oversizeMsg.Answer = append(oversizeMsg.Answer, &dns.TXT{
+			Hdr: dns.RR_Header{
+				Name:   oversizeQname,
+				Rrtype: dns.TypeTXT,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Txt: []string{txtPayload},
+		})
+		cv := cacheValue{Msg: oversizeMsg, expires: base + (10 * 60)}
+		oversizePacked, packErr = cv.MarshalBinary()
+	}
+	if packErr != nil {
+		t.Fatalf("failed creating oversized packed cache entry: %v", packErr)
+	}
+	if len(oversizePacked) <= int(^uint16(0)) {
+		t.Fatalf("oversized packed cache entry too small: %d", len(oversizePacked))
+	}
+	oversizeKey := mustBucketKey(t, oversizeQname, dns.TypeTXT)
+	cache.bucketFor(oversizeKey).set(oversizeMsg, base+(10*60))
+
+	var buf bytes.Buffer
+	written, err := cache.WriteTo(&buf)
+	if !errors.Is(err, ErrCacheEntryTooLarge) {
+		t.Fatalf("WriteTo error = %v want %v", err, ErrCacheEntryTooLarge)
+	}
+	if written <= 0 {
+		t.Fatalf("WriteTo wrote %d bytes", written)
+	}
+
+	dst := NewCache()
+	mustReadCacheFromReader(t, dst, bytes.NewReader(buf.Bytes()), written)
+	mustCacheEntry(t, dst, goodQname, dns.TypeA, goodExpires)
+	if got := dst.DnsGet(oversizeQname, dns.TypeTXT); got != nil {
+		t.Fatalf("unexpected oversized entry in cache: %v", got)
+	}
+}
+
 func TestCacheReadFromRejectsInvalidEntries(t *testing.T) {
 	t.Parallel()
 
@@ -814,6 +913,24 @@ func (cr *chunkedReader) Read(p []byte) (int, error) {
 	return cr.r.Read(p)
 }
 
+type shortWriter struct {
+	w io.Writer
+}
+
+func (sw *shortWriter) Write(p []byte) (n int, err error) {
+	if len(p) > 1 {
+		p = p[:len(p)/2]
+	}
+	n, err = sw.w.Write(p)
+	return
+}
+
+type zeroWriter struct{}
+
+func (zw *zeroWriter) Write([]byte) (n int, err error) {
+	return
+}
+
 func FuzzCacheWriteReadRoundTrip(f *testing.F) {
 	f.Add(0)
 	f.Add(1)
@@ -838,10 +955,16 @@ func FuzzCacheWriteReadRoundTrip(f *testing.F) {
 		if err != nil {
 			t.Fatalf("Create temp cache file: %v", err)
 		}
-		defer os.Remove(tmp)
+		t.Cleanup(func() {
+			if removeErr := os.Remove(tmp); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+				t.Errorf("remove temp cache file: %v", removeErr)
+			}
+		})
 
 		written, err := src.WriteTo(file)
-		file.Close()
+		if closeErr := file.Close(); closeErr != nil {
+			t.Fatalf("Close temp cache file after write: %v", closeErr)
+		}
 		if err != nil {
 			t.Fatalf("WriteTo returned error: %v", err)
 		}
@@ -855,7 +978,9 @@ func FuzzCacheWriteReadRoundTrip(f *testing.F) {
 			t.Fatalf("Open temp cache file for read: %v", err)
 		}
 		mustReadCacheFromReader(t, dst, readFile, written)
-		readFile.Close()
+		if closeErr := readFile.Close(); closeErr != nil {
+			t.Fatalf("Close temp cache file after read: %v", closeErr)
+		}
 
 		assertCachesEqual(t, src, dst)
 	})
@@ -936,11 +1061,11 @@ func mustCacheValue(tb testing.TB, cache *Cache, qname string, qtype uint16) (cv
 func mustCacheEntry(tb testing.TB, cache *Cache, qname string, qtype uint16, wantExpires int64) (cv cacheValue) {
 	tb.Helper()
 	cv = mustCacheValue(tb, cache, qname, qtype)
-	if cv.Msg == nil || len(cv.Msg.Question) == 0 || cv.Msg.Question[0].Name != qname {
+	if cv.Msg == nil || len(cv.Question) == 0 || cv.Question[0].Name != qname {
 		tb.Fatalf("unexpected message for %s: %#v", qname, cv.Msg)
 	}
-	if cv.Msg.Question[0].Qtype != qtype {
-		tb.Fatalf("unexpected qtype for %s: got %d want %d", qname, cv.Msg.Question[0].Qtype, qtype)
+	if cv.Question[0].Qtype != qtype {
+		tb.Fatalf("unexpected qtype for %s: got %d want %d", qname, cv.Question[0].Qtype, qtype)
 	}
 	if cv.expires != wantExpires {
 		tb.Fatalf("expires mismatch for %s: got %v want %v", qname, cv.expires, wantExpires)
@@ -995,7 +1120,11 @@ func TestCacheReadFromFixture(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer f.Close()
+	t.Cleanup(func() {
+		if closeErr := f.Close(); closeErr != nil {
+			t.Errorf("close fixture file: %v", closeErr)
+		}
+	})
 	c := NewCache()
 	_, err = c.ReadFrom(f)
 	if err != nil {
