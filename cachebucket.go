@@ -61,7 +61,7 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 			msg = cv.Msg
 			clampTTL := clampTTLSeconds(ttl)
 			if minDNSMsgTTL(msg) > clampTTL {
-				msg = cv.Msg.Copy()
+				msg = cv.Copy()
 				clampMessageTTL(msg, clampTTL)
 			}
 		} else {

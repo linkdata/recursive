@@ -322,10 +322,10 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) {
 				dns.RcodeToString[msg.Rcode],
 				len(msg.Answer), len(msg.Ns), len(msg.Extra),
 				elapsed, msg.Len())
-			if msg.MsgHdr.Truncated {
+			if msg.Truncated {
 				_, _ = fmt.Fprintf(q.logw, " TRNC")
 			}
-			if msg.MsgHdr.Authoritative {
+			if msg.Authoritative {
 				_, _ = fmt.Fprintf(q.logw, " AUTH")
 			}
 			if opt := msg.IsEdns0(); opt != nil {
@@ -415,7 +415,7 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 
 		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil {
 			dnsconn := &dns.Conn{Conn: nconn, UDPSize: msgsize}
-			defer dnsconn.Close()
+			defer func() { _ = dnsconn.Close() }()
 
 			m := new(dns.Msg)
 			m.SetQuestion(qname, qtype)

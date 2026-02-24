@@ -466,7 +466,11 @@ func TestExchangeRejectsMismatchedResponseQuestion(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		defer serverConn.Close()
+		defer func() {
+			if closeErr := serverConn.Close(); closeErr != nil {
+				t.Errorf("close server connection: %v", closeErr)
+			}
+		}()
 		var lenbuf [2]byte
 		if _, readErr := io.ReadFull(serverConn, lenbuf[:]); readErr == nil {
 			msgLen := int(binary.BigEndian.Uint16(lenbuf[:]))
@@ -479,8 +483,8 @@ func TestExchangeRejectsMismatchedResponseQuestion(t *testing.T) {
 				resp := new(dns.Msg)
 				resp.SetQuestion(dns.Fqdn("poisoned.example."), dns.TypeA)
 				resp.Id = req.Id
-				resp.MsgHdr.Response = true
-				resp.MsgHdr.Authoritative = true
+				resp.Response = true
+				resp.Authoritative = true
 				resp.Answer = []dns.RR{
 					&dns.A{
 						Hdr: dns.RR_Header{
