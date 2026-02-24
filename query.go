@@ -541,8 +541,8 @@ func dnameSynthesize(resp *dns.Msg, qname string) (tgt string) {
 	for _, rr := range resp.Answer {
 		if d, ok := rr.(*dns.DNAME); ok {
 			owner := strings.ToLower(d.Hdr.Name)
-			if strings.HasSuffix(q, owner) {
-				prefix := strings.TrimSuffix(q, owner)
+			if before, ok0 := strings.CutSuffix(q, owner); ok0 {
+				prefix := before
 				// Avoid double dots when concatenating
 				prefix = strings.TrimSuffix(prefix, ".")
 				tgt = dns.CanonicalName(d.Target)

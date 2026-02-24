@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"math"
 	"net"
 	"net/netip"
@@ -126,10 +127,7 @@ func newCacheWithEntries(tb testing.TB, entries int) *Cache {
 		return cache
 	}
 
-	aCount := int(math.Ceil(float64(entries) * 0.9))
-	if aCount > entries {
-		aCount = entries
-	}
+	aCount := min(int(math.Ceil(float64(entries)*0.9)), entries)
 	remaining := entries - aCount
 	counts := map[uint16]int{
 		dns.TypeA:     aCount,
@@ -849,9 +847,7 @@ func snapshotCache(c *Cache) map[bucketKey]cacheValue {
 	out := make(map[bucketKey]cacheValue)
 	for _, bucket := range c.cq {
 		bucket.mu.RLock()
-		for key, cv := range bucket.cache {
-			out[key] = cv
-		}
+		maps.Copy(out, bucket.cache)
 		bucket.mu.RUnlock()
 	}
 	return out
