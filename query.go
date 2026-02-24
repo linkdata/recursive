@@ -141,8 +141,10 @@ retryWithoutQMIN:
 					queryName = fullQname
 					goto retryWithoutQMIN
 				}
-				// NXDOMAIN at parent or we failed even without QMIN
-				return
+				if resp.Rcode == dns.RcodeNameError {
+					return
+				}
+				continue
 			}
 
 			nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
@@ -551,11 +553,9 @@ func cnameTarget(resp *dns.Msg, owner string) (tgt string) {
 
 // dnameSynthesize finds a DNAME and synthesizes the new qname per RFC 6672.
 func dnameSynthesize(resp *dns.Msg, qname string) (tgt string) {
-	q := strings.ToLower(qname)
 	for _, rr := range resp.Answer {
 		if d, ok := rr.(*dns.DNAME); ok {
-			owner := strings.ToLower(d.Hdr.Name)
-			if before, ok0 := strings.CutSuffix(q, owner); ok0 {
+			if before, ok0 := cutDomainSuffix(qname, d.Hdr.Name); ok0 {
 				prefix := before
 				// Avoid double dots when concatenating
 				prefix = strings.TrimSuffix(prefix, ".")
@@ -607,7 +607,7 @@ func dnameRecords(rrs []dns.RR, qname string) []dns.RR {
 	var out []dns.RR
 	for _, rr := range rrs {
 		if d, ok := rr.(*dns.DNAME); ok {
-			if strings.HasSuffix(strings.ToLower(qname), strings.ToLower(d.Hdr.Name)) {
+			if _, match := cutDomainSuffix(qname, d.Hdr.Name); match {
 				out = append(out, rr)
 			}
 		}
@@ -618,6 +618,15 @@ func dnameRecords(rrs []dns.RR, qname string) []dns.RR {
 		}
 	}
 	return out
+}
+
+func cutDomainSuffix(name, suffix string) (before string, ok bool) {
+	name = strings.ToLower(dns.CanonicalName(name))
+	suffix = strings.ToLower(dns.CanonicalName(suffix))
+	if before, ok = strings.CutSuffix(name, suffix); ok {
+		ok = before == "" || strings.HasSuffix(before, ".")
+	}
+	return
 }
 
 func prependRecords(msg *dns.Msg, resp *dns.Msg, qname string, gather func([]dns.RR, string) []dns.RR) {
