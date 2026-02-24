@@ -66,7 +66,11 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 			}
 		} else {
 			cq.mu.Lock()
-			delete(cq.cache, key)
+			if current, ok := cq.cache[key]; ok {
+				if current.Msg == cv.Msg {
+					delete(cq.cache, key)
+				}
+			}
 			cq.mu.Unlock()
 		}
 	}

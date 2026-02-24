@@ -385,6 +385,52 @@ func TestCacheGetAllowsFilteringAndStaleAccess(t *testing.T) {
 	}
 }
 
+func TestCacheGetRejectDoesNotDeleteRefreshedEntry(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	qname := dns.Fqdn("get-refresh.example.")
+	key := mustBucketKey(t, qname, dns.TypeA)
+	staleMsg := newTestMessage(qname)
+	freshMsg := newTestMessage(qname)
+	staleExpires := time.Now().Add(time.Minute).Unix()
+	freshExpires := time.Now().Add(2 * time.Minute).Unix()
+	cache.bucketFor(key).set(staleMsg, staleExpires)
+
+	enteredAllow := make(chan struct{})
+	resumeAllow := make(chan struct{})
+	done := make(chan struct{})
+
+	go func() {
+		_, _ = cache.Get(qname, dns.TypeA, func(msg *dns.Msg, ttl time.Duration) bool {
+			close(enteredAllow)
+			<-resumeAllow
+			return false
+		})
+		close(done)
+	}()
+
+	select {
+	case <-enteredAllow:
+	case <-time.After(time.Second):
+		t.Fatal("Get did not reach allow function")
+	}
+
+	cache.bucketFor(key).set(freshMsg, freshExpires)
+	close(resumeAllow)
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("Get did not finish")
+	}
+
+	cv := mustCacheEntry(t, cache, qname, dns.TypeA, freshExpires)
+	if cv.Msg != freshMsg {
+		t.Fatalf("unexpected cache entry message got=%p want=%p", cv.Msg, freshMsg)
+	}
+}
+
 func TestCacheGetAndCleanRemovesExpired(t *testing.T) {
 	t.Parallel()
 
