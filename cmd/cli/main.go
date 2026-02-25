@@ -65,7 +65,7 @@ func setResolverQueryTimeout(rec *recursive.Recursive, timeoutSeconds int) {
 func newWireGuardDialer(configPath string) (dialer proxy.ContextDialer, closer io.Closer, err error) {
 	if configPath != "" {
 		var file *os.File
-		if file, err = os.Open(configPath); err == nil {
+		if file, err = os.Open(configPath); /* #nosec G304 */ err == nil {
 			defer closeWithLog(configPath, file)
 			var cfg *wgnet.Config
 			if cfg, err = wgnet.Parse(file, nil); err == nil {
