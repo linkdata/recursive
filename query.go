@@ -196,17 +196,10 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 	var useIPv6 bool
 	useIPv4, useIPv6 = q.nsAddressFamilies()
 
-	// extract delegation NS records
-	for _, rr := range m.Ns {
-		if ns, ok := rr.(*dns.NS); ok {
-			if strings.EqualFold(ns.Hdr.Name, zone) {
-				nsName := dns.CanonicalName(ns.Ns)
-				if !slices.Contains(nsNames, nsName) {
-					nsNames = append(nsNames, nsName)
-				}
-			}
-		}
-	}
+	// Extract NS records naming the next zone servers from both authority
+	// (delegation) and answer (authoritative NS response) sections.
+	nsNames = appendZoneNSNames(nsNames, m.Ns, zone)
+	nsNames = appendZoneNSNames(nsNames, m.Answer, zone)
 	// extract glue records
 	for _, rr := range m.Extra {
 		var addr netip.Addr
@@ -233,6 +226,21 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 		if addr.IsValid() {
 			if !slices.Contains(nsAddr, addr) {
 				nsAddr = append(nsAddr, addr)
+			}
+		}
+	}
+	return
+}
+
+func appendZoneNSNames(dst []string, records []dns.RR, zone string) (out []string) {
+	out = dst
+	for _, rr := range records {
+		if ns, ok := rr.(*dns.NS); ok {
+			if strings.EqualFold(ns.Hdr.Name, zone) {
+				nsName := dns.CanonicalName(ns.Ns)
+				if !slices.Contains(out, nsName) {
+					out = append(out, nsName)
+				}
 			}
 		}
 	}

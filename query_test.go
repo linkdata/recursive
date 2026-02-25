@@ -850,6 +850,128 @@ func TestQueryDelegationFinalProbeIgnoresNonAuthoritativeCachedNS(t *testing.T) 
 	}
 }
 
+func TestQueryDelegationUsesCachedAuthoritativeNSAnswerToNarrowServers(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	authServer := netip.MustParseAddr("192.0.2.9")
+	cache := NewCache()
+
+	com := new(dns.Msg)
+	com.SetQuestion(dns.Fqdn("com"), dns.TypeNS)
+	com.Rcode = dns.RcodeSuccess
+	com.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("com"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("ns1.com"),
+		},
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("com"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("ns2.com"),
+		},
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("com"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("ns3.com"),
+		},
+	}
+	com.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("ns1.com"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 2),
+		},
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("ns2.com"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 3),
+		},
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("ns3.com"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 4),
+		},
+	}
+	cache.DnsSet(com)
+
+	example := new(dns.Msg)
+	example.SetQuestion(qname, dns.TypeNS)
+	example.Rcode = dns.RcodeSuccess
+	example.Authoritative = true
+	example.Answer = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   qname,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("ns1.example.com"),
+		},
+	}
+	example.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("ns1.example.com"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 9),
+		},
+	}
+	cache.DnsSet(example)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{root}, nil, nil)
+	rec.Deterministic = true
+	q := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("queryDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryDelegation returned nil response")
+	}
+	if len(addrs) != 1 {
+		t.Fatalf("queryDelegation returned %d addresses, want 1", len(addrs))
+	}
+	if addrs[0] != authServer {
+		t.Fatalf("queryDelegation returned %v, want %v", addrs[0], authServer)
+	}
+}
+
 func TestQueryForDelegationRetriesOtherParentsAfterFallbackFailure(t *testing.T) {
 	t.Parallel()
 
