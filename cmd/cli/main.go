@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/base64"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -18,8 +19,15 @@ import (
 
 	"github.com/linkdata/rate"
 	"github.com/linkdata/recursive"
+	"github.com/linkdata/wgnet"
 	"github.com/miekg/dns"
+	"golang.org/x/net/proxy"
 )
+
+func env(envname string) string {
+	envval, _ := os.LookupEnv(envname)
+	return os.ExpandEnv(envval)
+}
 
 var flagCpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var flagMemprofile = flag.String("memprofile", "", "write memory profile to `file`")
@@ -32,6 +40,11 @@ var flagRatelimit = flag.Int("ratelimit", 0, "rate limit queries, 0 means no lim
 var flag4 = flag.Bool("4", true, "use IPv4")
 var flag6 = flag.Bool("6", false, "use IPv6")
 var flagDeterministic = flag.Bool("deterministic", false, "do not randomize NS server order")
+var flagWgConfig = flag.String("wgconfig", env("WGCONFIG"), "use WireGuard config file for outbound DNS queries")
+
+var ErrOpenWireGuardConfig = errors.New("could not open WireGuard config file")
+var ErrParseWireGuardConfig = errors.New("could not parse WireGuard config file")
+var ErrOpenWireGuardDevice = errors.New("could not open WireGuard device")
 
 func closeWithLog(name string, closer io.Closer) {
 	if closer != nil {
@@ -47,6 +60,30 @@ func setResolverQueryTimeout(rec *recursive.Recursive, timeoutSeconds int) {
 			rec.Timeout = time.Second * time.Duration(timeoutSeconds)
 		}
 	}
+}
+
+func newWireGuardDialer(configPath string) (dialer proxy.ContextDialer, closer io.Closer, err error) {
+	if configPath != "" {
+		var file *os.File
+		if file, err = os.Open(configPath); err == nil {
+			defer closeWithLog(configPath, file)
+			var cfg *wgnet.Config
+			if cfg, err = wgnet.Parse(file, nil); err == nil {
+				wgDialer := wgnet.New(cfg)
+				if err = wgDialer.Open(); err == nil {
+					dialer = wgDialer
+					closer = wgDialer
+				} else {
+					err = errors.Join(ErrOpenWireGuardDevice, err)
+				}
+			} else {
+				err = errors.Join(ErrParseWireGuardConfig, err)
+			}
+		} else {
+			err = errors.Join(ErrOpenWireGuardConfig, err)
+		}
+	}
+	return
 }
 
 func newOrderRootsContext(timeoutSeconds int) (ctx context.Context, cancel context.CancelFunc) {
@@ -150,7 +187,16 @@ func main() {
 		rateLimiter = rate.NewTicker(nil, &maxrate).C
 	}
 
-	rec := recursive.NewWithOptions(nil, recursive.DefaultCache, roots4, roots6, rateLimiter)
+	var dialer proxy.ContextDialer
+	var dialerCloser io.Closer
+	var err error
+	if dialer, dialerCloser, err = newWireGuardDialer(*flagWgConfig); err == nil {
+		defer closeWithLog(*flagWgConfig, dialerCloser)
+	} else {
+		log.Fatal(err)
+	}
+
+	rec := recursive.NewWithOptions(dialer, recursive.DefaultCache, roots4, roots6, rateLimiter)
 	setResolverQueryTimeout(rec, *flagTimeout)
 	rec.OrderRoots(orderRootsCtx)
 	if *flagDeterministic {
