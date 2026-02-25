@@ -51,7 +51,7 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 	if servers, resp, srv, err = q.queryDelegation(ctx, qname); err == nil {
 		if resp != nil && resp.Rcode == dns.RcodeNameError {
 			// no need to query final
-			if len(resp.Question) == 1 && (!strings.EqualFold(resp.Question[0].Name, qname) || resp.Question[0].Qtype != qtype) {
+			if len(resp.Question) == 1 && (dns.CanonicalName(resp.Question[0].Name) != qname || resp.Question[0].Qtype != qtype) {
 				if resp.Zero {
 					resp = resp.Copy()
 					resp.Zero = false
@@ -111,7 +111,7 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 				return
 			}
 			if resp != nil && resp.Rcode == dns.RcodeNameError {
-				if len(resp.Question) == 1 && strings.EqualFold(resp.Question[0].Name, qname) {
+				if len(resp.Question) == 1 && dns.CanonicalName(resp.Question[0].Name) == qname {
 					return
 				}
 			}
