@@ -65,23 +65,25 @@
 				
 				<option value="file4">github.com/linkdata/recursive/cachevalue.go (100.0%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/cookie.go (100.0%)</option>
+				<option value="file5">github.com/linkdata/recursive/comparemessage.go (95.9%)</option>
 				
-				<option value="file6">github.com/linkdata/recursive/disable.go (100.0%)</option>
+				<option value="file6">github.com/linkdata/recursive/cookie.go (100.0%)</option>
 				
-				<option value="file7">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
+				<option value="file7">github.com/linkdata/recursive/disable.go (100.0%)</option>
 				
-				<option value="file8">github.com/linkdata/recursive/ioutil.go (100.0%)</option>
+				<option value="file8">github.com/linkdata/recursive/extendedrcode.go (100.0%)</option>
 				
-				<option value="file9">github.com/linkdata/recursive/mismatchedquestionerror.go (100.0%)</option>
+				<option value="file9">github.com/linkdata/recursive/ioutil.go (100.0%)</option>
 				
-				<option value="file10">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
+				<option value="file10">github.com/linkdata/recursive/mismatchedquestionerror.go (100.0%)</option>
 				
-				<option value="file11">github.com/linkdata/recursive/query.go (88.5%)</option>
+				<option value="file11">github.com/linkdata/recursive/orderroots.go (100.0%)</option>
 				
-				<option value="file12">github.com/linkdata/recursive/recursive.go (100.0%)</option>
+				<option value="file12">github.com/linkdata/recursive/query.go (88.5%)</option>
 				
-				<option value="file13">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
+				<option value="file13">github.com/linkdata/recursive/recursive.go (100.0%)</option>
+				
+				<option value="file14">github.com/linkdata/recursive/timeroot.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -287,13 +289,13 @@ func (cache *Cache) Merge(other *Cache) <span class="cov1" title="4">{
 // Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
 func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (err error) <span class="cov1" title="2">{
         if cache != nil &amp;&amp; fn != nil </span><span class="cov1" title="2">{
-                for _, qc := range cache.cq </span><span class="cov3" title="46">{
+                for _, qc := range cache.cq </span><span class="cov3" title="39">{
                         var cvs []cacheValue
                         qc.mu.RLock()
                         for _, cv := range qc.cache </span><span class="cov1" title="3">{
                                 cvs = append(cvs, cv)
                         }</span>
-                        <span class="cov3" title="46">qc.mu.RUnlock()
+                        <span class="cov3" title="39">qc.mu.RUnlock()
                         for _, cv := range cvs </span><span class="cov1" title="3">{
                                 if err = fn(cv.Msg, cv.expiresAt()); err != nil </span><span class="cov1" title="1">{
                                         return
@@ -534,7 +536,7 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov2
 func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) <span class="cov4" title="416">{
         defer wg.Done()
         var buf []byte
-        wf := func() (fatal bool) </span><span class="cov7" title="39523">{
+        wf := func() (fatal bool) </span><span class="cov7" title="39531">{
                 pmu.Lock()
                 defer pmu.Unlock()
                 written, err := writeAll(w, buf)
@@ -543,7 +545,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
                         fatal = (err == io.EOF || errors.Is(err, io.ErrShortWrite))
                         *perr = errors.Join(*perr, err)
                 }</span>
-                <span class="cov7" title="39523">buf = buf[:0]
+                <span class="cov7" title="39531">buf = buf[:0]
                 return</span>
         }
         <span class="cov4" title="416">for _, cv := range qc.cache </span><span class="cov10" title="3000264">{
@@ -553,7 +555,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
                                 *perr = errors.Join(*perr, ErrCacheEntryTooLarge)
                                 pmu.Unlock()
                         }</span> else<span class="cov9" title="3000262"> if len(b) &gt; 0 </span><span class="cov9" title="3000262">{
-                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39107">{
+                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39115">{
                                         if wf() </span><span class="cov0" title="0">{
                                                 return
                                         }</span>
@@ -675,6 +677,159 @@ func (cv *cacheValue) bucketIndex() int <span class="cov9" title="1000263">{
 		<pre class="file" id="file5" style="display: none">package recursive
 
 import (
+        "fmt"
+        "io"
+
+        "github.com/miekg/dns"
+)
+
+// CompareMessage compares two DNS messages for semantic equivalence.
+//
+// It compares the response code and records in Answer, Authority, and Extra.
+// Differences in TTL values, OPT pseudo-records, and record ordering are
+// ignored. Any discovered differences are written as plain text to w.
+func CompareMessage(a, b *dns.Msg, w io.Writer) (equivalent bool) <span class="cov5" title="5">{
+        out := io.Discard
+        if w != nil </span><span class="cov3" title="3">{
+                out = w
+        }</span>
+
+        <span class="cov5" title="5">equivalent = true
+        if !compareRcode(a, b, out) </span><span class="cov3" title="3">{
+                equivalent = false
+        }</span>
+        <span class="cov5" title="5">if !compareSectionRRs("answer", msgAnswer(a), msgAnswer(b), out) </span><span class="cov3" title="3">{
+                equivalent = false
+        }</span>
+        <span class="cov5" title="5">if !compareSectionRRs("authority", msgAuthority(a), msgAuthority(b), out) </span><span class="cov1" title="1">{
+                equivalent = false
+        }</span>
+        <span class="cov5" title="5">if !compareSectionRRs("extra", msgExtra(a), msgExtra(b), out) </span><span class="cov0" title="0">{
+                equivalent = false
+        }</span>
+        <span class="cov5" title="5">return</span>
+}
+
+func compareRcode(a, b *dns.Msg, w io.Writer) (equivalent bool) <span class="cov5" title="5">{
+        equivalent = true
+        if a != nil || b != nil </span><span class="cov4" title="4">{
+                if a == nil || b == nil </span><span class="cov2" title="2">{
+                        equivalent = false
+                }</span> else<span class="cov2" title="2"> {
+                        equivalent = a.Rcode == b.Rcode
+                }</span>
+                <span class="cov4" title="4">if !equivalent </span><span class="cov3" title="3">{
+                        _, _ = fmt.Fprintf(w, "rcode differs: a=%s b=%s\n", messageRcodeString(a), messageRcodeString(b))
+                }</span>
+        }
+        <span class="cov5" title="5">return</span>
+}
+
+func compareSectionRRs(section string, a, b []dns.RR, w io.Writer) (equivalent bool) <span class="cov8" title="15">{
+        aComparable := comparableRRs(a)
+        bComparable := comparableRRs(b)
+        unmatchedB := append([]dns.RR(nil), bComparable...)
+        equivalent = true
+
+        for _, aRR := range aComparable </span><span class="cov6" title="7">{
+                matchIdx := matchingRRIndex(aRR, unmatchedB)
+                if matchIdx &gt;= 0 </span><span class="cov4" title="4">{
+                        unmatchedB = append(unmatchedB[:matchIdx], unmatchedB[matchIdx+1:]...)
+                }</span> else<span class="cov3" title="3"> {
+                        equivalent = false
+                        _, _ = fmt.Fprintf(w, "%s only in a: %s\n", section, rrText(aRR))
+                }</span>
+        }
+
+        <span class="cov8" title="15">for _, bRR := range unmatchedB </span><span class="cov3" title="3">{
+                equivalent = false
+                _, _ = fmt.Fprintf(w, "%s only in b: %s\n", section, rrText(bRR))
+        }</span>
+
+        <span class="cov8" title="15">return</span>
+}
+
+func comparableRRs(rrs []dns.RR) (out []dns.RR) <span class="cov10" title="30">{
+        out = make([]dns.RR, 0, len(rrs))
+        for _, rr := range rrs </span><span class="cov8" title="16">{
+                include := true
+                if rr != nil </span><span class="cov8" title="16">{
+                        hdr := rr.Header()
+                        if hdr != nil </span><span class="cov8" title="16">{
+                                include = hdr.Rrtype != dns.TypeOPT
+                        }</span>
+                }
+                <span class="cov8" title="16">if include </span><span class="cov7" title="14">{
+                        out = append(out, rr)
+                }</span>
+        }
+        <span class="cov10" title="30">return</span>
+}
+
+func matchingRRIndex(target dns.RR, candidates []dns.RR) (idx int) <span class="cov6" title="7">{
+        idx = -1
+        for i, candidate := range candidates </span><span class="cov6" title="7">{
+                if rrsEquivalent(target, candidate) </span><span class="cov4" title="4">{
+                        idx = i
+                        break</span>
+                }
+        }
+        <span class="cov6" title="7">return</span>
+}
+
+func rrsEquivalent(a, b dns.RR) (equivalent bool) <span class="cov6" title="7">{
+        if a == nil || b == nil </span><span class="cov0" title="0">{
+                equivalent = a == b
+        }</span> else<span class="cov6" title="7"> {
+                equivalent = dns.IsDuplicate(a, b)
+        }</span>
+        <span class="cov6" title="7">return</span>
+}
+
+func rrText(rr dns.RR) (s string) <span class="cov5" title="6">{
+        s = "&lt;nil&gt;"
+        if rr != nil </span><span class="cov5" title="6">{
+                s = rr.String()
+        }</span>
+        <span class="cov5" title="6">return</span>
+}
+
+func messageRcodeString(msg *dns.Msg) (s string) <span class="cov5" title="6">{
+        s = "&lt;nil&gt;"
+        if msg != nil </span><span class="cov4" title="4">{
+                s = dns.RcodeToString[msg.Rcode]
+                if s == "" </span><span class="cov0" title="0">{
+                        s = fmt.Sprintf("RCODE(%d)", msg.Rcode)
+                }</span>
+        }
+        <span class="cov5" title="6">return</span>
+}
+
+func msgAnswer(msg *dns.Msg) (answer []dns.RR) <span class="cov7" title="10">{
+        if msg != nil </span><span class="cov5" title="6">{
+                answer = msg.Answer
+        }</span>
+        <span class="cov7" title="10">return</span>
+}
+
+func msgAuthority(msg *dns.Msg) (authority []dns.RR) <span class="cov7" title="10">{
+        if msg != nil </span><span class="cov5" title="6">{
+                authority = msg.Ns
+        }</span>
+        <span class="cov7" title="10">return</span>
+}
+
+func msgExtra(msg *dns.Msg) (extra []dns.RR) <span class="cov7" title="10">{
+        if msg != nil </span><span class="cov5" title="6">{
+                extra = msg.Extra
+        }</span>
+        <span class="cov7" title="10">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package recursive
+
+import (
         crand "crypto/rand"
         "encoding/binary"
         "fmt"
@@ -718,7 +873,7 @@ func (r *Recursive) ResetCookies() <span class="cov1" title="1">{
 
 func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" title="9">{
         cutoff := now.Add(-srvCookieTTL)
-        for addr, c := range r.srvcookies </span><span class="cov7" title="8195">{
+        for addr, c := range r.srvcookies </span><span class="cov7" title="8196">{
                 if c.ts.Before(cutoff) </span><span class="cov1" title="1">{
                         delete(r.srvcookies, addr)
                 }</span>
@@ -734,7 +889,7 @@ func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" ti
         for addr, c := range r.srvcookies </span><span class="cov7" title="8193">{
                 l = append(l, ac{addr: addr, ts: c.ts})
         }</span>
-        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="111563">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="113938">{ return l[i].ts.Before(l[j].ts) }</span>)
         <span class="cov1" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov1" title="1">{
                 delete(r.srvcookies, l[i].addr)
         }</span>
@@ -762,7 +917,7 @@ func (r *Recursive) setSrvCookie(now time.Time, addr netip.Addr, val string) <sp
 }</span>
 </pre>
 		
-		<pre class="file" id="file6" style="display: none">package recursive
+		<pre class="file" id="file7" style="display: none">package recursive
 
 import (
         "errors"
@@ -824,7 +979,7 @@ func (r *Recursive) maybeDisableUdp(err error) (disabled bool) <span class="cov8
 }
 </pre>
 		
-		<pre class="file" id="file7" style="display: none">package recursive
+		<pre class="file" id="file8" style="display: none">package recursive
 
 import (
         "context"
@@ -949,7 +1104,7 @@ func ErrorFromExtendedErrorCode(code uint16) (err error) <span class="cov4" titl
 }
 </pre>
 		
-		<pre class="file" id="file8" style="display: none">package recursive
+		<pre class="file" id="file9" style="display: none">package recursive
 
 import (
         "encoding/binary"
@@ -975,24 +1130,24 @@ func writeInt64(w io.Writer, written *int64, val int64) (err error) <span class=
         return
 }</span>
 
-func writeAll(w io.Writer, p []byte) (n int, err error) <span class="cov10" title="39538">{
-        for len(p) &gt; 0 &amp;&amp; err == nil </span><span class="cov9" title="39296">{
+func writeAll(w io.Writer, p []byte) (n int, err error) <span class="cov10" title="39546">{
+        for len(p) &gt; 0 &amp;&amp; err == nil </span><span class="cov9" title="39306">{
                 var written int
                 written, err = w.Write(p)
                 n += written
-                if err == nil </span><span class="cov9" title="39296">{
-                        if written &gt; 0 </span><span class="cov9" title="39295">{
+                if err == nil </span><span class="cov9" title="39306">{
+                        if written &gt; 0 </span><span class="cov9" title="39305">{
                                 p = p[written:]
                         }</span> else<span class="cov1" title="1"> {
                                 err = io.ErrShortWrite
                         }</span>
                 }
         }
-        <span class="cov10" title="39538">return</span>
+        <span class="cov10" title="39546">return</span>
 }
 </pre>
 		
-		<pre class="file" id="file9" style="display: none">package recursive
+		<pre class="file" id="file10" style="display: none">package recursive
 
 import (
         "fmt"
@@ -1026,7 +1181,7 @@ func (*MismatchedQuestionError) Is(target error) bool <span class="cov10" title=
 var ErrMismatchedQuestion = &amp;MismatchedQuestionError{}
 </pre>
 		
-		<pre class="file" id="file10" style="display: none">package recursive
+		<pre class="file" id="file11" style="display: none">package recursive
 
 import (
         "context"
@@ -1051,19 +1206,19 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
         defer r.mu.Unlock()
         var l []*rootRtt
         var wg sync.WaitGroup
-        for _, addr := range r.rootServers </span><span class="cov7" title="52">{
+        for _, addr := range r.rootServers </span><span class="cov8" title="52">{
                 rt := &amp;rootRtt{addr: addr}
                 l = append(l, rt)
                 wg.Add(1)
                 go timeRoot(ctx, r, &amp;wg, rt)
         }</span>
         <span class="cov2" title="2">wg.Wait()
-        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="165">{ return l[i].rtt &lt; l[j].rtt }</span>)
+        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="159">{ return l[i].rtt &lt; l[j].rtt }</span>)
         <span class="cov2" title="2">var newRootServers []netip.Addr
         useIPv4 := false
         useIPv6 := false
-        for _, rt := range l </span><span class="cov7" title="52">{
-                if rt.rtt &lt;= cutoff </span><span class="cov6" title="23">{
+        for _, rt := range l </span><span class="cov8" title="52">{
+                if rt.rtt &lt;= cutoff </span><span class="cov6" title="24">{
                         useIPv4 = useIPv4 || rt.addr.Is4()
                         useIPv6 = useIPv6 || rt.addr.Is6()
                         newRootServers = append(newRootServers, rt.addr)
@@ -1077,7 +1232,7 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
 }
 </pre>
 		
-		<pre class="file" id="file11" style="display: none">package recursive
+		<pre class="file" id="file12" style="display: none">package recursive
 
 import (
         "context"
@@ -1640,7 +1795,7 @@ func (r *Recursive) getCachedNetError(ctx context.Context, protocol string, nsad
 
 func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov6" title="149">{
         if r.Deterministic </span><span class="cov6" title="149">{
-                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7796">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7717">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
         } else<span class="cov0" title="0"> {
                 rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
         }
@@ -1806,7 +1961,7 @@ func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg 
 }
 </pre>
 		
-		<pre class="file" id="file12" style="display: none">// package recursive provides a minimal iterative DNS resolver with QNAME minimization
+		<pre class="file" id="file13" style="display: none">// package recursive provides a minimal iterative DNS resolver with QNAME minimization
 // using github.com/miekg/dns for wire format and transport.
 package recursive
 
@@ -1988,7 +2143,7 @@ func (r *Recursive) setNetError(protocol string, nsaddr netip.Addr, err error) (
 }
 </pre>
 		
-		<pre class="file" id="file13" style="display: none">package recursive
+		<pre class="file" id="file14" style="display: none">package recursive
 
 import (
         "context"
@@ -2011,16 +2166,16 @@ func timeRoot(ctx context.Context, r *Recursive, wg *sync.WaitGroup, rt *rootRtt
         }</span>
         <span class="cov8" title="52">rt.rtt = time.Hour
         var rtt time.Duration
-        for range numProbes </span><span class="cov10" title="100">{
+        for range numProbes </span><span class="cov10" title="102">{
                 now := time.Now()
                 conn, err := r.DialContext(ctx, network, netip.AddrPortFrom(rt.addr, 53).String())
-                if err != nil </span><span class="cov7" title="29">{
+                if err != nil </span><span class="cov7" title="28">{
                         return
                 }</span>
-                <span class="cov9" title="71">rtt += time.Since(now)
+                <span class="cov9" title="74">rtt += time.Since(now)
                 _ = conn.Close()</span>
         }
-        <span class="cov7" title="23">rt.rtt = rtt / numProbes</span>
+        <span class="cov7" title="24">rt.rtt = rtt / numProbes</span>
 }
 </pre>
 		
