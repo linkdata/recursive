@@ -65,7 +65,7 @@
 				
 				<option value="file4">github.com/linkdata/recursive/cachevalue.go (100.0%)</option>
 				
-				<option value="file5">github.com/linkdata/recursive/comparemessage.go (95.9%)</option>
+				<option value="file5">github.com/linkdata/recursive/comparemessage.go (69.3%)</option>
 				
 				<option value="file6">github.com/linkdata/recursive/cookie.go (100.0%)</option>
 				
@@ -289,13 +289,13 @@ func (cache *Cache) Merge(other *Cache) <span class="cov1" title="4">{
 // Walk calls fn for each entry in the cache. If fn returns an error, it stops and returns that error.
 func (cache *Cache) Walk(fn func(msg *dns.Msg, expires time.Time) (err error)) (err error) <span class="cov1" title="2">{
         if cache != nil &amp;&amp; fn != nil </span><span class="cov1" title="2">{
-                for _, qc := range cache.cq </span><span class="cov3" title="39">{
+                for _, qc := range cache.cq </span><span class="cov3" title="46">{
                         var cvs []cacheValue
                         qc.mu.RLock()
                         for _, cv := range qc.cache </span><span class="cov1" title="3">{
                                 cvs = append(cvs, cv)
                         }</span>
-                        <span class="cov3" title="39">qc.mu.RUnlock()
+                        <span class="cov3" title="46">qc.mu.RUnlock()
                         for _, cv := range cvs </span><span class="cov1" title="3">{
                                 if err = fn(cv.Msg, cv.expiresAt()); err != nil </span><span class="cov1" title="1">{
                                         return
@@ -536,7 +536,7 @@ func (cache *Cache) ReadFrom(r io.Reader) (n int64, err error) <span class="cov2
 func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *sync.Mutex, wg *sync.WaitGroup) <span class="cov4" title="416">{
         defer wg.Done()
         var buf []byte
-        wf := func() (fatal bool) </span><span class="cov7" title="39531">{
+        wf := func() (fatal bool) </span><span class="cov7" title="39521">{
                 pmu.Lock()
                 defer pmu.Unlock()
                 written, err := writeAll(w, buf)
@@ -545,7 +545,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
                         fatal = (err == io.EOF || errors.Is(err, io.ErrShortWrite))
                         *perr = errors.Join(*perr, err)
                 }</span>
-                <span class="cov7" title="39531">buf = buf[:0]
+                <span class="cov7" title="39521">buf = buf[:0]
                 return</span>
         }
         <span class="cov4" title="416">for _, cv := range qc.cache </span><span class="cov10" title="3000264">{
@@ -555,7 +555,7 @@ func marshalWorker(qc *cacheBucket, w io.Writer, n *int64, perr *error, pmu *syn
                                 *perr = errors.Join(*perr, ErrCacheEntryTooLarge)
                                 pmu.Unlock()
                         }</span> else<span class="cov9" title="3000262"> if len(b) &gt; 0 </span><span class="cov9" title="3000262">{
-                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39115">{
+                                if len(buf)+2+len(b) &gt; marshalWorkerBufferSize </span><span class="cov7" title="39105">{
                                         if wf() </span><span class="cov0" title="0">{
                                                 return
                                         }</span>
@@ -679,119 +679,328 @@ func (cv *cacheValue) bucketIndex() int <span class="cov9" title="1000263">{
 import (
         "fmt"
         "io"
+        "sort"
+        "strings"
 
         "github.com/miekg/dns"
 )
 
-// CompareMessage compares two DNS messages for semantic equivalence.
+type comparableSections struct {
+        answer    []dns.RR
+        authority []dns.RR
+        extra     []dns.RR
+}
+
+// CompareMessage compares two DNS messages and returns ordering information.
 //
 // It compares the response code and records in Answer, Authority, and Extra.
 // Differences in TTL values, OPT pseudo-records, and record ordering are
 // ignored. Any discovered differences are written as plain text to w.
-func CompareMessage(a, b *dns.Msg, w io.Writer) (equivalent bool) <span class="cov5" title="5">{
+//
+// Return values:
+//   - -1 if a has less data than b
+//   - +1 if a has more data than b
+//   - 0 if the messages are equivalent
+func CompareMessage(a, b *dns.Msg, w io.Writer) (cmp int) <span class="cov5" title="9">{
         out := io.Discard
         if w != nil </span><span class="cov3" title="3">{
                 out = w
         }</span>
 
-        <span class="cov5" title="5">equivalent = true
+        <span class="cov5" title="9">aSections := newComparableSections(a)
+        bSections := newComparableSections(b)
+
+        equivalent := true
         if !compareRcode(a, b, out) </span><span class="cov3" title="3">{
                 equivalent = false
         }</span>
-        <span class="cov5" title="5">if !compareSectionRRs("answer", msgAnswer(a), msgAnswer(b), out) </span><span class="cov3" title="3">{
+        <span class="cov5" title="9">if !compareSectionRRs("answer", aSections.answer, bSections.answer, out) </span><span class="cov5" title="7">{
                 equivalent = false
         }</span>
-        <span class="cov5" title="5">if !compareSectionRRs("authority", msgAuthority(a), msgAuthority(b), out) </span><span class="cov1" title="1">{
+        <span class="cov5" title="9">if !compareSectionRRs("authority", aSections.authority, bSections.authority, out) </span><span class="cov1" title="1">{
                 equivalent = false
         }</span>
-        <span class="cov5" title="5">if !compareSectionRRs("extra", msgExtra(a), msgExtra(b), out) </span><span class="cov0" title="0">{
+        <span class="cov5" title="9">if !compareSectionRRs("extra", aSections.extra, bSections.extra, out) </span><span class="cov0" title="0">{
                 equivalent = false
         }</span>
-        <span class="cov5" title="5">return</span>
+        <span class="cov5" title="9">if !equivalent </span><span class="cov5" title="7">{
+                cmp = compareMessageOrdering(a, b, aSections, bSections)
+        }</span>
+        <span class="cov5" title="9">return</span>
 }
 
-func compareRcode(a, b *dns.Msg, w io.Writer) (equivalent bool) <span class="cov5" title="5">{
+func compareRcode(a, b *dns.Msg, w io.Writer) (equivalent bool) <span class="cov5" title="9">{
         equivalent = true
-        if a != nil || b != nil </span><span class="cov4" title="4">{
+        if a != nil || b != nil </span><span class="cov5" title="8">{
                 if a == nil || b == nil </span><span class="cov2" title="2">{
                         equivalent = false
-                }</span> else<span class="cov2" title="2"> {
+                }</span> else<span class="cov5" title="6"> {
                         equivalent = a.Rcode == b.Rcode
                 }</span>
-                <span class="cov4" title="4">if !equivalent </span><span class="cov3" title="3">{
+                <span class="cov5" title="8">if !equivalent </span><span class="cov3" title="3">{
                         _, _ = fmt.Fprintf(w, "rcode differs: a=%s b=%s\n", messageRcodeString(a), messageRcodeString(b))
                 }</span>
         }
-        <span class="cov5" title="5">return</span>
+        <span class="cov5" title="9">return</span>
 }
 
-func compareSectionRRs(section string, a, b []dns.RR, w io.Writer) (equivalent bool) <span class="cov8" title="15">{
-        aComparable := comparableRRs(a)
-        bComparable := comparableRRs(b)
-        unmatchedB := append([]dns.RR(nil), bComparable...)
+func compareSectionRRs(section string, a, b []dns.RR, w io.Writer) (equivalent bool) <span class="cov8" title="27">{
+        unmatchedB := append([]dns.RR(nil), b...)
         equivalent = true
 
-        for _, aRR := range aComparable </span><span class="cov6" title="7">{
+        for _, aRR := range a </span><span class="cov6" title="12">{
                 matchIdx := matchingRRIndex(aRR, unmatchedB)
-                if matchIdx &gt;= 0 </span><span class="cov4" title="4">{
+                if matchIdx &gt;= 0 </span><span class="cov5" title="6">{
                         unmatchedB = append(unmatchedB[:matchIdx], unmatchedB[matchIdx+1:]...)
-                }</span> else<span class="cov3" title="3"> {
+                }</span> else<span class="cov5" title="6"> {
                         equivalent = false
                         _, _ = fmt.Fprintf(w, "%s only in a: %s\n", section, rrText(aRR))
                 }</span>
         }
 
-        <span class="cov8" title="15">for _, bRR := range unmatchedB </span><span class="cov3" title="3">{
+        <span class="cov8" title="27">for _, bRR := range unmatchedB </span><span class="cov5" title="6">{
                 equivalent = false
                 _, _ = fmt.Fprintf(w, "%s only in b: %s\n", section, rrText(bRR))
         }</span>
 
-        <span class="cov8" title="15">return</span>
+        <span class="cov8" title="27">return</span>
 }
 
-func comparableRRs(rrs []dns.RR) (out []dns.RR) <span class="cov10" title="30">{
+func compareMessageOrdering(a, b *dns.Msg, aSections, bSections comparableSections) (cmp int) <span class="cov5" title="7">{
+        aDataCount := len(aSections.answer) + len(aSections.authority) + len(aSections.extra)
+        bDataCount := len(bSections.answer) + len(bSections.authority) + len(bSections.extra)
+        cmp = compareInt(aDataCount, bDataCount)
+        if cmp == 0 </span><span class="cov3" title="3">{
+                cmp = compareInt(messageRcodeValue(a), messageRcodeValue(b))
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareInt(len(aSections.answer), len(bSections.answer))
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareInt(len(aSections.authority), len(bSections.authority))
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareInt(len(aSections.extra), len(bSections.extra))
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareMsgHdrWithoutRcode(a, b)
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareRRLists(aSections.answer, bSections.answer)
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareRRLists(aSections.authority, bSections.authority)
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareRRLists(aSections.extra, bSections.extra)
+        }</span>
+        <span class="cov5" title="7">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareQuestionLists(msgQuestion(a), msgQuestion(b))
+        }</span>
+        <span class="cov5" title="7">return</span>
+}
+
+func compareMsgHdrWithoutRcode(a, b *dns.Msg) (cmp int) <span class="cov2" title="2">{
+        hdrA := messageHdr(a)
+        hdrB := messageHdr(b)
+        cmp = compareUint16(hdrA.Id, hdrB.Id)
+        if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareBool(hdrA.Response, hdrB.Response)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareInt(hdrA.Opcode, hdrB.Opcode)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov2" title="2">{
+                cmp = compareBool(hdrA.Authoritative, hdrB.Authoritative)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.Truncated, hdrB.Truncated)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.RecursionDesired, hdrB.RecursionDesired)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.RecursionAvailable, hdrB.RecursionAvailable)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.Zero, hdrB.Zero)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.AuthenticatedData, hdrB.AuthenticatedData)
+        }</span>
+        <span class="cov2" title="2">if cmp == 0 </span><span class="cov0" title="0">{
+                cmp = compareBool(hdrA.CheckingDisabled, hdrB.CheckingDisabled)
+        }</span>
+        <span class="cov2" title="2">return</span>
+}
+
+func compareRRLists(a, b []dns.RR) (cmp int) <span class="cov0" title="0">{
+        keysA := rrKeys(a)
+        keysB := rrKeys(b)
+        cmp = compareInt(len(keysA), len(keysB))
+        if cmp == 0 </span><span class="cov0" title="0">{
+                for i := 0; i &lt; len(keysA) &amp;&amp; cmp == 0; i++ </span><span class="cov0" title="0">{
+                        cmp = strings.Compare(keysA[i], keysB[i])
+                }</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+func rrKeys(rrs []dns.RR) (keys []string) <span class="cov0" title="0">{
+        keys = make([]string, 0, len(rrs))
+        for _, rr := range rrs </span><span class="cov0" title="0">{
+                keys = append(keys, rrKey(rr))
+        }</span>
+        <span class="cov0" title="0">sort.Strings(keys)
+        return</span>
+}
+
+func rrKey(rr dns.RR) (key string) <span class="cov0" title="0">{
+        key = "&lt;nil&gt;"
+        if rr != nil </span><span class="cov0" title="0">{
+                rrCopy := dns.Copy(rr)
+                if rrCopy != nil </span><span class="cov0" title="0">{
+                        hdr := rrCopy.Header()
+                        if hdr != nil </span><span class="cov0" title="0">{
+                                hdr.Ttl = 0
+                        }</span>
+                        <span class="cov0" title="0">rrLen := dns.Len(rrCopy)
+                        if rrLen &gt; 0 </span><span class="cov0" title="0">{
+                                wire := make([]byte, rrLen)
+                                off, err := dns.PackRR(rrCopy, wire, 0, nil, false)
+                                if err == nil &amp;&amp; off &gt; 0 </span><span class="cov0" title="0">{
+                                        key = string(wire[:off])
+                                }</span> else<span class="cov0" title="0"> {
+                                        key = rrCopy.String()
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                key = rrCopy.String()
+                        }</span>
+                }
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+func compareQuestionLists(a, b []dns.Question) (cmp int) <span class="cov0" title="0">{
+        keysA := questionKeys(a)
+        keysB := questionKeys(b)
+        cmp = compareInt(len(keysA), len(keysB))
+        if cmp == 0 </span><span class="cov0" title="0">{
+                for i := 0; i &lt; len(keysA) &amp;&amp; cmp == 0; i++ </span><span class="cov0" title="0">{
+                        cmp = strings.Compare(keysA[i], keysB[i])
+                }</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+func questionKeys(questions []dns.Question) (keys []string) <span class="cov0" title="0">{
+        keys = make([]string, 0, len(questions))
+        for _, question := range questions </span><span class="cov0" title="0">{
+                keys = append(keys, fmt.Sprintf("%s|%d|%d", dns.CanonicalName(question.Name), question.Qtype, question.Qclass))
+        }</span>
+        <span class="cov0" title="0">sort.Strings(keys)
+        return</span>
+}
+
+func compareInt(a, b int) (cmp int) <span class="cov7" title="22">{
+        if a &lt; b </span><span class="cov4" title="4">{
+                cmp = -1
+        }</span> else<span class="cov7" title="18"> {
+                if a &gt; b </span><span class="cov3" title="3">{
+                        cmp = 1
+                }</span>
+        }
+        <span class="cov7" title="22">return</span>
+}
+
+func compareUint16(a, b uint16) (cmp int) <span class="cov2" title="2">{
+        if a &lt; b </span><span class="cov0" title="0">{
+                cmp = -1
+        }</span> else<span class="cov2" title="2"> {
+                if a &gt; b </span><span class="cov0" title="0">{
+                        cmp = 1
+                }</span>
+        }
+        <span class="cov2" title="2">return</span>
+}
+
+func compareBool(a, b bool) (cmp int) <span class="cov4" title="4">{
+        cmp = compareInt(boolToInt(a), boolToInt(b))
+        return
+}</span>
+
+func boolToInt(v bool) (n int) <span class="cov5" title="8">{
+        if v </span><span class="cov2" title="2">{
+                n = 1
+        }</span>
+        <span class="cov5" title="8">return</span>
+}
+
+func messageHdr(msg *dns.Msg) (hdr dns.MsgHdr) <span class="cov4" title="4">{
+        if msg != nil </span><span class="cov4" title="4">{
+                hdr = msg.MsgHdr
+        }</span>
+        <span class="cov4" title="4">return</span>
+}
+
+func messageRcodeValue(msg *dns.Msg) (rcode int) <span class="cov5" title="6">{
+        rcode = -1
+        if msg != nil </span><span class="cov5" title="6">{
+                rcode = msg.Rcode
+        }</span>
+        <span class="cov5" title="6">return</span>
+}
+
+func newComparableSections(msg *dns.Msg) (sections comparableSections) <span class="cov7" title="18">{
+        sections.answer = comparableRRs(msgAnswer(msg))
+        sections.authority = comparableRRs(msgAuthority(msg))
+        sections.extra = comparableRRs(msgExtra(msg))
+        return
+}</span>
+
+func comparableRRs(rrs []dns.RR) (out []dns.RR) <span class="cov10" title="54">{
         out = make([]dns.RR, 0, len(rrs))
-        for _, rr := range rrs </span><span class="cov8" title="16">{
+        for _, rr := range rrs </span><span class="cov8" title="26">{
                 include := true
-                if rr != nil </span><span class="cov8" title="16">{
+                if rr != nil </span><span class="cov8" title="26">{
                         hdr := rr.Header()
-                        if hdr != nil </span><span class="cov8" title="16">{
+                        if hdr != nil </span><span class="cov8" title="26">{
                                 include = hdr.Rrtype != dns.TypeOPT
                         }</span>
                 }
-                <span class="cov8" title="16">if include </span><span class="cov7" title="14">{
+                <span class="cov8" title="26">if include </span><span class="cov8" title="24">{
                         out = append(out, rr)
                 }</span>
         }
-        <span class="cov10" title="30">return</span>
+        <span class="cov10" title="54">return</span>
 }
 
-func matchingRRIndex(target dns.RR, candidates []dns.RR) (idx int) <span class="cov6" title="7">{
+func matchingRRIndex(target dns.RR, candidates []dns.RR) (idx int) <span class="cov6" title="12">{
         idx = -1
-        for i, candidate := range candidates </span><span class="cov6" title="7">{
-                if rrsEquivalent(target, candidate) </span><span class="cov4" title="4">{
+        for i, candidate := range candidates </span><span class="cov6" title="11">{
+                if rrsEquivalent(target, candidate) </span><span class="cov5" title="6">{
                         idx = i
                         break</span>
                 }
         }
-        <span class="cov6" title="7">return</span>
+        <span class="cov6" title="12">return</span>
 }
 
-func rrsEquivalent(a, b dns.RR) (equivalent bool) <span class="cov6" title="7">{
+func rrsEquivalent(a, b dns.RR) (equivalent bool) <span class="cov6" title="11">{
         if a == nil || b == nil </span><span class="cov0" title="0">{
                 equivalent = a == b
-        }</span> else<span class="cov6" title="7"> {
+        }</span> else<span class="cov6" title="11"> {
                 equivalent = dns.IsDuplicate(a, b)
         }</span>
-        <span class="cov6" title="7">return</span>
+        <span class="cov6" title="11">return</span>
 }
 
-func rrText(rr dns.RR) (s string) <span class="cov5" title="6">{
+func rrText(rr dns.RR) (s string) <span class="cov6" title="12">{
         s = "&lt;nil&gt;"
-        if rr != nil </span><span class="cov5" title="6">{
+        if rr != nil </span><span class="cov6" title="12">{
                 s = rr.String()
         }</span>
-        <span class="cov5" title="6">return</span>
+        <span class="cov6" title="12">return</span>
 }
 
 func messageRcodeString(msg *dns.Msg) (s string) <span class="cov5" title="6">{
@@ -805,25 +1014,32 @@ func messageRcodeString(msg *dns.Msg) (s string) <span class="cov5" title="6">{
         <span class="cov5" title="6">return</span>
 }
 
-func msgAnswer(msg *dns.Msg) (answer []dns.RR) <span class="cov7" title="10">{
-        if msg != nil </span><span class="cov5" title="6">{
+func msgAnswer(msg *dns.Msg) (answer []dns.RR) <span class="cov7" title="18">{
+        if msg != nil </span><span class="cov6" title="14">{
                 answer = msg.Answer
         }</span>
-        <span class="cov7" title="10">return</span>
+        <span class="cov7" title="18">return</span>
 }
 
-func msgAuthority(msg *dns.Msg) (authority []dns.RR) <span class="cov7" title="10">{
-        if msg != nil </span><span class="cov5" title="6">{
+func msgAuthority(msg *dns.Msg) (authority []dns.RR) <span class="cov7" title="18">{
+        if msg != nil </span><span class="cov6" title="14">{
                 authority = msg.Ns
         }</span>
-        <span class="cov7" title="10">return</span>
+        <span class="cov7" title="18">return</span>
 }
 
-func msgExtra(msg *dns.Msg) (extra []dns.RR) <span class="cov7" title="10">{
-        if msg != nil </span><span class="cov5" title="6">{
+func msgExtra(msg *dns.Msg) (extra []dns.RR) <span class="cov7" title="18">{
+        if msg != nil </span><span class="cov6" title="14">{
                 extra = msg.Extra
         }</span>
-        <span class="cov7" title="10">return</span>
+        <span class="cov7" title="18">return</span>
+}
+
+func msgQuestion(msg *dns.Msg) (questions []dns.Question) <span class="cov0" title="0">{
+        if msg != nil </span><span class="cov0" title="0">{
+                questions = msg.Question
+        }</span>
+        <span class="cov0" title="0">return</span>
 }
 </pre>
 		
@@ -873,7 +1089,7 @@ func (r *Recursive) ResetCookies() <span class="cov1" title="1">{
 
 func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" title="9">{
         cutoff := now.Add(-srvCookieTTL)
-        for addr, c := range r.srvcookies </span><span class="cov7" title="8196">{
+        for addr, c := range r.srvcookies </span><span class="cov7" title="8195">{
                 if c.ts.Before(cutoff) </span><span class="cov1" title="1">{
                         delete(r.srvcookies, addr)
                 }</span>
@@ -889,7 +1105,7 @@ func (r *Recursive) cleanupSrvCookiesLocked(now time.Time) <span class="cov2" ti
         for addr, c := range r.srvcookies </span><span class="cov7" title="8193">{
                 l = append(l, ac{addr: addr, ts: c.ts})
         }</span>
-        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="113938">{ return l[i].ts.Before(l[j].ts) }</span>)
+        <span class="cov1" title="1">sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="110702">{ return l[i].ts.Before(l[j].ts) }</span>)
         <span class="cov1" title="1">for i := 0; len(r.srvcookies) &gt; maxSrvCookies &amp;&amp; i &lt; len(l); i++ </span><span class="cov1" title="1">{
                 delete(r.srvcookies, l[i].addr)
         }</span>
@@ -1025,7 +1241,7 @@ func ExtendedErrorCodeFromError(err error) (rcode uint16) <span class="cov7" tit
                         return uint16(rcodeErr)
                 }</span>
 
-                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="157">{
+                <span class="cov7" title="31">for code, sample := range rcodesToErrors </span><span class="cov10" title="150">{
                         if errors.Is(err, sample) </span><span class="cov5" title="13">{
                                 return code
                         }</span>
@@ -1130,20 +1346,20 @@ func writeInt64(w io.Writer, written *int64, val int64) (err error) <span class=
         return
 }</span>
 
-func writeAll(w io.Writer, p []byte) (n int, err error) <span class="cov10" title="39546">{
-        for len(p) &gt; 0 &amp;&amp; err == nil </span><span class="cov9" title="39306">{
+func writeAll(w io.Writer, p []byte) (n int, err error) <span class="cov10" title="39536">{
+        for len(p) &gt; 0 &amp;&amp; err == nil </span><span class="cov9" title="39298">{
                 var written int
                 written, err = w.Write(p)
                 n += written
-                if err == nil </span><span class="cov9" title="39306">{
-                        if written &gt; 0 </span><span class="cov9" title="39305">{
+                if err == nil </span><span class="cov9" title="39298">{
+                        if written &gt; 0 </span><span class="cov9" title="39297">{
                                 p = p[written:]
                         }</span> else<span class="cov1" title="1"> {
                                 err = io.ErrShortWrite
                         }</span>
                 }
         }
-        <span class="cov10" title="39546">return</span>
+        <span class="cov10" title="39536">return</span>
 }
 </pre>
 		
@@ -1206,18 +1422,18 @@ func (r *Recursive) OrderRootsTimeout(ctx context.Context, cutoff time.Duration)
         defer r.mu.Unlock()
         var l []*rootRtt
         var wg sync.WaitGroup
-        for _, addr := range r.rootServers </span><span class="cov8" title="52">{
+        for _, addr := range r.rootServers </span><span class="cov7" title="52">{
                 rt := &amp;rootRtt{addr: addr}
                 l = append(l, rt)
                 wg.Add(1)
                 go timeRoot(ctx, r, &amp;wg, rt)
         }</span>
         <span class="cov2" title="2">wg.Wait()
-        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="159">{ return l[i].rtt &lt; l[j].rtt }</span>)
+        sort.Slice(l, func(i, j int) bool </span><span class="cov10" title="170">{ return l[i].rtt &lt; l[j].rtt }</span>)
         <span class="cov2" title="2">var newRootServers []netip.Addr
         useIPv4 := false
         useIPv6 := false
-        for _, rt := range l </span><span class="cov8" title="52">{
+        for _, rt := range l </span><span class="cov7" title="52">{
                 if rt.rtt &lt;= cutoff </span><span class="cov6" title="24">{
                         useIPv4 = useIPv4 || rt.addr.Is4()
                         useIPv6 = useIPv6 || rt.addr.Is6()
@@ -1795,7 +2011,7 @@ func (r *Recursive) getCachedNetError(ctx context.Context, protocol string, nsad
 
 func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr <span class="cov6" title="149">{
         if r.Deterministic </span><span class="cov6" title="149">{
-                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7717">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
+                sort.Slice(in, func(i, j int) bool </span><span class="cov10" title="7601">{ return in[i].Compare(in[j]) &lt; 0 }</span>)
         } else<span class="cov0" title="0"> {
                 rand.Shuffle(len(in), func(i, j int) </span><span class="cov0" title="0">{ in[i], in[j] = in[j], in[i] }</span>)
         }
