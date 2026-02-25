@@ -37,9 +37,9 @@ func TestCompareMessageEquivalentIgnoresTTLAndOrderAndOPT(t *testing.T) {
 	b.Extra = []dns.RR{mustNewTestRR(t, "example.org. 42 IN TXT \"tag\""), optB}
 
 	var diff bytes.Buffer
-	equivalent := CompareMessage(a, b, &diff)
-	if !equivalent {
-		t.Fatalf("expected messages to be equivalent, diff:\n%s", diff.String())
+	cmp := CompareMessage(a, b, &diff)
+	if cmp != 0 {
+		t.Fatalf("expected equivalent messages, got cmp=%d diff:\n%s", cmp, diff.String())
 	}
 	if diff.Len() != 0 {
 		t.Fatalf("expected no diff output, got:\n%s", diff.String())
@@ -60,9 +60,9 @@ func TestCompareMessageDetectsRcodeAndRRDifferences(t *testing.T) {
 	b.Ns = []dns.RR{mustNewTestRR(t, "example.org. 300 IN NS ns2.example.org.")}
 
 	var diff bytes.Buffer
-	equivalent := CompareMessage(a, b, &diff)
-	if equivalent {
-		t.Fatalf("expected messages to differ")
+	cmp := CompareMessage(a, b, &diff)
+	if cmp != -1 {
+		t.Fatalf("expected a<b from lower RCODE, got cmp=%d", cmp)
 	}
 
 	got := diff.String()
@@ -86,24 +86,67 @@ func TestCompareMessageDetectsRcodeAndRRDifferences(t *testing.T) {
 func TestCompareMessageSafeWithNilParameters(t *testing.T) {
 	t.Parallel()
 
-	if !CompareMessage(nil, nil, nil) {
-		t.Fatalf("expected nil/nil messages to be equivalent")
+	if cmp := CompareMessage(nil, nil, nil); cmp != 0 {
+		t.Fatalf("expected nil/nil messages to be equivalent got cmp=%d", cmp)
 	}
 
 	msg := new(dns.Msg)
 	msg.Rcode = dns.RcodeSuccess
 	msg.Answer = []dns.RR{mustNewTestRR(t, "example.org. 300 IN A 192.0.2.10")}
 
-	if CompareMessage(nil, msg, nil) {
-		t.Fatalf("expected nil/message to differ")
+	if cmp := CompareMessage(nil, msg, nil); cmp != -1 {
+		t.Fatalf("expected nil to have less data than message, got cmp=%d", cmp)
 	}
 
 	var diff bytes.Buffer
-	if CompareMessage(msg, nil, &diff) {
-		t.Fatalf("expected message/nil to differ")
+	if cmp := CompareMessage(msg, nil, &diff); cmp != 1 {
+		t.Fatalf("expected message to have more data than nil, got cmp=%d", cmp)
 	}
 	if diff.Len() == 0 {
 		t.Fatalf("expected diff output for message/nil comparison")
+	}
+}
+
+func TestCompareMessageOrdersByDataAmount(t *testing.T) {
+	t.Parallel()
+
+	a := new(dns.Msg)
+	a.Rcode = dns.RcodeSuccess
+	a.Answer = []dns.RR{
+		mustNewTestRR(t, "example.org. 300 IN A 192.0.2.10"),
+		mustNewTestRR(t, "example.org. 300 IN AAAA 2001:db8::10"),
+	}
+
+	b := new(dns.Msg)
+	b.Rcode = dns.RcodeSuccess
+	b.Answer = []dns.RR{mustNewTestRR(t, "example.org. 300 IN A 192.0.2.10")}
+
+	if cmp := CompareMessage(a, b, nil); cmp != 1 {
+		t.Fatalf("expected a to have more data than b, got cmp=%d", cmp)
+	}
+	if cmp := CompareMessage(b, a, nil); cmp != -1 {
+		t.Fatalf("expected b to have less data than a, got cmp=%d", cmp)
+	}
+}
+
+func TestCompareMessageUsesMsgHdrAsTieBreaker(t *testing.T) {
+	t.Parallel()
+
+	a := new(dns.Msg)
+	a.Rcode = dns.RcodeSuccess
+	a.Authoritative = false
+	a.Answer = []dns.RR{mustNewTestRR(t, "example.org. 300 IN A 192.0.2.10")}
+
+	b := new(dns.Msg)
+	b.Rcode = dns.RcodeSuccess
+	b.Authoritative = true
+	b.Answer = []dns.RR{mustNewTestRR(t, "example.org. 300 IN A 192.0.2.20")}
+
+	if cmp := CompareMessage(a, b, nil); cmp != -1 {
+		t.Fatalf("expected MsgHdr tie-break to order a before b, got cmp=%d", cmp)
+	}
+	if cmp := CompareMessage(b, a, nil); cmp != 1 {
+		t.Fatalf("expected MsgHdr tie-break to order b after a, got cmp=%d", cmp)
 	}
 }
 
