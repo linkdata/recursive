@@ -706,7 +706,7 @@ func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg 
 	if msg != nil {
 		if len(msg.Question) == 1 {
 			q := msg.Question[0]
-			if strings.EqualFold(dns.CanonicalName(q.Name), dns.CanonicalName(qname)) {
+			if dns.CanonicalName(q.Name) == dns.CanonicalName(qname) {
 				if q.Qtype == qtype && q.Qclass == dns.ClassINET {
 					err = nil
 					outmsg = msg
