@@ -340,6 +340,234 @@ func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	}
 }
 
+func TestExtractDelegationNSReturnsSingleAddressPerOwner(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	ns1 := dns.Fqdn("ns1.example.net")
+	ns2 := dns.Fqdn("ns2.example.net")
+
+	msg := new(dns.Msg)
+	msg.SetQuestion(zone, dns.TypeNS)
+	msg.Rcode = dns.RcodeSuccess
+	msg.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   zone,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: ns1,
+		},
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   zone,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: ns2,
+		},
+	}
+	msg.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 10),
+		},
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 11),
+		},
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::10"),
+		},
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 20),
+		},
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::20"),
+		},
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::21"),
+		},
+	}
+
+	rec := NewWithOptions(nil, nil, []netip.Addr{netip.MustParseAddr("192.0.2.1")}, []netip.Addr{netip.MustParseAddr("2001:db8::1")}, nil)
+	q := &query{Recursive: rec, glue: make(map[string][]netip.Addr)}
+
+	names, addrs := q.extractDelegationNS(msg, zone)
+	if len(names) != 2 {
+		t.Fatalf("extractDelegationNS returned %d names, want 2", len(names))
+	}
+	if len(addrs) != 2 {
+		t.Fatalf("extractDelegationNS returned %d addrs, want 2", len(addrs))
+	}
+
+	expect := map[netip.Addr]struct{}{
+		netip.MustParseAddr("192.0.2.10"): {},
+		netip.MustParseAddr("192.0.2.20"): {},
+	}
+	for _, addr := range addrs {
+		if _, ok := expect[addr]; !ok {
+			t.Fatalf("extractDelegationNS returned unexpected addr %v", addr)
+		}
+		delete(expect, addr)
+	}
+	if len(expect) > 0 {
+		t.Fatalf("extractDelegationNS missing expected addrs: %v", expect)
+	}
+}
+
+func TestResolveNSAddrsReturnsSingleAddressPerOwner(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	root4 := netip.MustParseAddr("192.0.2.1")
+	root6 := netip.MustParseAddr("2001:db8::1")
+	ns1 := dns.Fqdn("ns1.example.net")
+	ns2 := dns.Fqdn("ns2.example.net")
+
+	for _, zone := range []string{dns.Fqdn("net"), dns.Fqdn("example.net"), ns1, ns2} {
+		msg := new(dns.Msg)
+		msg.SetQuestion(zone, dns.TypeNS)
+		msg.Rcode = dns.RcodeSuccess
+		msg.Authoritative = true
+		cache.DnsSet(msg)
+	}
+
+	msgA1 := new(dns.Msg)
+	msgA1.SetQuestion(ns1, dns.TypeA)
+	msgA1.Rcode = dns.RcodeSuccess
+	msgA1.Authoritative = true
+	msgA1.Answer = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 101),
+		},
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 102),
+		},
+	}
+	cache.DnsSet(msgA1)
+
+	msgAAAA1 := new(dns.Msg)
+	msgAAAA1.SetQuestion(ns1, dns.TypeAAAA)
+	msgAAAA1.Rcode = dns.RcodeSuccess
+	msgAAAA1.Authoritative = true
+	msgAAAA1.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::101"),
+		},
+	}
+	cache.DnsSet(msgAAAA1)
+
+	msgA2 := new(dns.Msg)
+	msgA2.SetQuestion(ns2, dns.TypeA)
+	msgA2.Rcode = dns.RcodeSuccess
+	msgA2.Authoritative = true
+	cache.DnsSet(msgA2)
+
+	msgAAAA2 := new(dns.Msg)
+	msgAAAA2.SetQuestion(ns2, dns.TypeAAAA)
+	msgAAAA2.Rcode = dns.RcodeSuccess
+	msgAAAA2.Authoritative = true
+	msgAAAA2.Answer = []dns.RR{
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::201"),
+		},
+		&dns.AAAA{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeAAAA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			AAAA: net.ParseIP("2001:db8::202"),
+		},
+	}
+	cache.DnsSet(msgAAAA2)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{root4}, []netip.Addr{root6}, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs := q.resolveNSAddrs(context.Background(), []string{ns1, ns2})
+	if len(addrs) != 2 {
+		t.Fatalf("resolveNSAddrs returned %d addrs, want 2", len(addrs))
+	}
+
+	expect := map[netip.Addr]struct{}{
+		netip.MustParseAddr("192.0.2.101"):   {},
+		netip.MustParseAddr("2001:db8::201"): {},
+	}
+	for _, addr := range addrs {
+		if _, ok := expect[addr]; !ok {
+			t.Fatalf("resolveNSAddrs returned unexpected addr %v", addr)
+		}
+		delete(expect, addr)
+	}
+	if len(expect) > 0 {
+		t.Fatalf("resolveNSAddrs missing expected addrs: %v", expect)
+	}
+}
+
 func TestResolveNXDOMAINUsesOriginalQuestionName(t *testing.T) {
 	t.Parallel()
 

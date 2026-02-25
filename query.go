@@ -192,6 +192,10 @@ retryWithoutQMIN:
 }
 
 func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, nsAddr []netip.Addr) {
+	var useIPv4 bool
+	var useIPv6 bool
+	useIPv4, useIPv6 = q.nsAddressFamilies()
+
 	// extract delegation NS records
 	for _, rr := range m.Ns {
 		if ns, ok := rr.(*dns.NS); ok {
@@ -221,15 +225,16 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 			}
 		}
 	}
-	// build list of addresses belonging to nsNames
-	addrs := map[netip.Addr]struct{}{}
+	// Build one preferred address per nameserver owner. Keeping every
+	// address can create an oversized list of candidate servers.
 	for _, nsName := range nsNames {
-		for _, addr := range q.glue[nsName] {
-			addrs[addr] = struct{}{}
+		var addr netip.Addr
+		addr = pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
+		if addr.IsValid() {
+			if !slices.Contains(nsAddr, addr) {
+				nsAddr = append(nsAddr, addr)
+			}
 		}
-	}
-	for addr := range addrs {
-		nsAddr = append(nsAddr, addr)
 	}
 	return
 }
@@ -317,38 +322,106 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 			q.surface()
 			q.logf("GLUE ANSWER %v\n", addrs)
 		}()
-		resolved := map[netip.Addr]struct{}{}
-		q.mu.RLock()
-		useIPv4 := q.useIPv4
-		useIPv6 := q.useIPv6
-		q.mu.RUnlock()
+
+		var useIPv4 bool
+		var useIPv6 bool
+		useIPv4, useIPv6 = q.nsAddressFamilies()
+
 		for _, host := range nsOwners {
+			var hostAddrs []netip.Addr
 			if useIPv4 {
 				if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
-					for _, rr := range msg.Answer {
-						if a, ok := rr.(*dns.A); ok {
-							if addr := ipToAddr(a.A); addr.IsValid() {
-								resolved[addr] = struct{}{}
-							}
-						}
+					var addr netip.Addr
+					addr = firstResolvedAddr(msg, host, dns.TypeA)
+					if addr.IsValid() {
+						hostAddrs = append(hostAddrs, addr)
 					}
 				}
 			}
 			if useIPv6 {
 				if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
-					for _, rr := range msg.Answer {
-						if a, ok := rr.(*dns.AAAA); ok {
-							if addr := ipToAddr(a.AAAA); addr.IsValid() {
-								resolved[addr] = struct{}{}
-							}
-						}
+					var addr netip.Addr
+					addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
+					if addr.IsValid() {
+						hostAddrs = append(hostAddrs, addr)
+					}
+				}
+			}
+			var addr netip.Addr
+			addr = pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
+			if addr.IsValid() {
+				if !slices.Contains(addrs, addr) {
+					addrs = append(addrs, addr)
+				}
+			}
+		}
+	}
+	return
+}
+
+func (q *query) nsAddressFamilies() (useIPv4 bool, useIPv6 bool) {
+	q.mu.RLock()
+	useIPv4 = q.useIPv4
+	useIPv6 = q.useIPv6
+	q.mu.RUnlock()
+	return
+}
+
+func pickPreferredNSAddr(candidates []netip.Addr, useIPv4 bool, useIPv6 bool) (addr netip.Addr) {
+	if useIPv4 {
+		for _, candidate := range candidates {
+			if candidate.Is4() {
+				addr = candidate
+				break
+			}
+		}
+	}
+	if !addr.IsValid() {
+		if useIPv6 {
+			for _, candidate := range candidates {
+				if candidate.Is6() {
+					addr = candidate
+					break
+				}
+			}
+		}
+	}
+	return
+}
+
+func firstResolvedAddr(msg *dns.Msg, owner string, rrtype uint16) (addr netip.Addr) {
+	owner = dns.CanonicalName(owner)
+	if msg != nil {
+		// Prefer records that match the requested owner directly.
+		for _, rr := range msg.Answer {
+			if rr.Header().Rrtype == rrtype {
+				if strings.EqualFold(rr.Header().Name, owner) {
+					addr = addrFromRR(rr)
+					if addr.IsValid() {
+						return
 					}
 				}
 			}
 		}
-		for addr := range resolved {
-			addrs = append(addrs, addr)
+		// Fallback for responses that only contain target records (e.g. via CNAME).
+		for _, rr := range msg.Answer {
+			if rr.Header().Rrtype == rrtype {
+				addr = addrFromRR(rr)
+				if addr.IsValid() {
+					break
+				}
+			}
 		}
+	}
+	return
+}
+
+func addrFromRR(rr dns.RR) (addr netip.Addr) {
+	switch typed := rr.(type) {
+	case *dns.A:
+		addr = ipToAddr(typed.A)
+	case *dns.AAAA:
+		addr = ipToAddr(typed.AAAA)
 	}
 	return
 }
