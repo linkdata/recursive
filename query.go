@@ -702,14 +702,22 @@ func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) {
 }
 
 func validateResponseQuestion(msg *dns.Msg, qname string, qtype uint16) (outmsg *dns.Msg, err error) {
-	err = ErrMismatchedQuestion
+	mismatchedQuestionErr := &MismatchedQuestionError{
+		ExpectedQName: dns.CanonicalName(qname),
+		ExpectedQType: qtype,
+	}
+	err = mismatchedQuestionErr
 	if msg != nil {
-		if len(msg.Question) == 1 {
+		if len(msg.Question) > 0 {
 			q := msg.Question[0]
-			if dns.CanonicalName(q.Name) == dns.CanonicalName(qname) {
-				if q.Qtype == qtype && q.Qclass == dns.ClassINET {
-					err = nil
-					outmsg = msg
+			mismatchedQuestionErr.ActualQName = dns.CanonicalName(q.Name)
+			mismatchedQuestionErr.ActualQType = q.Qtype
+			if len(msg.Question) == 1 {
+				if mismatchedQuestionErr.ActualQName == mismatchedQuestionErr.ExpectedQName {
+					if mismatchedQuestionErr.ActualQType == mismatchedQuestionErr.ExpectedQType && q.Qclass == dns.ClassINET {
+						err = nil
+						outmsg = msg
+					}
 				}
 			}
 		}

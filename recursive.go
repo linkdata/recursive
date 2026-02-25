@@ -55,8 +55,6 @@ var _ Resolver = &Recursive{}
 var (
 	// ErrInvalidCookie is returned if the DNS cookie from the server is invalid.
 	ErrInvalidCookie = errors.New("invalid cookie")
-	// ErrMismatchedQuestion is returned when a response question does not match the query.
-	ErrMismatchedQuestion = errors.New("mismatched response question")
 	// ErrMaxDepth is returned when recursive resolving exceeds the allowed limit.
 	ErrMaxDepth = errors.New("recursion depth exceeded 16")
 	// ErrMaxSteps is returned when resolving exceeds the step limit.
