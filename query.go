@@ -119,6 +119,19 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 			if len(nsAddrs) > 0 {
 				// got a new set of servers to query
 				servers = q.sortAddrs(nsAddrs)
+				if i == 0 {
+					// If the final minimized step returned a delegation, probe the delegated NS set once.
+					// This ensures delegation lookup does not stop before querying the final NS servers.
+					var probeResp *dns.Msg
+					var probeSrv netip.Addr
+					var probeErr error
+					if _, probeResp, probeSrv, probeErr = q.queryForDelegationWithCachePolicy(ctx, qname, servers, qname, isAuthoritativeCacheResponse); probeErr == nil {
+						if probeResp != nil {
+							resp = probeResp
+							srv = probeSrv
+						}
+					}
+				}
 			}
 		}
 	}
@@ -127,6 +140,10 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 
 // queryForDelegation performs the QMIN step at `zone` against `parentServers`.
 func (q *query) queryForDelegation(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
+	return q.queryForDelegationWithCachePolicy(ctx, zone, parentServers, fullQname, nil)
+}
+
+func (q *query) queryForDelegationWithCachePolicy(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string, allowCached func(*dns.Msg) bool) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
 	queryName := zone
 	maybeRetryWithoutQMIN := func() (yes bool) {
@@ -138,7 +155,7 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
 	}
 retryWithoutQMIN:
 	for _, srv = range parentServers {
-		if resp, err = q.exchange(ctx, queryName, dns.TypeNS, srv); resp != nil && err == nil {
+		if resp, err = q.exchangeWithCachePolicy(ctx, queryName, dns.TypeNS, srv, allowCached); resp != nil && err == nil {
 			if resp.Rcode == dns.RcodeSuccess {
 				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
 				if len(nsNames) > 0 {

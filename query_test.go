@@ -390,6 +390,238 @@ func TestResolveNXDOMAINUsesOriginalQuestionName(t *testing.T) {
 	}
 }
 
+func TestQueryDelegationQueriesFinalAuthServers(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	tldServer := netip.MustParseAddr("192.0.2.2")
+	authServer := netip.MustParseAddr("192.0.2.53")
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+	tldAddr := netip.AddrPortFrom(tldServer, 53).String()
+	authAddr := netip.AddrPortFrom(authServer, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Ns = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("com"),
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.com"),
+					},
+				}
+				resp.Extra = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.com"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 2),
+					},
+				}
+				return resp
+			},
+			tldAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Ns = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.com"),
+					},
+				}
+				resp.Extra = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.com"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					},
+				}
+				return resp
+			},
+			authAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.com"),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("queryDelegation returned error: %v", err)
+	}
+	if len(addrs) != 1 || addrs[0] != authServer {
+		t.Fatalf("expected delegation addresses [%v], got %v", authServer, addrs)
+	}
+	if resp == nil {
+		t.Fatalf("queryDelegation returned nil response")
+	}
+	if !resp.Authoritative {
+		t.Fatalf("expected authoritative response from final NS probe")
+	}
+	if calls := dialer.callsTo(authAddr); calls == 0 {
+		t.Fatalf("expected final authoritative NS %v to be queried", authServer)
+	}
+}
+
+func TestQueryDelegationFinalProbeIgnoresNonAuthoritativeCachedNS(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	tldServer := netip.MustParseAddr("192.0.2.2")
+	authServer := netip.MustParseAddr("192.0.2.53")
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+	tldAddr := netip.AddrPortFrom(tldServer, 53).String()
+	authAddr := netip.AddrPortFrom(authServer, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Ns = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("com"),
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.com"),
+					},
+				}
+				resp.Extra = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.com"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 2),
+					},
+				}
+				return resp
+			},
+			tldAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Ns = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.com"),
+					},
+				}
+				resp.Extra = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.com"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					},
+				}
+				return resp
+			},
+			authAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.com"),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	cache := NewCache()
+	rec := NewWithOptions(dialer, cache, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("queryDelegation returned error: %v", err)
+	}
+	if len(addrs) != 1 || addrs[0] != authServer {
+		t.Fatalf("expected delegation addresses [%v], got %v", authServer, addrs)
+	}
+	if resp == nil {
+		t.Fatalf("queryDelegation returned nil response")
+	}
+	if !resp.Authoritative {
+		t.Fatalf("expected authoritative final probe response, got non-authoritative")
+	}
+	if calls := dialer.callsTo(authAddr); calls == 0 {
+		t.Fatalf("expected final authoritative NS %v to be queried over network", authServer)
+	}
+}
+
 func TestQueryForDelegationRetriesOtherParentsAfterFallbackFailure(t *testing.T) {
 	t.Parallel()
 
