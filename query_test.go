@@ -294,6 +294,7 @@ func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	msgA := new(dns.Msg)
 	msgA.SetQuestion(nsHost, dns.TypeA)
 	msgA.Rcode = dns.RcodeSuccess
+	msgA.Authoritative = true
 	msgA.Answer = []dns.RR{
 		&dns.A{
 			Hdr: dns.RR_Header{
@@ -310,6 +311,7 @@ func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	msgAAAA := new(dns.Msg)
 	msgAAAA.SetQuestion(nsHost, dns.TypeAAAA)
 	msgAAAA.Rcode = dns.RcodeSuccess
+	msgAAAA.Authoritative = true
 	msgAAAA.Answer = []dns.RR{
 		&dns.AAAA{
 			Hdr: dns.RR_Header{
@@ -885,6 +887,89 @@ func TestQueryFinalDoesNotReuseCachedServerFailureAcrossServers(t *testing.T) {
 	}
 	if gotSrv != srv2 {
 		t.Fatalf("expected answer from second server %v, got %v", srv2, gotSrv)
+	}
+}
+
+func TestQueryFinalIgnoresNonAuthoritativeCachedFinalResponse(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	qtype := dns.TypeA
+
+	srv := netip.MustParseAddr("192.0.2.1")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	cache := NewCache()
+	cachedResp := new(dns.Msg)
+	cachedResp.SetQuestion(qname, qtype)
+	cachedResp.Rcode = dns.RcodeSuccess
+	cachedResp.Answer = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   qname,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 111),
+		},
+	}
+	cache.DnsSet(cachedResp)
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srvAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 222),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, cache, []netip.Addr{srv}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if !resp.Authoritative {
+		t.Fatalf("expected authoritative final response, got non-authoritative")
+	}
+	if gotSrv != srv {
+		t.Fatalf("expected answer from %v, got %v", srv, gotSrv)
+	}
+
+	answer, ok := resp.Answer[0].(*dns.A)
+	if !ok {
+		t.Fatalf("expected A answer, got %T", resp.Answer[0])
+	}
+	if gotIP := ipToAddr(answer.A); gotIP != netip.MustParseAddr("192.0.2.222") {
+		t.Fatalf("expected network answer IP 192.0.2.222, got %v", gotIP)
+	}
+	if calls := dialer.callsTo(srvAddr); calls == 0 {
+		t.Fatalf("expected network query after rejecting non-authoritative cache")
 	}
 }
 

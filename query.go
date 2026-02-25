@@ -227,7 +227,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 			q.logResponse(0, resp, err)
 		}()
 		for _, svr = range authServers {
-			if resp, err = q.exchange(ctx, qname, qtype, svr); resp != nil && err == nil {
+			if resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, svr, isAuthoritativeCacheResponse); resp != nil && err == nil {
 				if resp.Rcode == dns.RcodeSuccess {
 					terminal := hasRRType(resp.Answer, qtype)
 					if !terminal {
@@ -375,11 +375,19 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) {
 }
 
 func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr) (resp *dns.Msg, err error) {
+	resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, nsaddr, nil)
+	return
+}
+
+func (q *query) exchangeWithCachePolicy(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr, allowCached func(*dns.Msg) bool) (resp *dns.Msg, err error) {
 	if q.cache != nil {
 		if resp = q.cache.DnsGet(qname, qtype); resp != nil {
-			q.logf("CACHED: %s %q", dns.Type(qtype), qname)
-			q.logResponse(0, resp, nil)
-			return
+			if allowCached == nil || allowCached(resp) {
+				q.logf("CACHED: %s %q", dns.Type(qtype), qname)
+				q.logResponse(0, resp, nil)
+				return
+			}
+			resp = nil
 		}
 	}
 	q.mu.RLock()
@@ -397,6 +405,13 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 		if resp != nil && q.cache != nil && isReusableCachedResponse(resp) {
 			q.cache.DnsSet(resp)
 		}
+	}
+	return
+}
+
+func isAuthoritativeCacheResponse(resp *dns.Msg) (ok bool) {
+	if resp != nil {
+		ok = resp.Authoritative
 	}
 	return
 }

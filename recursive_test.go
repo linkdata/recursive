@@ -335,6 +335,7 @@ func TestResolverResolveUsesProvidedCache(t *testing.T) {
 		A: net.IPv4(192, 0, 2, 25),
 	}
 	cachedMsg := newResponseMsg(qname, qtype, dns.RcodeSuccess, []dns.RR{answer}, nil, nil)
+	cachedMsg.Authoritative = true
 	cachedMsg.Zero = true
 	override := &recordingCacher{msg: cachedMsg}
 	originalQuestion := override.msg.Question[0].Name
