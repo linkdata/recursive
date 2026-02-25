@@ -490,6 +490,57 @@ func TestServiceDnsResolveWithoutRoots(t *testing.T) {
 	}
 }
 
+func TestResolveWithOptionsCanonicalizesInputQName(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	root := netip.MustParseAddr("192.0.2.1")
+	rawQname := "Host.Missing.Example.COM."
+	qname := dns.CanonicalName(rawQname)
+
+	com := new(dns.Msg)
+	com.SetQuestion(dns.Fqdn("com"), dns.TypeNS)
+	com.Rcode = dns.RcodeSuccess
+	com.Authoritative = true
+	cache.DnsSet(com)
+
+	example := new(dns.Msg)
+	example.SetQuestion(dns.Fqdn("example.com"), dns.TypeNS)
+	example.Rcode = dns.RcodeSuccess
+	example.Authoritative = true
+	cache.DnsSet(example)
+
+	missing := new(dns.Msg)
+	missing.SetQuestion(dns.Fqdn("missing.example.com"), dns.TypeNS)
+	missing.Rcode = dns.RcodeSuccess
+	missing.Authoritative = true
+	cache.DnsSet(missing)
+
+	full := new(dns.Msg)
+	full.SetQuestion(qname, dns.TypeNS)
+	full.Rcode = dns.RcodeNameError
+	cache.DnsSet(full)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{root}, nil, nil)
+
+	resp, _, err := rec.ResolveWithOptions(context.Background(), cache, nil, rawQname, dns.TypeA)
+	if err != nil {
+		t.Fatalf("ResolveWithOptions returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("ResolveWithOptions returned nil response")
+	}
+	if x := resp.Rcode; x != dns.RcodeNameError {
+		t.Fatalf("unexpected rcode %s", dns.RcodeToString[x])
+	}
+	if x := resp.Question[0].Name; x != qname {
+		t.Fatalf("unexpected question name got=%q want=%q", x, qname)
+	}
+	if x := resp.Question[0].Qtype; x != dns.TypeA {
+		t.Fatalf("unexpected question qtype got=%s want=%s", dns.Type(x), dns.Type(dns.TypeA))
+	}
+}
+
 func TestGetRoots(t *testing.T) {
 	ipv4 := netip.MustParseAddr("192.0.2.1")
 	ipv6 := netip.MustParseAddr("2001:db8::1")

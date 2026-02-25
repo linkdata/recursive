@@ -307,7 +307,7 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 		q.mu.RUnlock()
 		for _, host := range nsOwners {
 			if useIPv4 {
-				if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeA); err == nil {
+				if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
 					for _, rr := range msg.Answer {
 						if a, ok := rr.(*dns.A); ok {
 							if addr := ipToAddr(a.A); addr.IsValid() {
@@ -318,7 +318,7 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 				}
 			}
 			if useIPv6 {
-				if msg, _, err := q.resolve(ctx, dns.CanonicalName(host), dns.TypeAAAA); err == nil {
+				if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
 					for _, rr := range msg.Answer {
 						if a, ok := rr.(*dns.AAAA); ok {
 							if addr := ipToAddr(a.AAAA); addr.IsValid() {
@@ -585,10 +585,11 @@ func dnameSynthesize(resp *dns.Msg, qname string) (tgt string) {
 				prefix := before
 				// Avoid double dots when concatenating
 				prefix = strings.TrimSuffix(prefix, ".")
-				tgt = dns.CanonicalName(d.Target)
+				candidate := d.Target
 				if prefix != "" {
-					tgt = dns.CanonicalName(strings.Trim(prefix, ".") + "." + d.Target)
+					candidate = strings.Trim(prefix, ".") + "." + d.Target
 				}
+				tgt = dns.CanonicalName(candidate)
 				break
 			}
 		}

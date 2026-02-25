@@ -129,7 +129,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 		start:     now,
 		glue:      make(map[string][]netip.Addr),
 	}
-	msg, origin, err = qry.resolve(ctx, dns.CanonicalName(qname), qtype)
+	msg, origin, err = qry.resolve(ctx, qname, qtype)
 	return
 }
 

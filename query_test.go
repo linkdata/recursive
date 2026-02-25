@@ -59,6 +59,22 @@ func TestDnameSynthesizeAtOwner(t *testing.T) {
 	}
 }
 
+func TestDnameSynthesizeWithPrefix(t *testing.T) {
+	t.Parallel()
+
+	rr, err := dns.NewRR("example.com. 3600 IN DNAME TaRgEt.Example.Net.")
+	if err != nil {
+		t.Fatalf("failed to build DNAME RR: %v", err)
+	}
+
+	msg := &dns.Msg{Answer: []dns.RR{rr}}
+	got := dnameSynthesize(msg, "WWW.EXAMPLE.COM.")
+	want := dns.Fqdn("www.target.example.net")
+	if got != want {
+		t.Fatalf("dnameSynthesize() = %q, want %q", got, want)
+	}
+}
+
 func TestDnameSynthesizeRequiresLabelBoundary(t *testing.T) {
 	t.Parallel()
 
