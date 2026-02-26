@@ -576,6 +576,9 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 			opt.Hdr.Name = "."
 			opt.Hdr.Rrtype = dns.TypeOPT
 			opt.SetUDPSize(msgsize)
+			if queryNeedsDO(qtype) {
+				opt.SetDo()
+			}
 
 			// an existing but empty string for srvcookie means cookies are disabled for this server
 			useCookies := !hasSrvCookie || srvcookie != ""
@@ -717,6 +720,28 @@ func hasRRType(rrs []dns.RR, t uint16) bool {
 		}
 	}
 	return false
+}
+
+func queryNeedsDO(qtype uint16) (needs bool) {
+	switch qtype {
+	case dns.TypeDS:
+		needs = true
+	case dns.TypeDNSKEY:
+		needs = true
+	case dns.TypeRRSIG:
+		needs = true
+	case dns.TypeNSEC:
+		needs = true
+	case dns.TypeNSEC3:
+		needs = true
+	case dns.TypeNSEC3PARAM:
+		needs = true
+	case dns.TypeCDS:
+		needs = true
+	case dns.TypeCDNSKEY:
+		needs = true
+	}
+	return
 }
 
 func delegationRecords(m *dns.Msg, zone string) (out []dns.RR) {

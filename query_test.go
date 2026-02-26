@@ -1642,6 +1642,149 @@ func TestQueryFinalSkipsNonAuthoritativeReferralLikeSuccess(t *testing.T) {
 	}
 }
 
+func TestExchangeSetsDOForNSECQueries(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	qtype := dns.TypeNSEC
+	srv := netip.MustParseAddr("192.0.2.1")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	nsec, err := dns.NewRR("example.com. 300 IN NSEC next.example.com. A NS SOA RRSIG NSEC DNSKEY")
+	if err != nil {
+		t.Fatalf("failed to build NSEC RR: %v", err)
+	}
+
+	reqFlags := make(chan struct {
+		hasOPT bool
+		do     bool
+	}, 1)
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srvAddr: func(req *dns.Msg) *dns.Msg {
+				flags := struct {
+					hasOPT bool
+					do     bool
+				}{}
+				if opt := req.IsEdns0(); opt != nil {
+					flags.hasOPT = true
+					flags.do = opt.Do()
+				}
+				reqFlags <- flags
+
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{nsec}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, err := q.exchange(context.Background(), qname, qtype, srv)
+	if err != nil {
+		t.Fatalf("exchange returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("exchange returned nil response")
+	}
+
+	select {
+	case flags := <-reqFlags:
+		if !flags.hasOPT {
+			t.Fatalf("expected EDNS OPT in request")
+		}
+		if !flags.do {
+			t.Fatalf("expected DO bit for %s query", dns.Type(qtype))
+		}
+	default:
+		t.Fatalf("request was not observed by scripted server")
+	}
+}
+
+func TestExchangeDoesNotSetDOForAQueries(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	qtype := dns.TypeA
+	srv := netip.MustParseAddr("192.0.2.2")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	reqFlags := make(chan struct {
+		hasOPT bool
+		do     bool
+	}, 1)
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srvAddr: func(req *dns.Msg) *dns.Msg {
+				flags := struct {
+					hasOPT bool
+					do     bool
+				}{}
+				if opt := req.IsEdns0(); opt != nil {
+					flags.hasOPT = true
+					flags.do = opt.Do()
+				}
+				reqFlags <- flags
+
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 123),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, err := q.exchange(context.Background(), qname, qtype, srv)
+	if err != nil {
+		t.Fatalf("exchange returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("exchange returned nil response")
+	}
+
+	select {
+	case flags := <-reqFlags:
+		if !flags.hasOPT {
+			t.Fatalf("expected EDNS OPT in request")
+		}
+		if flags.do {
+			t.Fatalf("did not expect DO bit for %s query", dns.Type(qtype))
+		}
+	default:
+		t.Fatalf("request was not observed by scripted server")
+	}
+}
+
 func TestExchangeRetriesTCPOnTruncatedNXDOMAIN(t *testing.T) {
 	t.Parallel()
 
