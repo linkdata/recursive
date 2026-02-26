@@ -159,8 +159,10 @@ retryWithoutQMIN:
 			if resp.Rcode == dns.RcodeSuccess {
 				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
 				if len(nsNames) > 0 {
-					if len(nsAddrs) == 0 {
-						nsAddrs = q.resolveNSAddrs(ctx, nsNames)
+					var missingNS []string
+					missingNS = q.missingNSAddrs(nsNames)
+					if len(missingNS) > 0 {
+						nsAddrs = appendUniqueAddrs(nsAddrs, q.resolveNSAddrs(ctx, missingNS))
 					}
 				}
 				if len(nsAddrs) > 0 {
@@ -242,6 +244,28 @@ func appendZoneNSNames(dst []string, records []dns.RR, zone string) (out []strin
 					out = append(out, nsName)
 				}
 			}
+		}
+	}
+	return
+}
+
+func appendUniqueAddrs(dst []netip.Addr, src []netip.Addr) (out []netip.Addr) {
+	out = dst
+	for _, addr := range src {
+		if !slices.Contains(out, addr) {
+			out = append(out, addr)
+		}
+	}
+	return
+}
+
+func (q *query) missingNSAddrs(nsNames []string) (missing []string) {
+	var useIPv4 bool
+	var useIPv6 bool
+	useIPv4, useIPv6 = q.nsAddressFamilies()
+	for _, nsName := range nsNames {
+		if !pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6).IsValid() {
+			missing = append(missing, nsName)
 		}
 	}
 	return

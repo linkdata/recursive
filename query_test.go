@@ -149,6 +149,125 @@ func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
 	}
 }
 
+func TestQueryForDelegationResolvesMissingGlueServerAddresses(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	ns1 := dns.Fqdn("ns1.example.net")
+	ns2 := dns.Fqdn("ns2.example.net")
+
+	cache := NewCache()
+
+	referral := new(dns.Msg)
+	referral.SetQuestion(zone, dns.TypeNS)
+	referral.Rcode = dns.RcodeSuccess
+	referral.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   zone,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: ns1,
+		},
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   zone,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: ns2,
+		},
+	}
+	referral.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 53),
+		},
+	}
+	cache.DnsSet(referral)
+
+	setAuthoritativeNS := func(name string) {
+		msg := new(dns.Msg)
+		msg.SetQuestion(name, dns.TypeNS)
+		msg.Rcode = dns.RcodeSuccess
+		msg.Authoritative = true
+		cache.DnsSet(msg)
+	}
+
+	for _, name := range []string{dns.Fqdn("net"), dns.Fqdn("example.net"), ns1, ns2} {
+		setAuthoritativeNS(name)
+	}
+
+	msgA1 := new(dns.Msg)
+	msgA1.SetQuestion(ns1, dns.TypeA)
+	msgA1.Rcode = dns.RcodeSuccess
+	msgA1.Authoritative = true
+	msgA1.Answer = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns1,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 53),
+		},
+	}
+	cache.DnsSet(msgA1)
+
+	msgA2 := new(dns.Msg)
+	msgA2.SetQuestion(ns2, dns.TypeA)
+	msgA2.Rcode = dns.RcodeSuccess
+	msgA2.Authoritative = true
+	msgA2.Answer = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   ns2,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 54),
+		},
+	}
+	cache.DnsSet(msgA2)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{parent}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs, _, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if len(addrs) != 2 {
+		t.Fatalf("queryForDelegation returned %d addresses, want 2", len(addrs))
+	}
+
+	expect := map[netip.Addr]struct{}{
+		netip.MustParseAddr("192.0.2.53"): {},
+		netip.MustParseAddr("192.0.2.54"): {},
+	}
+	for _, addr := range addrs {
+		if _, ok := expect[addr]; !ok {
+			t.Fatalf("queryForDelegation returned unexpected addr %v", addr)
+		}
+		delete(expect, addr)
+	}
+	if len(expect) > 0 {
+		t.Fatalf("queryForDelegation missing expected addrs: %v", expect)
+	}
+}
+
 func TestQueryForDelegationDoesNotFallbackOnEmptyMinimizedSuccess(t *testing.T) {
 	t.Parallel()
 
