@@ -3,6 +3,7 @@ A console.aws.amazon.com
 A eoh.be
 A h6xyrckrof16xv31.xn--kprw13d
 A m.hkirc.net.hk
+A nonexistant.example.com
 A seb.org.tw
 A *.en.se
 A teli.se
@@ -16,3 +17,4 @@ NS seb.inf.ua
 NS skandia.com.ci
 NS tella.net.ms
 NS wetrgijrotigj.bet.ar
+TXT qnamemintest.internet.nl
