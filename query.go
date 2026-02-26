@@ -523,7 +523,7 @@ func (q *query) exchangeWithCachePolicy(ctx context.Context, qname string, qtype
 		if resp == nil || resp.Truncated {
 			resp, err = q.exchangeWithNetwork(ctx, "tcp", qname, qtype, nsaddr)
 		}
-		if resp != nil && q.cache != nil && isReusableCachedResponse(resp) {
+		if resp != nil && q.cache != nil && isReusableCachedResponse(resp, qtype) {
 			q.cache.DnsSet(resp)
 		}
 	}
@@ -537,9 +537,36 @@ func isAuthoritativeCacheResponse(resp *dns.Msg) (ok bool) {
 	return
 }
 
-func isReusableCachedResponse(resp *dns.Msg) (ok bool) {
+func isReusableCachedResponse(resp *dns.Msg, qtype uint16) (ok bool) {
 	if resp != nil && !resp.Truncated {
-		ok = (resp.Rcode == dns.RcodeSuccess) || (resp.Rcode == dns.RcodeNameError && resp.Authoritative)
+		ok = resp.Rcode == dns.RcodeNameError && resp.Authoritative
+		if resp.Rcode == dns.RcodeSuccess {
+			ok = true
+			if qtype == dns.TypeNS {
+				ok = hasQuestionNSRecord(resp)
+			}
+		}
+	}
+	return
+}
+
+func hasQuestionNSRecord(resp *dns.Msg) (ok bool) {
+	if resp != nil && len(resp.Question) == 1 {
+		qname := dns.CanonicalName(resp.Question[0].Name)
+		for _, rr := range resp.Answer {
+			if ns, yes := rr.(*dns.NS); yes && strings.EqualFold(ns.Hdr.Name, qname) {
+				ok = true
+				break
+			}
+		}
+		if !ok {
+			for _, rr := range resp.Ns {
+				if ns, yes := rr.(*dns.NS); yes && strings.EqualFold(ns.Hdr.Name, qname) {
+					ok = true
+					break
+				}
+			}
+		}
 	}
 	return
 }

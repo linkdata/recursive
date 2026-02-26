@@ -852,6 +852,142 @@ func TestQueryDelegationFinalProbeIgnoresNonAuthoritativeCachedNS(t *testing.T) 
 	}
 }
 
+func TestQueryDelegationDoesNotCacheAuthoritativeNSNoData(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	parentServer := netip.MustParseAddr("192.0.2.2")
+	authServer := netip.MustParseAddr("192.0.2.53")
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+	parentAddr := netip.AddrPortFrom(parentServer, 53).String()
+	authAddr := netip.AddrPortFrom(authServer, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				if len(req.Question) == 1 && req.Question[0].Name == dns.Fqdn("com") && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.NS{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("com"),
+								Rrtype: dns.TypeNS,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns: dns.Fqdn("ns1.com"),
+						},
+					}
+					resp.Extra = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("ns1.com"),
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 2),
+						},
+					}
+				}
+				return resp
+			},
+			parentAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				if len(req.Question) == 1 && req.Question[0].Name == qname && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.NS{
+							Hdr: dns.RR_Header{
+								Name:   qname,
+								Rrtype: dns.TypeNS,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns: dns.Fqdn("ns1.example.com"),
+						},
+					}
+					resp.Extra = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("ns1.example.com"),
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 53),
+						},
+					}
+				}
+				return resp
+			},
+			authAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				if len(req.Question) == 1 && req.Question[0].Name == qname && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.SOA{
+							Hdr: dns.RR_Header{
+								Name:   qname,
+								Rrtype: dns.TypeSOA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns:      dns.Fqdn("ns1.example.com"),
+							Mbox:    dns.Fqdn("hostmaster.example.com"),
+							Serial:  1,
+							Refresh: 3600,
+							Retry:   900,
+							Expire:  604800,
+							Minttl:  86400,
+						},
+					}
+				}
+				return resp
+			},
+		},
+	}
+
+	cache := NewCache()
+	rec := NewWithOptions(dialer, cache, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+
+	first := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+	firstAddrs, firstResp, _, err := first.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("first queryDelegation returned error: %v", err)
+	}
+	if len(firstAddrs) != 1 || firstAddrs[0] != authServer {
+		t.Fatalf("first queryDelegation returned addrs %v, want [%v]", firstAddrs, authServer)
+	}
+	if firstResp == nil || !firstResp.Authoritative {
+		t.Fatalf("first queryDelegation returned non-authoritative final probe response")
+	}
+
+	second := &query{
+		Recursive: rec,
+		cache:     cache,
+		glue:      make(map[string][]netip.Addr),
+	}
+	secondAddrs, _, _, err := second.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("second queryDelegation returned error: %v", err)
+	}
+	if len(secondAddrs) != 1 || secondAddrs[0] != authServer {
+		t.Fatalf("second queryDelegation returned addrs %v, want [%v]", secondAddrs, authServer)
+	}
+}
+
 func TestQueryDelegationUsesCachedAuthoritativeNSAnswerToNarrowServers(t *testing.T) {
 	t.Parallel()
 
