@@ -360,9 +360,11 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								terminal = true
 							}
 						}
-						if !terminal && !resp.Authoritative {
-							resp = nil
-							continue
+						if !terminal {
+							if !isCredibleFinalNoDataResponse(resp, qname) {
+								resp = nil
+								continue
+							}
 						}
 					}
 					return
@@ -853,6 +855,34 @@ func hasRRType(rrs []dns.RR, t uint16) bool {
 		}
 	}
 	return false
+}
+
+func isCredibleFinalNoDataResponse(resp *dns.Msg, qname string) (ok bool) {
+	ok = resp != nil && resp.Authoritative
+	if !ok {
+		if resp != nil {
+			if resp.Rcode == dns.RcodeSuccess && len(resp.Answer) == 0 {
+				ok = hasSOAForQname(resp.Ns, qname)
+			}
+		}
+	}
+	return
+}
+
+func hasSOAForQname(rrs []dns.RR, qname string) (ok bool) {
+	for _, rr := range rrs {
+		if soa, yes := rr.(*dns.SOA); yes {
+			if strings.EqualFold(dns.CanonicalName(soa.Hdr.Name), dns.CanonicalName(qname)) {
+				ok = true
+				break
+			}
+			if _, match := cutDomainSuffix(qname, soa.Hdr.Name); match {
+				ok = true
+				break
+			}
+		}
+	}
+	return
 }
 
 func queryNeedsDO(qtype uint16) (needs bool) {

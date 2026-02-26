@@ -2563,6 +2563,72 @@ func TestQueryFinalSkipsNonAuthoritativeReferralLikeSuccess(t *testing.T) {
 	}
 }
 
+func TestQueryFinalAcceptsSOANoDataWithoutAuthoritativeBit(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	qtype := dns.TypeAAAA
+
+	srv := netip.MustParseAddr("192.0.2.1")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srvAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = false
+				resp.Ns = []dns.RR{
+					&dns.SOA{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("example.com"),
+							Rrtype: dns.TypeSOA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns:      dns.Fqdn("ns1.example.com"),
+						Mbox:    dns.Fqdn("hostmaster.example.com"),
+						Serial:  1,
+						Refresh: 3600,
+						Retry:   900,
+						Expire:  604800,
+						Minttl:  300,
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if resp.Rcode != dns.RcodeSuccess {
+		t.Fatalf("expected NOERROR NODATA response, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if len(resp.Answer) != 0 {
+		t.Fatalf("expected no answers for NODATA response, got %d", len(resp.Answer))
+	}
+	if !hasRRType(resp.Ns, dns.TypeSOA) {
+		t.Fatalf("expected SOA authority in accepted response")
+	}
+	if gotSrv != srv {
+		t.Fatalf("expected answer from server %v, got %v", srv, gotSrv)
+	}
+}
+
 func TestExchangeSetsDOForNSECQueries(t *testing.T) {
 	t.Parallel()
 
