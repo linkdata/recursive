@@ -149,6 +149,53 @@ func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
 	}
 }
 
+func TestQueryForDelegationFallbackUsesFallbackQnameForAuthoritativeNSAnswer(t *testing.T) {
+	t.Parallel()
+
+	parent := netip.MustParseAddr("192.0.2.1")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	zone := dns.Fqdn("com.co")
+	fullQname := dns.Fqdn("cnn.com.co")
+	cache := NewCache()
+
+	minimizedNoDelegation := new(dns.Msg)
+	minimizedNoDelegation.SetQuestion(zone, dns.TypeNS)
+	minimizedNoDelegation.Rcode = dns.RcodeSuccess
+	minimizedNoDelegation.Authoritative = true
+	cache.DnsSet(minimizedNoDelegation)
+
+	fallbackAuthoritativeNS := new(dns.Msg)
+	fallbackAuthoritativeNS.SetQuestion(fullQname, dns.TypeNS)
+	fallbackAuthoritativeNS.Rcode = dns.RcodeSuccess
+	fallbackAuthoritativeNS.Authoritative = true
+
+	ns, err := dns.NewRR("cnn.com.co. 900 IN NS ns1.cnn.com.co.")
+	if err != nil {
+		t.Fatalf("failed to build NS record: %v", err)
+	}
+	a, err := dns.NewRR("ns1.cnn.com.co. 900 IN A 192.0.2.53")
+	if err != nil {
+		t.Fatalf("failed to build A record: %v", err)
+	}
+	fallbackAuthoritativeNS.Answer = []dns.RR{ns}
+	fallbackAuthoritativeNS.Extra = []dns.RR{a}
+	cache.DnsSet(fallbackAuthoritativeNS)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{parent}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("unexpected delegation addresses: %#v", addrs)
+	}
+}
+
 func TestQueryForDelegationResolvesMissingGlueServerAddresses(t *testing.T) {
 	t.Parallel()
 

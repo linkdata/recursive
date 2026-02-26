@@ -179,6 +179,11 @@ retryWithoutQMIN:
 		if resp, err = q.exchangeWithCachePolicy(ctx, queryName, dns.TypeNS, srv, allowCached); resp != nil && err == nil {
 			if resp.Rcode == dns.RcodeSuccess {
 				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
+				if len(nsNames) == 0 {
+					if !strings.EqualFold(queryName, zone) {
+						nsNames, nsAddrs = q.extractDelegationNS(resp, queryName)
+					}
+				}
 				if len(nsNames) > 0 {
 					var missingNS []string
 					missingNS = q.missingNSAddrs(nsNames)
