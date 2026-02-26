@@ -268,6 +268,90 @@ func TestQueryForDelegationResolvesMissingGlueServerAddresses(t *testing.T) {
 	}
 }
 
+func TestQueryForDelegationReturnsAvailableGlueWhenMissingNSResolutionFails(t *testing.T) {
+	t.Parallel()
+
+	zone := dns.Fqdn("example.com")
+	fullQname := dns.Fqdn("www.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	root := netip.MustParseAddr("192.0.2.2")
+	referralAddr := netip.MustParseAddr("192.0.2.53")
+	parentAddr := netip.AddrPortFrom(parent, 53).String()
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			parentAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Ns = []dns.RR{
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns1.example.net"),
+					},
+					&dns.NS{
+						Hdr: dns.RR_Header{
+							Name:   zone,
+							Rrtype: dns.TypeNS,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns: dns.Fqdn("ns2.example.net"),
+					},
+				}
+				resp.Extra = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   dns.Fqdn("ns1.example.net"),
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 53),
+					},
+				}
+				return resp
+			},
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeServerFailure
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), zone, []netip.Addr{parent}, fullQname)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != referralAddr {
+		t.Fatalf("expected delegation address %v, got %v", referralAddr, addrs)
+	}
+	if calls := dialer.callsTo(parentAddr); calls == 0 {
+		t.Fatalf("expected parent server to be queried")
+	}
+	if calls := dialer.callsTo(rootAddr); calls == 0 {
+		t.Fatalf("expected missing-glue resolution attempt to query roots")
+	}
+}
+
 func TestQueryForDelegationDoesNotFallbackOnEmptyMinimizedSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -686,6 +770,141 @@ func TestResolveNSAddrsReturnsSingleAddressPerOwner(t *testing.T) {
 	}
 	if len(expect) > 0 {
 		t.Fatalf("resolveNSAddrs missing expected addrs: %v", expect)
+	}
+}
+
+func TestResolveNSAddrsStopsOnCyclicDependencies(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	root := netip.MustParseAddr("192.0.2.1")
+	nsNet := dns.Fqdn("ns1.example.net")
+	nsOrg := dns.Fqdn("ns1.example.org")
+
+	netDelegation := new(dns.Msg)
+	netDelegation.SetQuestion(dns.Fqdn("net"), dns.TypeNS)
+	netDelegation.Rcode = dns.RcodeSuccess
+	netDelegation.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("net"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("a.net-servers.test"),
+		},
+	}
+	netDelegation.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("a.net-servers.test"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 10),
+		},
+	}
+	cache.DnsSet(netDelegation)
+
+	orgDelegation := new(dns.Msg)
+	orgDelegation.SetQuestion(dns.Fqdn("org"), dns.TypeNS)
+	orgDelegation.Rcode = dns.RcodeSuccess
+	orgDelegation.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("org"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: dns.Fqdn("a.org-servers.test"),
+		},
+	}
+	orgDelegation.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("a.org-servers.test"),
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IPv4(192, 0, 2, 11),
+		},
+	}
+	cache.DnsSet(orgDelegation)
+
+	exampleNet := new(dns.Msg)
+	exampleNet.SetQuestion(dns.Fqdn("example.net"), dns.TypeNS)
+	exampleNet.Rcode = dns.RcodeSuccess
+	exampleNet.Authoritative = true
+	exampleNet.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("example.net"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: nsOrg,
+		},
+	}
+	cache.DnsSet(exampleNet)
+
+	exampleOrg := new(dns.Msg)
+	exampleOrg.SetQuestion(dns.Fqdn("example.org"), dns.TypeNS)
+	exampleOrg.Rcode = dns.RcodeSuccess
+	exampleOrg.Authoritative = true
+	exampleOrg.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   dns.Fqdn("example.org"),
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: nsNet,
+		},
+	}
+	cache.DnsSet(exampleOrg)
+
+	nsNetDelegation := new(dns.Msg)
+	nsNetDelegation.SetQuestion(nsNet, dns.TypeNS)
+	nsNetDelegation.Rcode = dns.RcodeSuccess
+	nsNetDelegation.Authoritative = true
+	cache.DnsSet(nsNetDelegation)
+
+	nsOrgDelegation := new(dns.Msg)
+	nsOrgDelegation.SetQuestion(nsOrg, dns.TypeNS)
+	nsOrgDelegation.Rcode = dns.RcodeSuccess
+	nsOrgDelegation.Authoritative = true
+	cache.DnsSet(nsOrgDelegation)
+
+	nsNetA := new(dns.Msg)
+	nsNetA.SetQuestion(nsNet, dns.TypeA)
+	nsNetA.Rcode = dns.RcodeSuccess
+	nsNetA.Authoritative = true
+	cache.DnsSet(nsNetA)
+
+	nsOrgA := new(dns.Msg)
+	nsOrgA.SetQuestion(nsOrg, dns.TypeA)
+	nsOrgA.Rcode = dns.RcodeSuccess
+	nsOrgA.Authoritative = true
+	cache.DnsSet(nsOrgA)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{root}, []netip.Addr{}, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs := q.resolveNSAddrs(context.Background(), []string{nsOrg})
+	if len(addrs) != 0 {
+		t.Fatalf("resolveNSAddrs returned %d addrs, want 0", len(addrs))
+	}
+	if q.steps >= maxSteps {
+		t.Fatalf("resolveNSAddrs exhausted step budget in cyclic dependency: %d", q.steps)
+	}
+	if q.steps == 0 {
+		t.Fatalf("resolveNSAddrs did not perform expected resolution attempts")
 	}
 }
 

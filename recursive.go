@@ -21,10 +21,11 @@ import (
 //go:generate go run ./cmd/genhints roothints.gen.go
 
 const (
-	maxSrvCookies = 8192
-	srvCookieTTL  = 24 * time.Hour
-	maxDepth      = 16   // max recursion depth
-	maxSteps      = 4096 // max steps to take for a query
+	maxSrvCookies          = 8192
+	srvCookieTTL           = 24 * time.Hour
+	maxDepth               = 16   // max recursion depth
+	maxSteps               = 4096 // max steps to take for a query
+	maxGlueResolutionSteps = 256  // per-host budget for resolving missing NS glue
 )
 
 type Recursive struct {
@@ -127,6 +128,7 @@ func (r *Recursive) ResolveWithOptions(ctx context.Context, cache Cacher, logw i
 		cache:     cache,
 		logw:      logw,
 		start:     now,
+		stepLimit: maxSteps,
 		glue:      make(map[string][]netip.Addr),
 	}
 	msg, origin, err = qry.resolve(ctx, qname, qtype)

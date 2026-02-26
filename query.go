@@ -22,12 +22,23 @@ type query struct {
 	start time.Time
 	depth int
 	steps int
-	glue  map[string][]netip.Addr
+	// stepLimit defaults to maxSteps and can be temporarily lowered for
+	// bounded sub-operations (for example, opportunistic missing-glue lookups).
+	stepLimit int
+	glue      map[string][]netip.Addr
+
+	// Tracks NS owner names currently being resolved to avoid cyclic
+	// dependency expansion when resolving missing glue.
+	resolvingNS map[string]struct{}
 }
 
 func (q *query) dive(format string, args ...any) (err error) {
+	limit := q.stepLimit
+	if limit <= 0 {
+		limit = maxSteps
+	}
 	err = ErrMaxSteps
-	if q.steps < maxSteps {
+	if q.steps < limit {
 		err = ErrMaxDepth
 		if q.depth < maxDepth {
 			q.steps++
@@ -387,37 +398,55 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 			q.surface()
 			q.logf("GLUE ANSWER %v\n", addrs)
 		}()
+		if q.resolvingNS == nil {
+			q.resolvingNS = make(map[string]struct{})
+		}
 
 		var useIPv4 bool
 		var useIPv6 bool
 		useIPv4, useIPv6 = q.nsAddressFamilies()
 
 		for _, host := range nsOwners {
-			var hostAddrs []netip.Addr
-			if useIPv4 {
-				if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
-					var addr netip.Addr
-					addr = firstResolvedAddr(msg, host, dns.TypeA)
-					if addr.IsValid() {
-						hostAddrs = append(hostAddrs, addr)
+			host = dns.CanonicalName(host)
+			if _, resolving := q.resolvingNS[host]; !resolving {
+				q.resolvingNS[host] = struct{}{}
+				var hostAddrs []netip.Addr
+				stepLimit := q.stepLimit
+				if stepLimit <= 0 {
+					stepLimit = maxSteps
+				}
+				hostStepLimit := q.steps + maxGlueResolutionSteps
+				if hostStepLimit > stepLimit {
+					hostStepLimit = stepLimit
+				}
+				q.stepLimit = hostStepLimit
+				if useIPv4 {
+					if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
+						var addr netip.Addr
+						addr = firstResolvedAddr(msg, host, dns.TypeA)
+						if addr.IsValid() {
+							hostAddrs = append(hostAddrs, addr)
+						}
 					}
 				}
-			}
-			if useIPv6 {
-				if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
-					var addr netip.Addr
-					addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
-					if addr.IsValid() {
-						hostAddrs = append(hostAddrs, addr)
+				if useIPv6 {
+					if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
+						var addr netip.Addr
+						addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
+						if addr.IsValid() {
+							hostAddrs = append(hostAddrs, addr)
+						}
 					}
 				}
-			}
-			var addr netip.Addr
-			addr = pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
-			if addr.IsValid() {
-				if !slices.Contains(addrs, addr) {
-					addrs = append(addrs, addr)
+				var addr netip.Addr
+				addr = pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
+				if addr.IsValid() {
+					if !slices.Contains(addrs, addr) {
+						addrs = append(addrs, addr)
+					}
 				}
+				q.stepLimit = stepLimit
+				delete(q.resolvingNS, host)
 			}
 		}
 	}
