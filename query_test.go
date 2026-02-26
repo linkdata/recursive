@@ -1473,6 +1473,144 @@ func TestQueryFinalDoesNotReuseCachedServerFailureAcrossServers(t *testing.T) {
 	}
 }
 
+func TestQueryFinalContinuesAfterCNAMEChaseError(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	target := dns.Fqdn("alias.example.net")
+	qtype := dns.TypeA
+
+	srv1 := netip.MustParseAddr("192.0.2.10")
+	srv2 := netip.MustParseAddr("192.0.2.11")
+	srv1Addr := netip.AddrPortFrom(srv1, 53).String()
+	srv2Addr := netip.AddrPortFrom(srv2, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srv1Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.CNAME{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeCNAME,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Target: target,
+					},
+				}
+				return resp
+			},
+			srv2Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.A{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						A: net.IPv4(192, 0, 2, 123),
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv1}, nil, nil)
+	rec.useUDP = false
+	rec.rootServers = nil
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv1, srv2})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if gotSrv != srv2 {
+		t.Fatalf("expected answer from second server %v, got %v", srv2, gotSrv)
+	}
+	if calls := dialer.callsTo(srv2Addr); calls == 0 {
+		t.Fatalf("expected second server to be queried after CNAME chase failure")
+	}
+}
+
+func TestQueryFinalReturnsCNAMEFallbackWhenChaseFailsEverywhere(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	target := dns.Fqdn("alias.example.net")
+	qtype := dns.TypeA
+
+	srv := netip.MustParseAddr("192.0.2.12")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srvAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.CNAME{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeCNAME,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Target: target,
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	rec.useUDP = false
+	rec.rootServers = nil
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if gotSrv != srv {
+		t.Fatalf("expected fallback answer server %v, got %v", srv, gotSrv)
+	}
+	if resp.Rcode != dns.RcodeSuccess {
+		t.Fatalf("expected fallback NOERROR response, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if len(resp.Answer) != 1 {
+		t.Fatalf("expected exactly one fallback answer, got %d", len(resp.Answer))
+	}
+	if _, ok := resp.Answer[0].(*dns.CNAME); !ok {
+		t.Fatalf("expected CNAME fallback answer, got %T", resp.Answer[0])
+	}
+}
+
 func TestQueryFinalIgnoresNonAuthoritativeCachedFinalResponse(t *testing.T) {
 	t.Parallel()
 

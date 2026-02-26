@@ -251,6 +251,8 @@ func appendZoneNSNames(dst []string, records []dns.RR, zone string) (out []strin
 // It also performs CNAME/DNAME chasing, with a loop bound controlled by depth.
 func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, authServers []netip.Addr) (resp *dns.Msg, svr netip.Addr, err error) {
 	if err = q.dive("QUERY %s %q from %d servers\n", dns.Type(qtype), qname, len(authServers)); err == nil {
+		var aliasFallback *dns.Msg
+		var aliasFallbackServer netip.Addr
 		defer func() {
 			q.surface()
 			q.logf("ANSWER @%s %s %q", svr, dns.Type(qtype), qname)
@@ -272,6 +274,14 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								resp = msg
 								svr = origin
 								terminal = true
+							} else {
+								if aliasFallback == nil {
+									aliasFallback = cloneIfCached(resp)
+									aliasFallbackServer = svr
+								}
+								resp = nil
+								err = nil
+								continue
 							}
 						} else if tgt := dnameSynthesize(resp, qname); tgt != "" {
 							q.logf("DNAME @%s %s %q => %q\n", svr, dns.Type(qtype), qname, tgt)
@@ -284,6 +294,14 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								resp = msg
 								svr = origin
 								terminal = true
+							} else {
+								if aliasFallback == nil {
+									aliasFallback = cloneIfCached(resp)
+									aliasFallbackServer = svr
+								}
+								resp = nil
+								err = nil
+								continue
 							}
 						} else if qtype == dns.TypeNS {
 							answers := delegationRecords(resp, qname)
@@ -296,9 +314,6 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 								resp.Ns = nil
 								terminal = true
 							}
-						}
-						if err != nil {
-							return
 						}
 						if !terminal && !resp.Authoritative {
 							resp = nil
@@ -316,8 +331,16 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 			}
 		}
 
-		if resp == nil && err == nil {
-			err = ErrNoResponse
+		if err == nil {
+			if aliasFallback != nil {
+				if resp == nil || resp.Rcode != dns.RcodeSuccess {
+					resp = aliasFallback
+					svr = aliasFallbackServer
+				}
+			}
+			if resp == nil {
+				err = ErrNoResponse
+			}
 		}
 	}
 	return
