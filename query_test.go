@@ -739,6 +739,117 @@ func TestResolveNXDOMAINUsesOriginalQuestionName(t *testing.T) {
 	}
 }
 
+func TestResolveClearsAuthoritativeFlag(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	comServer := netip.MustParseAddr("192.0.2.2")
+	authServer := netip.MustParseAddr("192.0.2.53")
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+	comAddr := netip.AddrPortFrom(comServer, 53).String()
+	authAddr := netip.AddrPortFrom(authServer, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				if len(req.Question) == 1 && req.Question[0].Name == dns.Fqdn("com") && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.NS{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("com"),
+								Rrtype: dns.TypeNS,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns: dns.Fqdn("ns1.com"),
+						},
+					}
+					resp.Extra = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("ns1.com"),
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 2),
+						},
+					}
+				}
+				return resp
+			},
+			comAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				if len(req.Question) == 1 && req.Question[0].Name == dns.Fqdn("example.com") && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.NS{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("example.com"),
+								Rrtype: dns.TypeNS,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns: dns.Fqdn("ns1.example.com"),
+						},
+					}
+					resp.Extra = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("ns1.example.com"),
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 53),
+						},
+					}
+				}
+				return resp
+			},
+			authAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				if len(req.Question) == 1 && req.Question[0].Name == qname && req.Question[0].Qtype == dns.TypeA {
+					resp.Answer = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   qname,
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 123),
+						},
+					}
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+
+	resp, _, err := rec.ResolveWithOptions(context.Background(), nil, nil, qname, dns.TypeA)
+	if err != nil {
+		t.Fatalf("ResolveWithOptions returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("ResolveWithOptions returned nil response")
+	}
+	if resp.Authoritative {
+		t.Fatalf("expected recursive response to clear AA flag")
+	}
+}
+
 func TestQueryDelegationQueriesFinalAuthServers(t *testing.T) {
 	t.Parallel()
 
@@ -851,6 +962,89 @@ func TestQueryDelegationQueriesFinalAuthServers(t *testing.T) {
 	}
 	if calls := dialer.callsTo(authAddr); calls == 0 {
 		t.Fatalf("expected final authoritative NS %v to be queried", authServer)
+	}
+}
+
+func TestQueryDelegationAvoidsDuplicateFullQnameAfterFallback(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("www.example.com")
+	root := netip.MustParseAddr("192.0.2.1")
+	comServer := netip.MustParseAddr("192.0.2.2")
+	rootAddr := netip.AddrPortFrom(root, 53).String()
+	comAddr := netip.AddrPortFrom(comServer, 53).String()
+
+	var mu sync.Mutex
+	var fullQnameNSQueries int
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			rootAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				if len(req.Question) == 1 && req.Question[0].Name == dns.Fqdn("com") && req.Question[0].Qtype == dns.TypeNS {
+					resp.Ns = []dns.RR{
+						&dns.NS{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("com"),
+								Rrtype: dns.TypeNS,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							Ns: dns.Fqdn("ns1.com"),
+						},
+					}
+					resp.Extra = []dns.RR{
+						&dns.A{
+							Hdr: dns.RR_Header{
+								Name:   dns.Fqdn("ns1.com"),
+								Rrtype: dns.TypeA,
+								Class:  dns.ClassINET,
+								Ttl:    300,
+							},
+							A: net.IPv4(192, 0, 2, 2),
+						},
+					}
+				}
+				return resp
+			},
+			comAddr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				if len(req.Question) == 1 && req.Question[0].Qtype == dns.TypeNS && req.Question[0].Name == qname {
+					mu.Lock()
+					fullQnameNSQueries++
+					mu.Unlock()
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{root}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	addrs, resp, _, err := q.queryDelegation(context.Background(), qname)
+	if err != nil {
+		t.Fatalf("queryDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != comServer {
+		t.Fatalf("queryDelegation returned addrs %v, want [%v]", addrs, comServer)
+	}
+	mu.Lock()
+	calls := fullQnameNSQueries
+	mu.Unlock()
+	if calls != 1 {
+		t.Fatalf("expected one full-qname NS query after fallback, got %d", calls)
 	}
 }
 

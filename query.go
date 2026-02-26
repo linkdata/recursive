@@ -62,6 +62,9 @@ func (q *query) resolve(ctx context.Context, qname string, qtype uint16) (resp *
 		} else {
 			resp, srv, err = q.queryFinal(ctx, qname, qtype, servers)
 		}
+		if err == nil {
+			resp = finalizeRecursiveResponse(resp)
+		}
 	}
 	return
 }
@@ -116,6 +119,12 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 				}
 			}
 
+			// If fallback to the full QNAME already produced an authoritative
+			// non-delegation response, further minimized steps are redundant.
+			if len(nsAddrs) == 0 && i > 0 && isAuthoritativeResponseForName(resp, qname) {
+				break
+			}
+
 			if len(nsAddrs) > 0 {
 				// got a new set of servers to query
 				servers = q.sortAddrs(nsAddrs)
@@ -145,6 +154,7 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
 
 func (q *query) queryForDelegationWithCachePolicy(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string, allowCached func(*dns.Msg) bool) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
+	parentServers = appendUniqueAddrs(nil, parentServers)
 	queryName := zone
 	maybeRetryWithoutQMIN := func() (yes bool) {
 		if yes = queryName != fullQname; yes {
@@ -930,6 +940,25 @@ func cloneIfCached(msg *dns.Msg) (clone *dns.Msg) {
 	if msg.Zero {
 		clone = msg.Copy()
 		clone.Zero = false
+	}
+	return
+}
+
+func isAuthoritativeResponseForName(resp *dns.Msg, qname string) (ok bool) {
+	if resp != nil {
+		if resp.Rcode == dns.RcodeSuccess && resp.Authoritative && len(resp.Question) == 1 {
+			ok = dns.CanonicalName(resp.Question[0].Name) == dns.CanonicalName(qname)
+		}
+	}
+	return
+}
+
+func finalizeRecursiveResponse(resp *dns.Msg) (out *dns.Msg) {
+	out = resp
+	if out != nil {
+		if out.Authoritative && !out.Zero {
+			out.Authoritative = false
+		}
 	}
 	return
 }
