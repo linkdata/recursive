@@ -523,126 +523,146 @@ func isReusableCachedResponse(resp *dns.Msg) (ok bool) {
 
 func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname string, qtype uint16, nsaddr netip.Addr) (msg *dns.Msg, err error) {
 	if err = q.getCachedNetError(ctx, protocol, nsaddr); err == nil {
-		var network string
-		if nsaddr.Is4() {
-			network = protocol + "4"
-		} else {
-			network = protocol + "6"
-		}
-
-		if q.rateLimiter != nil {
-			select {
-			case <-ctx.Done():
-				err = ctx.Err()
-				return
-			case <-q.rateLimiter:
-			}
-		}
-
-		if q.logw != nil {
-			var protostr string
-			var dash6str string
-			if protocol != "udp" {
-				protostr = " +" + protocol
-			}
-			if nsaddr.Is6() {
-				dash6str = " -6"
-			}
-			q.logf("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, dns.Type(qtype), qname)
-		}
-
-		var nconn net.Conn
-		var rtt time.Duration
-
-		q.mu.RLock()
-		if q.Timeout > 0 {
-			ctx2, cancel := context.WithTimeout(ctx, q.Timeout)
-			defer cancel()
-			ctx = ctx2
-		}
-		clicookie := q.clicookie
-		srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
-		msgsize := q.MsgSize
-		q.mu.RUnlock()
-
-		if nconn, err = q.DialContext(ctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil {
-			dnsconn := &dns.Conn{Conn: nconn, UDPSize: msgsize}
-			defer func() { _ = dnsconn.Close() }()
-
-			m := new(dns.Msg)
-			m.SetQuestion(qname, qtype)
-			m.RecursionDesired = false
-			opt := new(dns.OPT)
-			opt.Hdr.Name = "."
-			opt.Hdr.Rrtype = dns.TypeOPT
-			opt.SetUDPSize(msgsize)
-			if queryNeedsDO(qtype) {
-				opt.SetDo()
+		maxCookieRetries := 1
+		for attempt := 0; attempt <= maxCookieRetries; attempt++ {
+			msg = nil
+			err = nil
+			var network string
+			if nsaddr.Is4() {
+				network = protocol + "4"
+			} else {
+				network = protocol + "6"
 			}
 
-			// an existing but empty string for srvcookie means cookies are disabled for this server
-			useCookies := !hasSrvCookie || srvcookie != ""
-			if useCookies {
-				opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
-					Code:   dns.EDNS0COOKIE,
-					Cookie: clicookie + srvcookie,
-				})
-				if hasSrvCookie && q.logw != nil {
-					_, _ = fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
+			if q.rateLimiter != nil {
+				select {
+				case <-ctx.Done():
+					err = ctx.Err()
+					return
+				case <-q.rateLimiter:
 				}
 			}
 
-			m.Extra = append(m.Extra, opt)
-			c := dns.Client{UDPSize: msgsize}
-			var rawmsg *dns.Msg
-			if rawmsg, rtt, err = c.ExchangeWithConnContext(ctx, m, dnsconn); err == nil {
-				if msg, err = validateResponseQuestion(rawmsg, qname, qtype); err == nil {
-					if useCookies {
-						newsrvcookie := srvcookie
-						if opt := msg.IsEdns0(); opt != nil {
-							for _, rr := range opt.Option {
-								switch rr := rr.(type) {
-								case *dns.EDNS0_COOKIE:
-									if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok {
-										newsrvcookie = after
-									} else {
-										msg = nil
-										err = ErrInvalidCookie
+			if q.logw != nil {
+				var protostr string
+				var dash6str string
+				if protocol != "udp" {
+					protostr = " +" + protocol
+				}
+				if nsaddr.Is6() {
+					dash6str = " -6"
+				}
+				q.logf("SENDING %s: @%s%s%s %s %q", network, nsaddr, protostr, dash6str, dns.Type(qtype), qname)
+			}
+
+			var nconn net.Conn
+			var rtt time.Duration
+
+			q.mu.RLock()
+			timeout := q.Timeout
+			clicookie := q.clicookie
+			srvcookie, hasSrvCookie := q.getSrvCookieLocked(nsaddr)
+			msgsize := q.MsgSize
+			q.mu.RUnlock()
+
+			reqctx := ctx
+			var cancel context.CancelFunc
+			if timeout > 0 {
+				reqctx, cancel = context.WithTimeout(ctx, timeout)
+			}
+
+			useCookies := !hasSrvCookie || srvcookie != ""
+			if nconn, err = q.DialContext(reqctx, network, netip.AddrPortFrom(nsaddr, q.DNSPort).String()); err == nil {
+				dnsconn := &dns.Conn{Conn: nconn, UDPSize: msgsize}
+				defer func() { _ = dnsconn.Close() }()
+
+				m := new(dns.Msg)
+				m.SetQuestion(qname, qtype)
+				m.RecursionDesired = false
+				opt := new(dns.OPT)
+				opt.Hdr.Name = "."
+				opt.Hdr.Rrtype = dns.TypeOPT
+				opt.SetUDPSize(msgsize)
+				if queryNeedsDO(qtype) {
+					opt.SetDo()
+				}
+
+				// an existing but empty string for srvcookie means cookies are disabled for this server
+				if useCookies {
+					opt.Option = append(opt.Option, &dns.EDNS0_COOKIE{
+						Code:   dns.EDNS0COOKIE,
+						Cookie: clicookie + srvcookie,
+					})
+					if hasSrvCookie && q.logw != nil {
+						_, _ = fmt.Fprintf(q.logw, " COOKIE:\"%s|%s\"", maskCookie(clicookie), maskCookie(srvcookie))
+					}
+				}
+
+				m.Extra = append(m.Extra, opt)
+				c := dns.Client{UDPSize: msgsize}
+				var rawmsg *dns.Msg
+				if rawmsg, rtt, err = c.ExchangeWithConnContext(reqctx, m, dnsconn); err == nil {
+					if msg, err = validateResponseQuestion(rawmsg, qname, qtype); err == nil {
+						if useCookies {
+							newsrvcookie := srvcookie
+							if opt := msg.IsEdns0(); opt != nil {
+								for _, rr := range opt.Option {
+									switch rr := rr.(type) {
+									case *dns.EDNS0_COOKIE:
+										if after, ok := strings.CutPrefix(rr.Cookie, clicookie); ok {
+											newsrvcookie = after
+										} else {
+											msg = nil
+											err = ErrInvalidCookie
+										}
 									}
 								}
 							}
-						}
-						if err == nil && newsrvcookie != "" {
-							if !hasSrvCookie || srvcookie != newsrvcookie {
-								if q.logw != nil {
-									_, _ = fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+							if err == nil && newsrvcookie != "" {
+								if !hasSrvCookie || srvcookie != newsrvcookie {
+									if q.logw != nil {
+										_, _ = fmt.Fprintf(q.logw, " SETCOOKIE:\"%s\"", maskCookie(newsrvcookie))
+									}
+									q.setSrvCookie(q.start, nsaddr, newsrvcookie)
 								}
-								q.setSrvCookie(q.start, nsaddr, newsrvcookie)
 							}
 						}
 					}
 				}
 			}
-		}
-
-		isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
-		ipv6disabled := isIpv6Err && q.maybeDisableIPv6(err)
-		udpDisabled := isUdpErr && q.maybeDisableUdp(err)
-
-		if q.logw != nil {
-			if ipv6disabled {
-				_, _ = fmt.Fprintf(q.logw, " (IPv6 disabled)")
+			if cancel != nil {
+				cancel()
 			}
-			if udpDisabled {
-				_, _ = fmt.Fprintf(q.logw, " (UDP disabled)")
-			}
-			q.logResponse(rtt, msg, err)
-		}
 
-		if !hasSrvCookie && msg != nil && msg.Rcode == dns.RcodeFormatError {
-			q.logf("got FORMERR, disabling cookies for %v and retrying\n", nsaddr)
-			q.setSrvCookie(q.start, nsaddr, "")
-			return q.exchangeWithNetwork(ctx, protocol, qname, qtype, nsaddr)
+			isIpv6Err, isUdpErr := q.setNetError(protocol, nsaddr, err)
+			ipv6disabled := isIpv6Err && q.maybeDisableIPv6(err)
+			udpDisabled := isUdpErr && q.maybeDisableUdp(err)
+
+			if q.logw != nil {
+				if ipv6disabled {
+					_, _ = fmt.Fprintf(q.logw, " (IPv6 disabled)")
+				}
+				if udpDisabled {
+					_, _ = fmt.Fprintf(q.logw, " (UDP disabled)")
+				}
+				q.logResponse(rtt, msg, err)
+			}
+
+			retry := false
+			if !hasSrvCookie && msg != nil && msg.Rcode == dns.RcodeFormatError {
+				q.logf("got FORMERR, disabling cookies for %v and retrying\n", nsaddr)
+				q.setSrvCookie(q.start, nsaddr, "")
+				retry = true
+			}
+			if msg != nil && msg.Rcode == dns.RcodeBadCookie {
+				if useCookies {
+					q.logf("got BADCOOKIE, retrying with refreshed cookie for %v\n", nsaddr)
+					retry = true
+				}
+			}
+			if !retry || attempt >= maxCookieRetries {
+				break
+			}
 		}
 	}
 	return

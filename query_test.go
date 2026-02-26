@@ -9,6 +9,7 @@ import (
 	"net/netip"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -1782,6 +1783,106 @@ func TestExchangeDoesNotSetDOForAQueries(t *testing.T) {
 		}
 	default:
 		t.Fatalf("request was not observed by scripted server")
+	}
+}
+
+func TestExchangeRetriesOnBadCookie(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("94.58.0.62.in-addr.arpa")
+	qtype := dns.TypePTR
+	srv := netip.MustParseAddr("192.0.2.9")
+	srvAddr := netip.AddrPortFrom(srv, 53).String()
+	firstSrvCookie := "1111111111111111"
+	secondSrvCookie := "2222222222222222"
+
+	var mu sync.Mutex
+	var calls int
+	dialer := &scriptedDNSServerDialer{
+		networkHandlers: map[string]func(req *dns.Msg) *dns.Msg{
+			"udp4|" + srvAddr: func(req *dns.Msg) *dns.Msg {
+				var reqCookie string
+				if opt := req.IsEdns0(); opt != nil {
+					for _, rr := range opt.Option {
+						if cookie, ok := rr.(*dns.EDNS0_COOKIE); ok {
+							reqCookie = cookie.Cookie
+						}
+					}
+				}
+
+				var clientCookie string
+				if len(reqCookie) >= 16 {
+					clientCookie = reqCookie[:16]
+				}
+
+				mu.Lock()
+				calls++
+				callNo := calls
+				mu.Unlock()
+
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Extra = nil
+				opt := new(dns.OPT)
+				opt.Hdr.Name = "."
+				opt.Hdr.Rrtype = dns.TypeOPT
+				opt.SetUDPSize(DefaultMsgSize)
+				cookie := &dns.EDNS0_COOKIE{Code: dns.EDNS0COOKIE}
+				if callNo == 1 {
+					resp.Rcode = dns.RcodeBadCookie
+					cookie.Cookie = clientCookie + firstSrvCookie
+					opt.Option = append(opt.Option, cookie)
+					resp.Extra = append(resp.Extra, opt)
+				}
+				if callNo == 2 {
+					if reqCookie == clientCookie+firstSrvCookie {
+						resp.Rcode = dns.RcodeNameError
+						resp.Authoritative = true
+						soa, err := dns.NewRR("58.0.62.in-addr.arpa. 86400 IN SOA dns.netvision.net.il. postmaster.netvision.net.il. 2022062801 28800 7200 604800 86400")
+						if err == nil {
+							resp.Ns = append(resp.Ns, soa)
+						}
+						cookie.Cookie = clientCookie + secondSrvCookie
+						opt.Option = append(opt.Option, cookie)
+						resp.Extra = append(resp.Extra, opt)
+					} else {
+						resp.Rcode = dns.RcodeBadCookie
+						cookie.Cookie = clientCookie + firstSrvCookie
+						opt.Option = append(opt.Option, cookie)
+						resp.Extra = append(resp.Extra, opt)
+					}
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv}, nil, nil)
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+		start:     time.Now(),
+	}
+
+	resp, err := q.exchange(context.Background(), qname, qtype, srv)
+	if err != nil {
+		t.Fatalf("exchange returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("exchange returned nil response")
+	}
+	if resp.Rcode != dns.RcodeNameError {
+		t.Fatalf("expected NXDOMAIN after BADCOOKIE retry, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if got := dialer.callsToNetwork("udp4", srvAddr); got != 2 {
+		t.Fatalf("expected 2 udp calls, got %d", got)
+	}
+
+	mu.Lock()
+	gotCallCount := calls
+	mu.Unlock()
+	if gotCallCount != 2 {
+		t.Fatalf("expected 2 calls in handler, got %d", gotCallCount)
 	}
 }
 
