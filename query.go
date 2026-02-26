@@ -270,7 +270,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 							msg, origin, err = q.resolve(ctx, tgt, qtype)
 							if err == nil {
 								msg = cloneIfCached(msg)
-								prependRecords(msg, resp, qname, cnameChainRecords)
+								prependRecords(msg, resp, qname, dnameRecords)
 								resp = msg
 								svr = origin
 								terminal = true

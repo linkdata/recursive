@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/netip"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -1608,6 +1609,119 @@ func TestQueryFinalReturnsCNAMEFallbackWhenChaseFailsEverywhere(t *testing.T) {
 	}
 	if _, ok := resp.Answer[0].(*dns.CNAME); !ok {
 		t.Fatalf("expected CNAME fallback answer, got %T", resp.Answer[0])
+	}
+}
+
+func TestQueryFinalPreservesDNAMEWhenCNAMEIsFollowed(t *testing.T) {
+	t.Parallel()
+
+	qname := dns.Fqdn("frobbjt.xn--kprw13d")
+	alias := dns.Fqdn("frobbjt.xn--kpry57d")
+	dnameOwner := dns.Fqdn("xn--kprw13d")
+	dnameTarget := dns.Fqdn("xn--kpry57d")
+	qtype := dns.TypeNS
+
+	srv1 := netip.MustParseAddr("192.0.2.21")
+	srv2 := netip.MustParseAddr("192.0.2.22")
+	srv1Addr := netip.AddrPortFrom(srv1, 53).String()
+	srv2Addr := netip.AddrPortFrom(srv2, 53).String()
+
+	dialer := &scriptedDNSServerDialer{
+		handlers: map[string]func(req *dns.Msg) *dns.Msg{
+			srv1Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeSuccess
+				resp.Authoritative = true
+				resp.Answer = []dns.RR{
+					&dns.DNAME{
+						Hdr: dns.RR_Header{
+							Name:   dnameOwner,
+							Rrtype: dns.TypeDNAME,
+							Class:  dns.ClassINET,
+							Ttl:    3600,
+						},
+						Target: dnameTarget,
+					},
+					&dns.CNAME{
+						Hdr: dns.RR_Header{
+							Name:   qname,
+							Rrtype: dns.TypeCNAME,
+							Class:  dns.ClassINET,
+							Ttl:    3600,
+						},
+						Target: alias,
+					},
+				}
+				return resp
+			},
+			srv2Addr: func(req *dns.Msg) *dns.Msg {
+				resp := new(dns.Msg)
+				resp.SetReply(req)
+				resp.Rcode = dns.RcodeNameError
+				resp.Authoritative = true
+				resp.Ns = []dns.RR{
+					&dns.SOA{
+						Hdr: dns.RR_Header{
+							Name:   dnameTarget,
+							Rrtype: dns.TypeSOA,
+							Class:  dns.ClassINET,
+							Ttl:    300,
+						},
+						Ns:      dns.Fqdn("ns1.example."),
+						Mbox:    dns.Fqdn("hostmaster.example."),
+						Serial:  1,
+						Refresh: 3600,
+						Retry:   900,
+						Expire:  86400,
+						Minttl:  300,
+					},
+				}
+				return resp
+			},
+		},
+	}
+
+	rec := NewWithOptions(dialer, nil, []netip.Addr{srv2}, nil, nil)
+	rec.useUDP = false
+	q := &query{
+		Recursive: rec,
+		glue:      make(map[string][]netip.Addr),
+	}
+
+	resp, gotSrv, err := q.queryFinal(context.Background(), qname, qtype, []netip.Addr{srv1})
+	if err != nil {
+		t.Fatalf("queryFinal returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryFinal returned nil response")
+	}
+	if resp.Rcode != dns.RcodeNameError {
+		t.Fatalf("expected NXDOMAIN after alias chase, got %s", dns.RcodeToString[resp.Rcode])
+	}
+	if gotSrv != srv2 {
+		t.Fatalf("expected final response server %v, got %v", srv2, gotSrv)
+	}
+
+	var foundDNAME bool
+	var foundCNAME bool
+	for _, rr := range resp.Answer {
+		if dname, ok := rr.(*dns.DNAME); ok {
+			if strings.EqualFold(dname.Hdr.Name, dnameOwner) && strings.EqualFold(dname.Target, dnameTarget) {
+				foundDNAME = true
+			}
+		}
+		if cname, ok := rr.(*dns.CNAME); ok {
+			if strings.EqualFold(cname.Hdr.Name, qname) && strings.EqualFold(cname.Target, alias) {
+				foundCNAME = true
+			}
+		}
+	}
+	if !foundDNAME {
+		t.Fatalf("expected response to preserve DNAME %s -> %s", dnameOwner, dnameTarget)
+	}
+	if !foundCNAME {
+		t.Fatalf("expected response to preserve CNAME %s -> %s", qname, alias)
 	}
 }
 
