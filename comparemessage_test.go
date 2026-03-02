@@ -46,6 +46,31 @@ func TestCompareMessageEquivalentIgnoresTTLAndOrderAndOPT(t *testing.T) {
 	}
 }
 
+func TestCompareMessageEquivalentIgnoresSOASerial(t *testing.T) {
+	t.Parallel()
+
+	a := new(dns.Msg)
+	a.Rcode = dns.RcodeNameError
+	a.Ns = []dns.RR{
+		mustNewTestRR(t, "com. 900 IN SOA a.gtld-servers.net. nstld.verisign-grs.com. 1772453951 1800 900 604800 900"),
+	}
+
+	b := new(dns.Msg)
+	b.Rcode = dns.RcodeNameError
+	b.Ns = []dns.RR{
+		mustNewTestRR(t, "com. 900 IN SOA a.gtld-servers.net. nstld.verisign-grs.com. 1772453966 1800 900 604800 900"),
+	}
+
+	var diff bytes.Buffer
+	cmp := CompareMessage(a, b, &diff)
+	if cmp != 0 {
+		t.Fatalf("expected equivalent SOA records despite serial change, got cmp=%d diff:\n%s", cmp, diff.String())
+	}
+	if diff.Len() != 0 {
+		t.Fatalf("expected no diff output, got:\n%s", diff.String())
+	}
+}
+
 func TestCompareMessageDetectsRcodeAndRRDifferences(t *testing.T) {
 	t.Parallel()
 

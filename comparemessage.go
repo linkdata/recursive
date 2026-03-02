@@ -184,6 +184,7 @@ func rrKey(rr dns.RR) (key string) {
 	if rr != nil {
 		rrCopy := dns.Copy(rr)
 		if rrCopy != nil {
+			normalizeRRForComparison(rrCopy)
 			hdr := rrCopy.Header()
 			if hdr != nil {
 				hdr.Ttl = 0
@@ -203,6 +204,14 @@ func rrKey(rr dns.RR) (key string) {
 		}
 	}
 	return
+}
+
+func normalizeRRForComparison(rr dns.RR) {
+	// SOA serials may legitimately differ between equivalent negative answers
+	// retrieved at different times.
+	if soa, ok := rr.(*dns.SOA); ok {
+		soa.Serial = 0
+	}
 }
 
 func compareQuestionLists(a, b []dns.Question) (cmp int) {
@@ -314,7 +323,7 @@ func rrsEquivalent(a, b dns.RR) (equivalent bool) {
 	if a == nil || b == nil {
 		equivalent = a == b
 	} else {
-		equivalent = dns.IsDuplicate(a, b)
+		equivalent = rrKey(a) == rrKey(b)
 	}
 	return
 }
