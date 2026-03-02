@@ -40,8 +40,37 @@ func questionBucketKey(q dns.Question) bucketKey {
 	return newBucketKey(q.Name, q.Qtype)
 }
 
+func shouldReplaceForAuthoritative(incoming *dns.Msg, current *dns.Msg) (replace bool, decided bool) {
+	incomingAuthoritative := false
+	currentAuthoritative := false
+	if incoming != nil {
+		incomingAuthoritative = incoming.Authoritative
+	}
+	if current != nil {
+		currentAuthoritative = current.Authoritative
+	}
+	if incomingAuthoritative != currentAuthoritative {
+		decided = true
+		replace = incomingAuthoritative
+	}
+	return
+}
+
 func (cq *cacheBucket) setLocked(msg *dns.Msg, expires int64) {
-	cq.cache[questionBucketKey(msg.Question[0])] = cacheValue{Msg: msg, expires: expires}
+	key := questionBucketKey(msg.Question[0])
+	replacement := cacheValue{Msg: msg, expires: expires}
+	if current, ok := cq.cache[key]; ok {
+		replace, decided := shouldReplaceForAuthoritative(replacement.Msg, current.Msg)
+		if decided {
+			if replace {
+				cq.cache[key] = replacement
+			}
+		} else {
+			cq.cache[key] = replacement
+		}
+	} else {
+		cq.cache[key] = replacement
+	}
 }
 
 func (cq *cacheBucket) set(msg *dns.Msg, expires int64) {

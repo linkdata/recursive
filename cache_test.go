@@ -116,6 +116,62 @@ func TestCacheDnsGetReturnsRemainingTTL(t *testing.T) {
 	}
 }
 
+func TestCacheDnsSetPrefersAuthoritativeOverNonAuthoritative(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	cache.MinTTL = 0
+	qname := dns.Fqdn("set-aa-precedence.example.")
+
+	authoritative := newTestMessage(qname)
+	authoritative.Authoritative = true
+
+	nonAuthoritative := newTestMessageForType(t, dns.TypeA, qname, 99)
+	nonAuthoritative.Authoritative = false
+
+	cache.DnsSet(authoritative)
+	cache.DnsSet(nonAuthoritative)
+
+	cv := mustCacheValue(t, cache, qname, dns.TypeA)
+	if !cv.Msg.Authoritative {
+		t.Fatalf("expected authoritative cache entry to win over non-authoritative entry")
+	}
+
+	gotAddr := mustMessageARecord(t, cv.Msg)
+	wantAddr := mustMessageARecord(t, authoritative)
+	if !gotAddr.Equal(wantAddr) {
+		t.Fatalf("cached A record mismatch: got %s want %s", gotAddr, wantAddr)
+	}
+}
+
+func TestCacheDnsSetAuthoritativeReplacesNonAuthoritative(t *testing.T) {
+	t.Parallel()
+
+	cache := NewCache()
+	cache.MinTTL = 0
+	qname := dns.Fqdn("set-aa-replace.example.")
+
+	nonAuthoritative := newTestMessage(qname)
+	nonAuthoritative.Authoritative = false
+
+	authoritative := newTestMessageForType(t, dns.TypeA, qname, 100)
+	authoritative.Authoritative = true
+
+	cache.DnsSet(nonAuthoritative)
+	cache.DnsSet(authoritative)
+
+	cv := mustCacheValue(t, cache, qname, dns.TypeA)
+	if !cv.Msg.Authoritative {
+		t.Fatalf("expected authoritative cache entry after replacement")
+	}
+
+	gotAddr := mustMessageARecord(t, cv.Msg)
+	wantAddr := mustMessageARecord(t, authoritative)
+	if !gotAddr.Equal(wantAddr) {
+		t.Fatalf("cached A record mismatch after authoritative replacement: got %s want %s", gotAddr, wantAddr)
+	}
+}
+
 func newTestMessage(qname string) *dns.Msg {
 	return newTestMessageForType(nil, dns.TypeA, qname, 0)
 }
@@ -613,6 +669,74 @@ func TestCacheMergePrefersLatestExpiration(t *testing.T) {
 	cv := mustCacheEntry(t, dst, qname, dns.TypeA, longExpires)
 	if cv.Msg != longMsg {
 		t.Fatalf("merge did not replace with longer lived msg")
+	}
+}
+
+func TestCacheMergePrefersAuthoritativeOverLongerNonAuthoritative(t *testing.T) {
+	t.Parallel()
+
+	dst := NewCache()
+	src := NewCache()
+
+	qname := dns.Fqdn("merge-aa-over-long-nonaa.example.")
+	now := time.Now().Unix()
+	authoritativeExpires := now + (1 * 60)
+	nonAuthoritativeExpires := now + (10 * 60)
+
+	key := mustBucketKey(t, qname, dns.TypeA)
+	authoritative := newTestMessage(qname)
+	authoritative.Authoritative = true
+	dst.bucketFor(key).set(authoritative, authoritativeExpires)
+
+	nonAuthoritative := newTestMessageForType(t, dns.TypeA, qname, 200)
+	nonAuthoritative.Authoritative = false
+	src.bucketFor(key).set(nonAuthoritative, nonAuthoritativeExpires)
+
+	dst.Merge(src)
+
+	cv := mustCacheEntry(t, dst, qname, dns.TypeA, authoritativeExpires)
+	if !cv.Msg.Authoritative {
+		t.Fatalf("merge replaced authoritative entry with non-authoritative entry")
+	}
+
+	gotAddr := mustMessageARecord(t, cv.Msg)
+	wantAddr := mustMessageARecord(t, authoritative)
+	if !gotAddr.Equal(wantAddr) {
+		t.Fatalf("merge changed authoritative A record: got %s want %s", gotAddr, wantAddr)
+	}
+}
+
+func TestCacheMergeAuthoritativeReplacesLongerNonAuthoritative(t *testing.T) {
+	t.Parallel()
+
+	dst := NewCache()
+	src := NewCache()
+
+	qname := dns.Fqdn("merge-aa-replace-long-nonaa.example.")
+	now := time.Now().Unix()
+	nonAuthoritativeExpires := now + (10 * 60)
+	authoritativeExpires := now + (1 * 60)
+
+	key := mustBucketKey(t, qname, dns.TypeA)
+	nonAuthoritative := newTestMessage(qname)
+	nonAuthoritative.Authoritative = false
+	dst.bucketFor(key).set(nonAuthoritative, nonAuthoritativeExpires)
+
+	authoritative := newTestMessageForType(t, dns.TypeA, qname, 201)
+	authoritative.Authoritative = true
+	src.bucketFor(key).set(authoritative, authoritativeExpires)
+
+	dst.Merge(src)
+
+	cv := mustCacheEntry(t, dst, qname, dns.TypeA, authoritativeExpires)
+	if !cv.Msg.Authoritative {
+		t.Fatalf("merge did not replace non-authoritative entry with authoritative entry")
+	}
+
+	gotAddr := mustMessageARecord(t, cv.Msg)
+	wantAddr := mustMessageARecord(t, authoritative)
+	if !gotAddr.Equal(wantAddr) {
+		t.Fatalf("merge authoritative replacement A record mismatch: got %s want %s", gotAddr, wantAddr)
 	}
 }
 
@@ -1153,6 +1277,20 @@ func assertTTLWithin(tb testing.TB, cv cacheValue, expected, tolerance int64) {
 	if ttl > expected+tolerance || ttl < expected-tolerance {
 		tb.Fatalf("unexpected ttl got=%v want=%v±%v", ttl, expected, tolerance)
 	}
+}
+
+func mustMessageARecord(tb testing.TB, msg *dns.Msg) (addr net.IP) {
+	tb.Helper()
+	if msg != nil && len(msg.Answer) > 0 {
+		if rr, ok := msg.Answer[0].(*dns.A); ok {
+			addr = rr.A
+		} else {
+			tb.Fatalf("unexpected answer record type: %T", msg.Answer[0])
+		}
+	} else {
+		tb.Fatalf("message missing answers: %#v", msg)
+	}
+	return
 }
 
 func TestCacheReadFromFixture(t *testing.T) {

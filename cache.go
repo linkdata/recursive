@@ -150,8 +150,17 @@ func (cache *Cache) Clear() {
 	cache.CleanAllow(time.Time{}, func(msg *dns.Msg, ttl time.Duration) bool { return false })
 }
 
+func shouldReplaceMergedEntry(newcv cacheValue, oldcv cacheValue) (replace bool) {
+	replace, decided := shouldReplaceForAuthoritative(newcv.Msg, oldcv.Msg)
+	if !decided {
+		replace = newcv.expires > oldcv.expires
+	}
+	return
+}
+
 // Merge inserts all entries from other into cache.
-// If an entry exists in both, the one that expires last wins.
+// If an entry exists in both, authoritative answers take precedence.
+// Otherwise, the one that expires last wins.
 func (cache *Cache) Merge(other *Cache) {
 	if cache != nil && other != nil && cache != other {
 		type mergeEntry struct {
@@ -168,7 +177,7 @@ func (cache *Cache) Merge(other *Cache) {
 			if len(entries) > 0 {
 				cache.cq[i].mu.Lock()
 				for _, entry := range entries {
-					if oldcv, ok := cache.cq[i].cache[entry.key]; !ok || entry.cv.expires > oldcv.expires {
+					if oldcv, ok := cache.cq[i].cache[entry.key]; !ok || shouldReplaceMergedEntry(entry.cv, oldcv) {
 						cache.cq[i].cache[entry.key] = entry.cv
 					}
 				}
