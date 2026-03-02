@@ -184,6 +184,17 @@ retryWithoutQMIN:
 						nsNames, nsAddrs = q.extractDelegationNS(resp, queryName)
 					}
 				}
+				if len(nsNames) == 0 {
+					// A minimized query for a host may be answered with a referral
+					// for the closest enclosing zone (for example "www.example.com."
+					// yielding delegation records for "example.com.").
+					if strings.EqualFold(queryName, zone) {
+						fallbackZone := closestDelegationZone(resp, queryName)
+						if fallbackZone != "" && !strings.EqualFold(fallbackZone, zone) {
+							nsNames, nsAddrs = q.extractDelegationNS(resp, fallbackZone)
+						}
+					}
+				}
 				if len(nsNames) > 0 {
 					var missingNS []string
 					missingNS = q.missingNSAddrs(nsNames)
@@ -268,6 +279,26 @@ func appendZoneNSNames(dst []string, records []dns.RR, zone string) (out []strin
 				nsName := dns.CanonicalName(ns.Ns)
 				if !slices.Contains(out, nsName) {
 					out = append(out, nsName)
+				}
+			}
+		}
+	}
+	return
+}
+
+func closestDelegationZone(msg *dns.Msg, qname string) (zone string) {
+	bestLabels := -1
+	qname = dns.CanonicalName(qname)
+	for _, records := range [][]dns.RR{msg.Ns, msg.Answer} {
+		for _, rr := range records {
+			if ns, ok := rr.(*dns.NS); ok {
+				owner := dns.CanonicalName(ns.Hdr.Name)
+				if _, match := cutDomainSuffix(qname, owner); match {
+					labels := dns.CountLabel(owner)
+					if labels > bestLabels {
+						bestLabels = labels
+						zone = owner
+					}
 				}
 			}
 		}

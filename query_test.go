@@ -526,6 +526,58 @@ func TestQueryForDelegationFallbacksOnAuthoritativeEmptyMinimizedSuccess(t *test
 	}
 }
 
+func TestQueryForDelegationUsesClosestEnclosingReferralForHostQuery(t *testing.T) {
+	t.Parallel()
+
+	host := dns.Fqdn("www.example.com")
+	zone := dns.Fqdn("example.com")
+	nsHost := dns.Fqdn("ns1.example.com")
+	parent := netip.MustParseAddr("192.0.2.1")
+	nsAddr := netip.MustParseAddr("192.0.2.53")
+	cache := NewCache()
+
+	referral := new(dns.Msg)
+	referral.SetQuestion(host, dns.TypeNS)
+	referral.Rcode = dns.RcodeSuccess
+	referral.Ns = []dns.RR{
+		&dns.NS{
+			Hdr: dns.RR_Header{
+				Name:   zone,
+				Rrtype: dns.TypeNS,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Ns: nsHost,
+		},
+	}
+	referral.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{
+				Name:   nsHost,
+				Rrtype: dns.TypeA,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			A: net.IP(nsAddr.AsSlice()),
+		},
+	}
+	cache.DnsSet(referral)
+
+	rec := NewWithOptions(nil, cache, []netip.Addr{parent}, nil, nil)
+	q := &query{Recursive: rec, cache: cache, glue: make(map[string][]netip.Addr)}
+
+	addrs, resp, _, err := q.queryForDelegation(context.Background(), host, []netip.Addr{parent}, host)
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil {
+		t.Fatalf("queryForDelegation returned nil response")
+	}
+	if len(addrs) != 1 || addrs[0] != nsAddr {
+		t.Fatalf("expected closest enclosing referral address %v, got %v", nsAddr, addrs)
+	}
+}
+
 func TestResolveNSAddrsUsesConfiguredAddressFamilies(t *testing.T) {
 	t.Parallel()
 
