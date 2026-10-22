@@ -28,6 +28,7 @@ const (
 	maxGlueResolutionSteps = 256  // per-host budget for resolving missing NS glue
 )
 
+// Recursive resolves DNS names iteratively.
 type Recursive struct {
 	proxy.ContextDialer                 // context dialer to use
 	Cacher                              // cache to use for DnsResolve
@@ -40,7 +41,7 @@ type Recursive struct {
 	useIPv4             bool
 	useIPv6             bool
 	useUDP              bool
-	rootServers         []netip.Addr
+	rootServers         []netip.Addr // immutable after publication; replace under mu
 	clicookie           string
 	srvcookies          map[netip.Addr]srvCookie
 	udperrs             map[netip.Addr]*CachedNetError
