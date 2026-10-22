@@ -116,6 +116,61 @@ func TestCacheDnsGetReturnsRemainingTTL(t *testing.T) {
 	}
 }
 
+func TestCacheDnsGetClampsMixedReferralTTLs(t *testing.T) {
+	t.Parallel()
+
+	const zone = "mixed-ttl.example."
+	const host = "ns.mixed-ttl.example."
+	cache := NewCache()
+	msg := new(dns.Msg)
+	msg.SetQuestion(zone, dns.TypeNS)
+	msg.Ns = []dns.RR{&dns.NS{
+		Hdr: dns.RR_Header{Name: zone, Rrtype: dns.TypeNS, Class: dns.ClassINET, Ttl: 300},
+		Ns:  host,
+	}}
+	msg.Extra = []dns.RR{
+		&dns.A{
+			Hdr: dns.RR_Header{Name: host, Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 0},
+			A:   net.IPv4(192, 0, 2, 1),
+		},
+		&dns.AAAA{
+			Hdr:  dns.RR_Header{Name: host, Rrtype: dns.TypeAAAA, Class: dns.ClassINET, Ttl: 300},
+			AAAA: net.ParseIP("2001:db8::1"),
+		},
+		&dns.OPT{
+			Hdr: dns.RR_Header{Name: ".", Rrtype: dns.TypeOPT, Class: 1232, Ttl: 0x8000},
+		},
+	}
+	cache.DnsSet(msg)
+
+	cached := cache.DnsGet(zone, dns.TypeNS)
+	if cached == nil {
+		t.Fatal("DnsGet returned nil for fresh referral")
+	}
+	if ttl := cached.Ns[0].Header().Ttl; ttl > DefaultMinTTL {
+		t.Fatalf("NS TTL = %d, want at most %d", ttl, DefaultMinTTL)
+	}
+	if ttl := cached.Extra[1].Header().Ttl; ttl > DefaultMinTTL {
+		t.Fatalf("AAAA TTL = %d, want at most %d", ttl, DefaultMinTTL)
+	}
+	if ttl := cached.Extra[0].Header().Ttl; ttl != 0 {
+		t.Fatalf("A TTL = %d, want 0", ttl)
+	}
+	if ttl := cached.Extra[2].Header().Ttl; ttl != 0x8000 {
+		t.Fatalf("OPT TTL = %d, want %d", ttl, 0x8000)
+	}
+	stored := mustCacheValue(t, cache, zone, dns.TypeNS).Msg
+	if ttl := stored.Ns[0].Header().Ttl; ttl != 300 {
+		t.Fatalf("stored NS TTL = %d, want 300", ttl)
+	}
+	if ttl := stored.Extra[1].Header().Ttl; ttl != 300 {
+		t.Fatalf("stored AAAA TTL = %d, want 300", ttl)
+	}
+	if ratio := cache.HitRatio(); ratio != 100 {
+		t.Fatalf("HitRatio() = %v, want 100", ratio)
+	}
+}
+
 func TestCacheDnsSetPrefersAuthoritativeOverNonAuthoritative(t *testing.T) {
 	t.Parallel()
 

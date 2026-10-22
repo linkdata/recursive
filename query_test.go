@@ -432,6 +432,34 @@ func TestQueryForDelegationReturnsAvailableGlueWhenMissingNSResolutionFails(t *t
 	}
 }
 
+func TestResolveWithOptionsClampsCachedDelegationNXDOMAIN(t *testing.T) {
+	t.Parallel()
+
+	const name = "missing."
+	cache := NewCache()
+	cache.NXTTL = 20
+	negative := newResponseMsg(name, dns.TypeNS, dns.RcodeNameError, nil,
+		[]dns.RR{mustNewTestRR(t, "missing. 300 IN SOA ns.missing. hostmaster.missing. 1 3600 900 604800 300")}, nil)
+	negative.Authoritative = true
+	cache.DnsSet(negative)
+	stored := mustCacheValue(t, cache, name, dns.TypeNS).Msg
+	rec := NewWithOptions(nil, cache, []netip.Addr{netip.MustParseAddr("192.0.2.1")}, []netip.Addr{}, nil)
+
+	got, _, err := rec.ResolveWithOptions(t.Context(), cache, nil, name, dns.TypeA)
+	if err != nil || got == nil || got.Rcode != dns.RcodeNameError {
+		t.Fatalf("ResolveWithOptions: msg=%v err=%v", got, err)
+	}
+	if ttl := got.Ns[0].Header().Ttl; ttl > cache.NXTTL {
+		t.Fatalf("returned SOA TTL = %d, want at most %d", ttl, cache.NXTTL)
+	}
+	if ttl := stored.Ns[0].Header().Ttl; ttl != 300 {
+		t.Fatalf("stored SOA TTL = %d, want 300", ttl)
+	}
+	if ratio := cache.HitRatio(); ratio != 100 {
+		t.Fatalf("HitRatio() = %v, want 100", ratio)
+	}
+}
+
 func TestQueryForDelegationDoesNotFallbackOnEmptyMinimizedSuccess(t *testing.T) {
 	t.Parallel()
 

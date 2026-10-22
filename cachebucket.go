@@ -79,7 +79,7 @@ func (cq *cacheBucket) set(msg *dns.Msg, expires int64) {
 	cq.mu.Unlock()
 }
 
-func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool) {
+func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool, remaining uint32) {
 	cq.mu.RLock()
 	cv := cq.cache[key]
 	cq.mu.RUnlock()
@@ -88,11 +88,7 @@ func (cq *cacheBucket) get(key bucketKey, allowfn func(msg *dns.Msg, ttl time.Du
 		stale = ttl < 0
 		if allowfn(cv.Msg, ttl) {
 			msg = cv.Msg
-			clampTTL := clampTTLSeconds(ttl)
-			if minDNSMsgTTL(msg) > clampTTL {
-				msg = cv.Copy()
-				clampMessageTTL(msg, clampTTL)
-			}
+			remaining = clampTTLSeconds(ttl)
 		} else {
 			cq.mu.Lock()
 			if current, ok := cq.cache[key]; ok {

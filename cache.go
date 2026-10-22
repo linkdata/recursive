@@ -10,12 +10,17 @@ import (
 	"github.com/miekg/dns"
 )
 
-const DefaultMinTTL = 10
-const DefaultMaxTTL = 7 * 24 * 60 * 60
-const DefaultNXTTL = 60 * 60
-const cacheBucketCountBits = 5
-const cacheBucketCount = (1 << cacheBucketCountBits)
+const (
+	DefaultMinTTL        = 10
+	DefaultMaxTTL        = 7 * 24 * 60 * 60
+	DefaultNXTTL         = 60 * 60
+	cacheBucketCountBits = 5
+	cacheBucketCount     = (1 << cacheBucketCountBits)
+)
 
+// Cache stores DNS replies for a [Recursive] resolver.
+//
+// Use [NewCache] to initialize it; the zero value is not usable.
 type Cache struct {
 	MinTTL uint32 // always cache responses for at least this long seconds
 	MaxTTL uint32 // never cache responses for longer than this seconds (excepting successful NS responses)
@@ -69,7 +74,7 @@ func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
 	return
 }
 
-// DnsSet add a DNS message to the cache.
+// DnsSet adds a DNS message to the cache.
 //
 // Does nothing if the message has the Zero flag set, or does not have exactly one Question.
 func (cache *Cache) DnsSet(msg *dns.Msg) {
@@ -89,9 +94,11 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 	}
 }
 
-// DnsGet returns a caches DNS message if one exists that has not expired.
+// DnsGet returns an unexpired cached DNS message.
 //
-// If an expired message is found, it is removed from the cache and nil is returned.
+// Expired entries are removed. Returned messages have [dns.Msg.Zero] set and
+// must be treated as immutable. Record TTLs are capped at the remaining cache
+// lifetime, except for OPT pseudo-records.
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	msg, _ = cache.Get(qname, qtype, nil)
 	return
@@ -101,20 +108,27 @@ func defaultAllowFn(msg *dns.Msg, ttl time.Duration) bool {
 	return ttl > 0
 }
 
-// Get allows filtering DNS entries from the cache and control of eviction.
+// Get returns a cached DNS message accepted by allowfn.
 //
-// If and entry is found, and allowfn returns true, the entry is returned.
-// Otherwise, the entry is purged from the cache,
-//
-// The default allowfn returns false if the entry is stale.
+// The callback receives the stored message and its remaining lifetime. If it
+// returns false, that entry is removed. A nil callback rejects stale entries.
+// Returned messages follow the same immutable and TTL rules as [Cache.DnsGet].
 func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool) {
+	var remaining uint32
+	msg, stale, remaining = cache.getRaw(qname, qtype, allowfn)
+	msg = clampCachedMessage(msg, remaining)
+	return
+}
+
+func (cache *Cache) getRaw(qname string, qtype uint16, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool, remaining uint32) {
+	// Cached messages are immutable. Callers clamp before exposing a response.
 	if cache != nil {
 		if allowfn == nil {
 			allowfn = defaultAllowFn
 		}
 		cache.count.Add(1)
 		key := newBucketKey(qname, qtype)
-		if msg, stale = cache.bucketFor(key).get(key, allowfn); msg != nil {
+		if msg, stale, remaining = cache.bucketFor(key).get(key, allowfn); msg != nil {
 			cache.hits.Add(1)
 		}
 	}
@@ -230,6 +244,32 @@ func minDNSMsgTTL(msg *dns.Msg) (minTTL uint32) {
 	}
 	if minTTL == math.MaxUint32 {
 		minTTL = 0
+	}
+	return
+}
+
+func hasDNSMsgTTLAbove(msg *dns.Msg, ttl uint32) (above bool) {
+	if msg != nil {
+		for _, records := range [3][]dns.RR{msg.Answer, msg.Ns, msg.Extra} {
+			for _, rr := range records {
+				if rr != nil {
+					hdr := rr.Header()
+					if hdr.Rrtype != dns.TypeOPT && hdr.Ttl > ttl {
+						above = true
+						return
+					}
+				}
+			}
+		}
+	}
+	return
+}
+
+func clampCachedMessage(msg *dns.Msg, ttl uint32) (out *dns.Msg) {
+	out = msg
+	if hasDNSMsgTTLAbove(msg, ttl) {
+		out = msg.Copy()
+		clampMessageTTL(out, ttl)
 	}
 	return
 }
