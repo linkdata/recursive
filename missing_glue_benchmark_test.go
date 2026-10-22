@@ -24,11 +24,11 @@ func (c *fixedMissingGlueCacher) DnsGet(name string, typ uint16) *dns.Msg {
 	return c.replies[newBucketKey(name, typ)]
 }
 
-func newMissingGlueBenchmarkResolver(b *testing.B) (*Recursive, *fixedMissingGlueCacher) {
-	b.Helper()
+func newMissingGlueCachedResolver(tb testing.TB) (*Recursive, *fixedMissingGlueCacher) {
+	tb.Helper()
 	cache := &fixedMissingGlueCacher{replies: make(map[bucketKey]*dns.Msg)}
 	addReply := func(name string, typ uint16, authoritative bool, answer, authority, extra []string) {
-		b.Helper()
+		tb.Helper()
 		msg := new(dns.Msg)
 		msg.SetQuestion(name, typ)
 		msg.Authoritative = authoritative
@@ -43,7 +43,7 @@ func newMissingGlueBenchmarkResolver(b *testing.B) (*Recursive, *fixedMissingGlu
 			for _, record := range section.records {
 				rr, err := dns.NewRR(record)
 				if err != nil {
-					b.Fatalf("parse DNS record %q: %v", record, err)
+					tb.Fatalf("parse DNS record %q: %v", record, err)
 				}
 				*section.dst = append(*section.dst, rr)
 			}
@@ -89,7 +89,7 @@ func newMissingGlueBenchmarkResolver(b *testing.B) (*Recursive, *fixedMissingGlu
 // It calls ResolveWithOptions with valid cached A and AAAA replies. The fixed
 // cache excludes TTL copying and network waits.
 func BenchmarkResolveMissingGlueDualStackCached(b *testing.B) {
-	rec, cache := newMissingGlueBenchmarkResolver(b)
+	rec, cache := newMissingGlueCachedResolver(b)
 	ctx := b.Context()
 	msg, _, err := rec.ResolveWithOptions(ctx, cache, nil, "www.example.com.", dns.TypeA)
 	if err != nil || msg == nil || len(msg.Answer) != 1 {

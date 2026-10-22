@@ -201,7 +201,13 @@ retryWithoutQMIN:
 				if len(nsNames) > 0 {
 					missingNS := q.missingNSAddrs(nsNames)
 					if len(missingNS) > 0 {
-						nsAddrs = appendUniqueAddrs(nsAddrs, q.resolveNSAddrs(ctx, missingNS))
+						resolved := q.resolveNSAddrs(ctx, missingNS)
+						if len(nsAddrs) == 0 {
+							// Resolved addresses are unique and owned by this query.
+							nsAddrs = resolved
+						} else {
+							nsAddrs = appendUniqueAddrs(nsAddrs, resolved)
+						}
 					}
 				}
 				if len(nsAddrs) > 0 {
@@ -265,6 +271,10 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 		addr := pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
 		if addr.IsValid() {
 			if !slices.Contains(nsAddr, addr) {
+				if nsAddr == nil {
+					// Keep capacity small when glue is sparse or addresses repeat.
+					nsAddr = make([]netip.Addr, 0, min(len(nsNames), 2))
+				}
 				nsAddr = append(nsAddr, addr)
 			}
 		}
@@ -279,6 +289,10 @@ func appendZoneNSNames(dst []string, records []dns.RR, zone string) (out []strin
 			if strings.EqualFold(ns.Hdr.Name, zone) {
 				nsName := dns.CanonicalName(ns.Ns)
 				if !slices.Contains(out, nsName) {
+					if out == nil {
+						// Bound capacity when records include duplicates or unrelated RRs.
+						out = make([]string, 0, min(len(records), 4))
+					}
 					out = append(out, nsName)
 				}
 			}
