@@ -470,7 +470,8 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 						}
 					}
 				}
-				if useIPv6 {
+				// Only one address is used per owner, with IPv4 preferred.
+				if useIPv6 && (len(hostAddrs) == 0 || !hostAddrs[0].Is4()) {
 					if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
 						var addr netip.Addr
 						addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
