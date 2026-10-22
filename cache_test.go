@@ -188,7 +188,7 @@ func TestCacheDnsSetPrefersAuthoritativeOverNonAuthoritative(t *testing.T) {
 	cache.DnsSet(nonAuthoritative)
 
 	cv := mustCacheValue(t, cache, qname, dns.TypeA)
-	if !cv.Msg.Authoritative {
+	if !cv.Authoritative {
 		t.Fatalf("expected authoritative cache entry to win over non-authoritative entry")
 	}
 
@@ -216,7 +216,7 @@ func TestCacheDnsSetAuthoritativeReplacesNonAuthoritative(t *testing.T) {
 	cache.DnsSet(authoritative)
 
 	cv := mustCacheValue(t, cache, qname, dns.TypeA)
-	if !cv.Msg.Authoritative {
+	if !cv.Authoritative {
 		t.Fatalf("expected authoritative cache entry after replacement")
 	}
 
@@ -750,7 +750,7 @@ func TestCacheMergePrefersAuthoritativeOverLongerNonAuthoritative(t *testing.T) 
 	dst.Merge(src)
 
 	cv := mustCacheEntry(t, dst, qname, dns.TypeA, authoritativeExpires)
-	if !cv.Msg.Authoritative {
+	if !cv.Authoritative {
 		t.Fatalf("merge replaced authoritative entry with non-authoritative entry")
 	}
 
@@ -784,7 +784,7 @@ func TestCacheMergeAuthoritativeReplacesLongerNonAuthoritative(t *testing.T) {
 	dst.Merge(src)
 
 	cv := mustCacheEntry(t, dst, qname, dns.TypeA, authoritativeExpires)
-	if !cv.Msg.Authoritative {
+	if !cv.Authoritative {
 		t.Fatalf("merge did not replace non-authoritative entry with authoritative entry")
 	}
 

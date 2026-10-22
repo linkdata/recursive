@@ -199,8 +199,7 @@ retryWithoutQMIN:
 					}
 				}
 				if len(nsNames) > 0 {
-					var missingNS []string
-					missingNS = q.missingNSAddrs(nsNames)
+					missingNS := q.missingNSAddrs(nsNames)
 					if len(missingNS) > 0 {
 						nsAddrs = appendUniqueAddrs(nsAddrs, q.resolveNSAddrs(ctx, missingNS))
 					}
@@ -263,8 +262,7 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 	// Build one preferred address per nameserver owner. Keeping every
 	// address can create an oversized list of candidate servers.
 	for _, nsName := range nsNames {
-		var addr netip.Addr
-		addr = pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
+		addr := pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
 		if addr.IsValid() {
 			if !slices.Contains(nsAddr, addr) {
 				nsAddr = append(nsAddr, addr)
@@ -463,8 +461,7 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 				q.stepLimit = hostStepLimit
 				if useIPv4 {
 					if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
-						var addr netip.Addr
-						addr = firstResolvedAddr(msg, host, dns.TypeA)
+						addr := firstResolvedAddr(msg, host, dns.TypeA)
 						if addr.IsValid() {
 							hostAddrs = append(hostAddrs, addr)
 						}
@@ -473,15 +470,13 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 				// Only one address is used per owner, with IPv4 preferred.
 				if useIPv6 && (len(hostAddrs) == 0 || !hostAddrs[0].Is4()) {
 					if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
-						var addr netip.Addr
-						addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
+						addr := firstResolvedAddr(msg, host, dns.TypeAAAA)
 						if addr.IsValid() {
 							hostAddrs = append(hostAddrs, addr)
 						}
 					}
 				}
-				var addr netip.Addr
-				addr = pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
+				addr := pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
 				if addr.IsValid() {
 					if !slices.Contains(addrs, addr) {
 						addrs = append(addrs, addr)
@@ -693,7 +688,6 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 		maxCookieRetries := 1
 		for attempt := 0; attempt <= maxCookieRetries; attempt++ {
 			msg = nil
-			err = nil
 			var network string
 			if nsaddr.Is4() {
 				network = protocol + "4"

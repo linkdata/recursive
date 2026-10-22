@@ -96,6 +96,7 @@ func main() {
 			if len(os.Args) < 2 {
 				of = os.Stdout
 			} else {
+				// #nosec G703 -- the output path is an explicit local CLI argument
 				if of, err = os.Create(os.Args[1]); err == nil {
 					defer closeWithJoin(&err, of)
 				}

@@ -34,10 +34,7 @@ func CompareMessage(a, b *dns.Msg, w io.Writer) (cmp int) {
 	aSections := newComparableSections(a)
 	bSections := newComparableSections(b)
 
-	equivalent := true
-	if !compareRcode(a, b, out) {
-		equivalent = false
-	}
+	equivalent := compareRcode(a, b, out)
 	if !compareSectionRRs("answer", aSections.answer, bSections.answer, out) {
 		equivalent = false
 	}

@@ -76,7 +76,9 @@ func (cache *Cache) bucketFor(key bucketKey) (bucket *cacheBucket) {
 
 // DnsSet adds a DNS message to the cache.
 //
-// Does nothing if the message has the Zero flag set, or does not have exactly one Question.
+// It copies accepted messages before storage. A nil Cache does nothing. Nil
+// messages, messages with the Zero flag set, and messages without exactly one
+// Question are ignored.
 func (cache *Cache) DnsSet(msg *dns.Msg) {
 	if cache != nil && msg != nil && !msg.Zero && len(msg.Question) == 1 {
 		question := msg.Question[0]
@@ -96,9 +98,9 @@ func (cache *Cache) DnsSet(msg *dns.Msg) {
 
 // DnsGet returns an unexpired cached DNS message.
 //
-// Expired entries are removed. Returned messages have [dns.Msg.Zero] set and
-// must be treated as immutable. Record TTLs are capped at the remaining cache
-// lifetime, except for OPT pseudo-records.
+// A nil Cache returns nil. Expired entries are removed. Returned messages have
+// [dns.Msg.Zero] set and must be treated as immutable. Record TTLs are capped
+// at the remaining cache lifetime, except for OPT pseudo-records.
 func (cache *Cache) DnsGet(qname string, qtype uint16) (msg *dns.Msg) {
 	msg, _ = cache.Get(qname, qtype, nil)
 	return
@@ -112,7 +114,9 @@ func defaultAllowFn(msg *dns.Msg, ttl time.Duration) bool {
 //
 // The callback receives the stored message and its remaining lifetime. If it
 // returns false, that entry is removed. A nil callback rejects stale entries.
-// Returned messages follow the same immutable and TTL rules as [Cache.DnsGet].
+// The stale result reports whether a found entry has expired. A nil Cache
+// returns nil and false. Returned messages follow the same immutable and TTL
+// rules as [Cache.DnsGet].
 func (cache *Cache) Get(qname string, qtype uint16, allowfn func(msg *dns.Msg, ttl time.Duration) bool) (msg *dns.Msg, stale bool) {
 	var remaining uint32
 	msg, stale, remaining = cache.getRaw(qname, qtype, allowfn)
