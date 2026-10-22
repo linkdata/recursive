@@ -179,7 +179,7 @@ retryWithoutQMIN:
 			continue
 		}
 		srv = parent
-		if resp, err = q.exchangeWithCachePolicy(ctx, queryName, dns.TypeNS, srv, allowCached); resp != nil && err == nil {
+		if resp, err = q.exchangeWithCachePolicy(ctx, queryName, dns.TypeNS, srv, allowCached, true); resp != nil && err == nil {
 			if resp.Rcode == dns.RcodeSuccess {
 				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)
 				if len(nsNames) == 0 {
@@ -199,8 +199,7 @@ retryWithoutQMIN:
 					}
 				}
 				if len(nsNames) > 0 {
-					var missingNS []string
-					missingNS = q.missingNSAddrs(nsNames)
+					missingNS := q.missingNSAddrs(nsNames)
 					if len(missingNS) > 0 {
 						nsAddrs = appendUniqueAddrs(nsAddrs, q.resolveNSAddrs(ctx, missingNS))
 					}
@@ -263,8 +262,7 @@ func (q *query) extractDelegationNS(m *dns.Msg, zone string) (nsNames []string, 
 	// Build one preferred address per nameserver owner. Keeping every
 	// address can create an oversized list of candidate servers.
 	for _, nsName := range nsNames {
-		var addr netip.Addr
-		addr = pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
+		addr := pickPreferredNSAddr(q.glue[nsName], useIPv4, useIPv6)
 		if addr.IsValid() {
 			if !slices.Contains(nsAddr, addr) {
 				nsAddr = append(nsAddr, addr)
@@ -343,7 +341,7 @@ func (q *query) queryFinal(ctx context.Context, qname string, qtype uint16, auth
 			q.logResponse(0, resp, err)
 		}()
 		for _, svr = range authServers {
-			if resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, svr, isAuthoritativeCacheResponse); resp != nil && err == nil {
+			if resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, svr, isAuthoritativeCacheResponse, false); resp != nil && err == nil {
 				if resp.Rcode == dns.RcodeSuccess {
 					terminal := hasRRType(resp.Answer, qtype)
 					if !terminal {
@@ -463,24 +461,22 @@ func (q *query) resolveNSAddrs(ctx context.Context, nsOwners []string) (addrs []
 				q.stepLimit = hostStepLimit
 				if useIPv4 {
 					if msg, _, err := q.resolve(ctx, host, dns.TypeA); err == nil {
-						var addr netip.Addr
-						addr = firstResolvedAddr(msg, host, dns.TypeA)
+						addr := firstResolvedAddr(msg, host, dns.TypeA)
 						if addr.IsValid() {
 							hostAddrs = append(hostAddrs, addr)
 						}
 					}
 				}
-				if useIPv6 {
+				// Only one address is used per owner, with IPv4 preferred.
+				if useIPv6 && (len(hostAddrs) == 0 || !hostAddrs[0].Is4()) {
 					if msg, _, err := q.resolve(ctx, host, dns.TypeAAAA); err == nil {
-						var addr netip.Addr
-						addr = firstResolvedAddr(msg, host, dns.TypeAAAA)
+						addr := firstResolvedAddr(msg, host, dns.TypeAAAA)
 						if addr.IsValid() {
 							hostAddrs = append(hostAddrs, addr)
 						}
 					}
 				}
-				var addr netip.Addr
-				addr = pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
+				addr := pickPreferredNSAddr(hostAddrs, useIPv4, useIPv6)
 				if addr.IsValid() {
 					if !slices.Contains(addrs, addr) {
 						addrs = append(addrs, addr)
@@ -600,14 +596,26 @@ func (q *query) logResponse(rtt time.Duration, msg *dns.Msg, err error) {
 }
 
 func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr) (resp *dns.Msg, err error) {
-	resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, nsaddr, nil)
+	resp, err = q.exchangeWithCachePolicy(ctx, qname, qtype, nsaddr, nil, false)
 	return
 }
 
-func (q *query) exchangeWithCachePolicy(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr, allowCached func(*dns.Msg) bool) (resp *dns.Msg, err error) {
+func (q *query) exchangeWithCachePolicy(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr, allowCached func(*dns.Msg) bool, readOnlyCached bool) (resp *dns.Msg, err error) {
 	if q.cache != nil {
-		if resp = q.cache.DnsGet(qname, qtype); resp != nil {
+		cache, raw := q.cache.(*Cache)
+		var remaining uint32
+		if raw && readOnlyCached {
+			resp, _, remaining = cache.getRaw(qname, qtype, nil)
+		} else {
+			resp = q.cache.DnsGet(qname, qtype)
+		}
+		if resp != nil {
 			if allowCached == nil || allowCached(resp) {
+				// Successful delegation replies are read only here; q.resolve
+				// obtains the final response separately. Other RCODEs can escape.
+				if raw && readOnlyCached && resp.Rcode != dns.RcodeSuccess {
+					resp = clampCachedMessage(resp, remaining)
+				}
 				q.logf("CACHED: %s %q", dns.Type(qtype), qname)
 				q.logResponse(0, resp, nil)
 				return
@@ -680,7 +688,6 @@ func (q *query) exchangeWithNetwork(ctx context.Context, protocol string, qname 
 		maxCookieRetries := 1
 		for attempt := 0; attempt <= maxCookieRetries; attempt++ {
 			msg = nil
-			err = nil
 			var network string
 			if nsaddr.Is4() {
 				network = protocol + "4"
@@ -958,6 +965,7 @@ func delegationRecords(m *dns.Msg, zone string) (out []dns.RR) {
 	}
 	return
 }
+
 func cnameChainRecords(rrs []dns.RR, owner string) []dns.RR {
 	var out []dns.RR
 	for _, rr := range rrs {
