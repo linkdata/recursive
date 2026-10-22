@@ -165,7 +165,6 @@ func (q *query) queryForDelegation(ctx context.Context, zone string, parentServe
 
 func (q *query) queryForDelegationWithCachePolicy(ctx context.Context, zone string, parentServers []netip.Addr, fullQname string, allowCached func(*dns.Msg) bool) (nsAddrs []netip.Addr, resp *dns.Msg, srv netip.Addr, err error) {
 	var nsNames []string
-	parentServers = appendUniqueAddrs(nil, parentServers)
 	queryName := zone
 	maybeRetryWithoutQMIN := func() (yes bool) {
 		if yes = queryName != fullQname; yes {
@@ -175,7 +174,11 @@ func (q *query) queryForDelegationWithCachePolicy(ctx context.Context, zone stri
 		return
 	}
 retryWithoutQMIN:
-	for _, srv = range parentServers {
+	for i, parent := range parentServers {
+		if slices.Contains(parentServers[:i], parent) {
+			continue
+		}
+		srv = parent
 		if resp, err = q.exchangeWithCachePolicy(ctx, queryName, dns.TypeNS, srv, allowCached); resp != nil && err == nil {
 			if resp.Rcode == dns.RcodeSuccess {
 				nsNames, nsAddrs = q.extractDelegationNS(resp, zone)

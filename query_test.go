@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/netip"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -146,6 +147,38 @@ func TestQueryForDelegationFallbackUsesZoneForReferralExtraction(t *testing.T) {
 	}
 	if len(addrs) != 1 || addrs[0] != referralAddr {
 		t.Fatalf("unexpected delegation addresses: %#v", addrs)
+	}
+}
+
+func TestQueryForDelegationSkipsDuplicateParents(t *testing.T) {
+	t.Parallel()
+
+	first := netip.MustParseAddr("192.0.2.1")
+	last := netip.MustParseAddr("192.0.2.2")
+	parents := []netip.Addr{first, last, first}
+	wantParents := slices.Clone(parents)
+	dialer := &scriptedDNSServerDialer{}
+	rec := NewWithOptions(dialer, nil, []netip.Addr{first, last}, nil, nil)
+	rec.useUDP = false
+	q := &query{Recursive: rec, glue: make(map[string][]netip.Addr)}
+
+	addrs, resp, srv, err := q.queryForDelegation(t.Context(), "example.com.", parents, "example.com.")
+	if err != nil {
+		t.Fatalf("queryForDelegation returned error: %v", err)
+	}
+	if resp == nil || resp.Rcode != dns.RcodeServerFailure || len(addrs) != 0 {
+		t.Fatalf("unexpected delegation: addrs=%v resp=%v", addrs, resp)
+	}
+	if srv != last {
+		t.Fatalf("last tried server = %v, want %v", srv, last)
+	}
+	for _, addr := range []netip.Addr{first, last} {
+		if calls := dialer.callsTo(netip.AddrPortFrom(addr, rec.DNSPort).String()); calls != 1 {
+			t.Errorf("server %v queried %d times, want 1", addr, calls)
+		}
+	}
+	if !slices.Equal(parents, wantParents) {
+		t.Fatalf("parent servers changed: got %v, want %v", parents, wantParents)
 	}
 }
 
