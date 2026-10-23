@@ -110,8 +110,9 @@ func (q *query) queryDelegation(ctx context.Context, qname string) (servers []ne
 			q.logf("DELEGATION ANSWER %q: %s with %d servers\n", qname, rcode, len(servers))
 		}()
 
+		// Published root slices are immutable while queries hold them.
 		q.mu.RLock()
-		servers = append([]netip.Addr(nil), q.rootServers...)
+		servers = q.rootServers
 		q.mu.RUnlock()
 		labels := dns.SplitDomainName(qname)
 
@@ -874,6 +875,7 @@ func (r *Recursive) sortAddrs(in []netip.Addr) []netip.Addr {
 	if r.Deterministic {
 		sort.Slice(in, func(i, j int) bool { return in[i].Compare(in[j]) < 0 })
 	} else {
+		// #nosec G404 -- nameserver order randomization distributes load; it protects no secret.
 		rand.Shuffle(len(in), func(i, j int) { in[i], in[j] = in[j], in[i] })
 	}
 	return in

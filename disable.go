@@ -3,6 +3,7 @@ package recursive
 import (
 	"errors"
 	"net"
+	"net/netip"
 	"strings"
 	"syscall"
 )
@@ -31,14 +32,13 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 			if r.useIPv6 {
 				r.useIPv6 = false
 				disabled = true
-				var idx int
-				for i := range r.rootServers {
-					if r.rootServers[i].Is4() {
-						r.rootServers[idx] = r.rootServers[i]
-						idx++
+				roots := make([]netip.Addr, 0, len(r.rootServers))
+				for _, addr := range r.rootServers {
+					if addr.Is4() {
+						roots = append(roots, addr)
 					}
 				}
-				r.rootServers = r.rootServers[:idx]
+				r.rootServers = roots
 			}
 		}
 	}
@@ -48,7 +48,7 @@ func (r *Recursive) maybeDisableIPv6(err error) (disabled bool) {
 func (r *Recursive) maybeDisableUdp(err error) (disabled bool) {
 	var ne net.Error
 	if errors.As(err, &ne) && !ne.Timeout() {
-		errstr := (err).Error()
+		errstr := err.Error()
 		if errors.Is(err, syscall.ENOSYS) || errors.Is(err, syscall.EPROTONOSUPPORT) || strings.Contains(errstr, "network not implemented") {
 			r.mu.Lock()
 			disabled = r.useUDP
