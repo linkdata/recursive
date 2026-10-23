@@ -74,7 +74,8 @@ func BenchmarkResolveWithDefaultRootsCachedParallel(b *testing.B) {
 				for pb.Next() {
 					msg, _, err := rec.ResolveWithOptions(ctx, cache, nil, "www.example.com.", dns.TypeA)
 					if err != nil || msg == nil || len(msg.Answer) != 1 {
-						b.Fatalf("cached resolution: msg=%v err=%v", msg, err)
+						b.Errorf("cached resolution: msg=%v err=%v", msg, err)
+						return
 					}
 				}
 			})
