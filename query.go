@@ -618,6 +618,12 @@ func (q *query) exchange(ctx context.Context, qname string, qtype uint16, nsaddr
 func (q *query) exchangeWithCachePolicy(ctx context.Context, qname string, qtype uint16, nsaddr netip.Addr, allowCached func(*dns.Msg) bool, readOnlyCached bool) (resp *dns.Msg, err error) {
 	if q.cache != nil {
 		cache, raw := q.cache.(*Cache)
+		if readOnlyCached && !raw {
+			if provider, ok := q.cache.(DelegationCacheProvider); ok {
+				cache = provider.DelegationCache()
+				raw = cache != nil
+			}
+		}
 		var remaining uint32
 		if raw && readOnlyCached {
 			resp, _, remaining = cache.getRaw(qname, qtype, nil)
