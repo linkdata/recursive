@@ -16,3 +16,20 @@ type Cacher interface {
 	// immutable by copying it before applying any mutations.
 	DnsGet(qname string, qtype uint16) *dns.Msg
 }
+
+// DelegationCacheProvider permits direct cache reads for internal delegation lookups.
+//
+// When DelegationCache returns a non-nil cache, that [Cacher]'s DnsGet must have
+// the same response contents, eligibility, expiration and filtering rules as
+// [Cache.DnsGet], with no required per-read side effects. Resolution may bypass
+// the Cacher's DnsGet for these reads. Successful replies are immutable and their
+// record TTLs need not be capped at the remaining cache lifetime. Other replies
+// retain [Cache.DnsGet]'s TTL rules. Final-response lookups and cache writes still
+// use the Cacher.
+//
+// DelegationCache may return nil to use the Cacher's DnsGet. Implementations
+// must support concurrent calls.
+type DelegationCacheProvider interface {
+	// DelegationCache returns the cache to read directly, or nil to use DnsGet.
+	DelegationCache() *Cache
+}
